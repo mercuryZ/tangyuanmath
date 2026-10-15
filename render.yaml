@@ -1,0 +1,9 @@
+# Render Blueprint — Tangyuan Math (M0 静态站)
+# 部署：render.com → New → Blueprint → 选择本仓库，一键创建静态站。
+# 纯静态、无构建步骤，直接发布 public/ 目录。
+services:
+  - type: web
+    name: tangyuanmath
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: ./public
