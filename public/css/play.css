@@ -227,7 +227,7 @@ body {
   position: relative; z-index: 1;
   width: 100%; max-width: 860px;
   display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;
-  margin-top: 26px; font-size: 13px; font-weight: 700;
+  margin-top: auto; padding-top: 26px; font-size: 13px; font-weight: 700;
 }
 .app-footer a { color: var(--ink-soft); text-decoration: none; }
 .app-footer a:hover { color: var(--red-deep); }
