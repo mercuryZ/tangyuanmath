@@ -5,3 +5,4 @@ dist/
 # M1 server data (SQLite local)
 server/data/
 .env.development
+.env.production

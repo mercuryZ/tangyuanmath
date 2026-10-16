@@ -31,3 +31,16 @@
   cursor: pointer; font-size: 12px; padding: 2px 4px;
 }
 .a-btn, a.s-btn { text-decoration: none; display: inline-block; }
+
+/* Google 登录 */
+.oauth-row { margin-top: 18px; max-width: 420px; }
+.oauth-divider {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12.5px; color: var(--ink-soft); font-weight: 700;
+  margin-bottom: 12px; white-space: nowrap;
+}
+.oauth-divider::before, .oauth-divider::after {
+  content: ''; flex: 1; height: 2px; background: var(--red-light); border-radius: 2px;
+}
+.oauth-google { display: inline-flex; align-items: center; gap: 10px; }
+.oauth-google svg { flex-shrink: 0; }

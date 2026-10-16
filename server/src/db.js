@@ -104,6 +104,15 @@ const MIGRATIONS = [
         CHECK (b >= 1 AND b <= 99)
       );
     `
+  },
+  {
+    version: 2,
+    name: 'google-login',
+    sql: `
+      ALTER TABLE users ADD COLUMN google_id TEXT;
+      -- 部分唯一索引：google_id 为空（纯密码账号）不受约束
+      CREATE UNIQUE INDEX idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
+    `
   }
 ];
 

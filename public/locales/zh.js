@@ -196,5 +196,7 @@ window.TM_I18N.zh = {
   'acct.deleted': '账号已删除。',
   'acct.loading': '加载中…',
   'acct.pwdHint': '至少 8 位。',
-  'acct.errorPrefix': '出错了（代码：{code}）。'
+  'acct.errorPrefix': '出错了（代码：{code}）。',
+  'acct.or': '或',
+  'acct.googleBtn': '使用 Google 账号继续'
 };

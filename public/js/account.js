@@ -16,7 +16,20 @@
     rate_limited: { en: 'Too many attempts — please wait a minute.', zh: '尝试过于频繁，请稍等一分钟。' },
     profile_limit: { en: 'One child profile for now.', zh: '目前支持一个儿童档案。' },
     invalid_nickname: { en: 'Nickname must be 1–20 characters.', zh: '昵称需 1–20 个字符。' },
-    network_error: { en: 'Network error — is the server running?', zh: '网络错误——服务器是否在运行？' }
+    network_error: { en: 'Network error — is the server running?', zh: '网络错误——服务器是否在运行？' },
+    email_unverified_exists: {
+      en: 'This email already has a password account that is not verified yet. Sign in with the password first, verify the email, then Google sign-in will connect automatically.',
+      zh: '该邮箱已用密码注册但尚未完成邮箱验证。请先用密码登录并验证邮箱，之后 Google 登录会自动关联。'
+    },
+    google_not_configured: {
+      en: 'Google sign-in is not configured on this server yet.',
+      zh: '此服务器尚未配置 Google 登录。'
+    },
+    google_error: { en: 'Google sign-in was cancelled or failed. Please try again.', zh: 'Google 登录已取消或失败，请重试。' },
+    google_invalid: { en: 'Invalid Google sign-in response.', zh: 'Google 登录响应无效。' },
+    invalid_state: { en: 'Sign-in session expired — please try again.', zh: '登录会话已过期，请重试。' },
+    exchange_failed: { en: 'Could not reach Google. Please try again.', zh: '无法连接 Google，请重试。' },
+    google_email_unverified: { en: 'Google reports this email as not verified.', zh: 'Google 显示该邮箱未验证。' }
   };
   function errMsg(r) {
     if (r && r.code && ERR_MAP[r.code]) return ERR_MAP[r.code][TMI18N.lang()] || ERR_MAP[r.code].en;
@@ -268,6 +281,20 @@
     var q = new URLSearchParams(location.search);
     var token = q.get('token');
     var mode = q.get('mode') || 'verify';
+
+    /* Google 登录按钮：仅当服务端已配置时显示（?authError= 回跳时也显示，便于重试） */
+    global.TMAPI.call('GET', '/api/me').then(function (r) {
+      var enabled = r.ok && r.data && r.data.authMethods && r.data.authMethods.google;
+      document.getElementById('googleRow').hidden = !(enabled || q.get('authError'));
+    });
+
+    /* Google 登录失败回跳：?authError=<code> */
+    if (q.get('authError')) {
+      showView('auth');
+      setAuthMode('login');
+      $('formMsg').textContent = errMsg({ code: q.get('authError') });
+    }
+
     if (token && mode === 'verify') {
       showView('token');
       global.TMAPI.verifyEmail(token).then(function (r) {

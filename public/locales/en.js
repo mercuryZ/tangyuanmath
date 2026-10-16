@@ -196,5 +196,7 @@ window.TM_I18N.en = {
   'acct.deleted': 'Account deleted.',
   'acct.loading': 'Loading…',
   'acct.pwdHint': 'At least 8 characters.',
-  'acct.errorPrefix': 'Something went wrong (code: {code}).'
+  'acct.errorPrefix': 'Something went wrong (code: {code}).',
+  'acct.or': 'or',
+  'acct.googleBtn': 'Continue with Google'
 };

@@ -55,6 +55,42 @@ function issueOneTimeToken(db, userId, purpose, email, capture) {
   return { token, url };
 }
 
+/* ---------- Google 登录（OAuth 2.0 授权码重定向流程，DESIGN 5.1） ----------
+ * 我们的页面零第三方脚本（严格 CSP 不变）：浏览器仅在 Google 站点上完成授权。
+ * 账号关联规则（防「预注册劫持」）：
+ *   1) 已绑定 google_id → 直接登录；
+ *   2) 同邮箱且本地账号已通过邮箱验证 → 自动关联（Google 邮箱已验证，双向确权）；
+ *   3) 同邮箱但本地账号未验证 → 拒绝，要求先密码登录并完成邮箱验证；
+ *   4) 全新邮箱 → 直接建号，标记已验证，password_hash 存空串（密码登录自然失效）。 */
+function googleEnabled() {
+  return !!(config.googleClientId && config.googleClientSecret);
+}
+
+/* 核心：按 Google 档案解析/创建用户。供集成测试直接调用。 */
+function resolveGoogleUser(db, profile, now) {
+  now = now || Date.now();
+  const email = U.normalizeEmail(profile.email);
+  const byGoogle = db.prepare('SELECT * FROM users WHERE google_id = ?').get(profile.sub);
+  if (byGoogle) return { user: byGoogle };
+
+  const byEmail = db.prepare('SELECT * FROM users WHERE email_normalized = ?').get(email);
+  if (byEmail) {
+    if (!byEmail.email_verified_at) return { error: 'email_unverified_exists' };
+    db.prepare('UPDATE users SET google_id = ? WHERE id = ?').run(profile.sub, byEmail.id);
+    return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(byEmail.id) };
+  }
+  const info = db.prepare(
+    `INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at, google_id)
+     VALUES (?,?,?,?,?,?,?)`
+  ).run(email, '', now, profile.locale === 'zh' ? 'zh' : 'en', 'UTC', now, profile.sub);
+  return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid) };
+}
+
+function oauthRedirectUri(req) {
+  // 从请求推导（trust proxy 已开启），须与 Google Console 登记的回调地址完全一致
+  return req.protocol + '://' + req.get('host') + '/api/auth/google/callback';
+}
+
 function buildAuthRouter(db) {
   const r = express.Router();
 
@@ -177,20 +213,101 @@ function buildAuthRouter(db) {
       ok(res, { reset: true });
     });
 
+  /* ---------- Google 登录两个端点 ---------- */
+  r.get('/google',
+    rateLimit({ windowMs: 60000, max: 30, name: 'google-start' }),
+    function (req, res) {
+      if (!googleEnabled()) return res.redirect('/account/?authError=google_not_configured');
+      const state = U.randomToken(24);
+      res.cookie('tm_oauth_state', state, {
+        httpOnly: true, sameSite: 'lax',
+        secure: req.secure || config.isProd,
+        maxAge: 10 * 60 * 1000, path: '/api/auth/google'
+      });
+      const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
+        client_id: config.googleClientId,
+        redirect_uri: oauthRedirectUri(req),
+        response_type: 'code',
+        scope: 'openid email', // 最小化：只要验证过的邮箱与用户 ID
+        state: state,
+        access_type: 'online',
+        prompt: 'select_account'
+      }).toString();
+      res.redirect(302, url);
+    });
+
+  r.get('/google/callback',
+    rateLimit({ windowMs: 60000, max: 30, name: 'google-callback' }),
+    async function (req, res) {
+      const failRedirect = function (code) { return res.redirect('/account/?authError=' + encodeURIComponent(code)); };
+      const code = req.query.code, state = req.query.state, qErr = req.query.error;
+      if (qErr) return failRedirect('google_error');
+      if (!code || !state || typeof code !== 'string' || typeof state !== 'string') return failRedirect('google_invalid');
+
+      // state 双向校验（OAuth CSRF 防护，先于配置检查），用完即清
+      const cookieState = req.cookies ? req.cookies.tm_oauth_state : null;
+      res.clearCookie('tm_oauth_state', { path: '/api/auth/google' });
+      if (!cookieState || cookieState !== state) return failRedirect('invalid_state');
+
+      if (!googleEnabled()) return failRedirect('google_not_configured');
+
+      // 授权码换令牌（服务端到服务端，TLS 直连，id_token 无需再验签）
+      let tokens = null;
+      try {
+        const resp = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            code: code,
+            client_id: config.googleClientId,
+            client_secret: config.googleClientSecret,
+            redirect_uri: oauthRedirectUri(req),
+            grant_type: 'authorization_code'
+          })
+        });
+        tokens = await resp.json();
+      } catch (e) {
+        return failRedirect('exchange_failed');
+      }
+      if (!tokens || !tokens.id_token) return failRedirect('exchange_failed');
+
+      let payload;
+      try {
+        payload = JSON.parse(Buffer.from(String(tokens.id_token).split('.')[1], 'base64url').toString('utf8'));
+      } catch (e) {
+        return failRedirect('exchange_failed');
+      }
+      if (!payload.sub || !payload.email || payload.email_verified !== true) {
+        return failRedirect('google_email_unverified');
+      }
+
+      const localeCookie = req.cookies ? req.cookies.tm_lang : null;
+      const resolved = resolveGoogleUser(db, {
+        sub: payload.sub, email: payload.email, locale: localeCookie === 'zh' ? 'zh' : 'en'
+      });
+      if (resolved.error) return failRedirect(resolved.error);
+
+      const token = createSession(db, resolved.user.id);
+      setSessionCookie(req, res, token);
+      issueCsrfCookie(req, res); // 回到 /account/ 后立即可调用修改类接口
+      res.redirect('/account/');
+    });
+
   return r;
 }
 
 /* GET /api/me：语言、时区、档案与权益（M1 无付费权益 → 空 entitlements） */
 function meHandler(db) {
   return (req, res) => {
-    if (!req.user) return ok(res, { user: null });
+    if (!req.user) return ok(res, { user: null, authMethods: { google: googleEnabled() } });
     const profiles = db.prepare(
       'SELECT id, nickname, avatar_key AS avatarKey, created_at AS createdAt FROM child_profiles WHERE user_id = ? ORDER BY id'
     ).all(req.user.id);
     ok(res, {
       user: publicUser(req.user),
       profiles,
-      entitlements: [] // M2 起由 orders/entitlements 提供
+      entitlements: [], // M2 起由 orders/entitlements 提供
+      authMethods: { google: googleEnabled() }
     });
   };
 }
@@ -220,4 +337,8 @@ function updateMeHandler(db) {
   }];
 }
 
-module.exports = { buildAuthRouter, meHandler, updateMeHandler, issueOneTimeToken, setSessionCookie, clearSessionCookie, publicUser };
+module.exports = {
+  buildAuthRouter, meHandler, updateMeHandler,
+  issueOneTimeToken, setSessionCookie, clearSessionCookie, publicUser,
+  resolveGoogleUser, googleEnabled
+};

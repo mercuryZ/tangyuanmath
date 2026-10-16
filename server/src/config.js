@@ -21,5 +21,8 @@ module.exports = {
   smtpUrl: process.env.TM_SMTP_URL || '',
   mailFrom: process.env.TM_MAIL_FROM || 'Tangyuan Math <no-reply@example.invalid>',
   // 公开基址（拼验证/重置链接）：Render 上自动用 RENDER_EXTERNAL_URL，自定义域名时用 TM_PUBLIC_BASE_URL 覆盖
-  publicBaseUrl: process.env.TM_PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://127.0.0.1:3000'
+  publicBaseUrl: process.env.TM_PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://127.0.0.1:3000',
+  // Google 登录（OAuth 2.0 授权码重定向流程；两者都配置后功能自动开启）
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
 };

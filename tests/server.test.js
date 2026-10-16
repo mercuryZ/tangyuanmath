@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const { initDb } = require('../server/src/db');
 const { createApp } = require('../server/src/index');
 
-let base, jar, csrfToken, mailCapture, serverRef;
+let base, jar, csrfToken, mailCapture, serverRef, dbRef;
 
 function resetJar() { jar = new Map(); csrfToken = null; }
 
@@ -61,6 +61,7 @@ function extractTokenFromMail() {
 test.before(async () => {
   const dbFile = path.join(os.tmpdir(), `tm-test-${Date.now()}.db`);
   const db = initDb(dbFile);
+  dbRef = db;
   mailCapture = [];
   const app = createApp(db, { mailCapture });
   const server = await new Promise(resolve => {
@@ -341,6 +342,58 @@ test('请求体限制：超大 JSON → 413', async () => {
   const big = { padding: 'x'.repeat(200 * 1024) };
   const r = await req('POST', '/api/auth/forgot-password', big);
   assert.strictEqual(r.status, 413);
+});
+
+
+/* ============ Google 登录（M1 补充） ============ */
+const { resolveGoogleUser } = require('../server/src/auth');
+
+test('Google：全新邮箱直接建号（已验证、空密码哈希、带 google_id），再次解析即登录', async () => {
+  const r1 = resolveGoogleUser(dbRef, { sub: 'g-sub-111', email: 'GoogleUser@Example.com', locale: 'zh' });
+  assert.ok(r1.user, '创建成功');
+  assert.strictEqual(r1.user.google_id, 'g-sub-111');
+  assert.strictEqual(r1.user.email_normalized, 'googleuser@example.com'); // 规范化
+  assert.ok(r1.user.email_verified_at, '直接标记已验证');
+  assert.strictEqual(r1.user.password_hash, '', '空密码哈希');
+
+  // 空哈希下密码登录必然失败
+  const pwLogin = await req('POST', '/api/auth/login', { email: 'googleuser@example.com', password: 'whatever-123' });
+  assert.strictEqual(pwLogin.status, 401);
+
+  const r2 = resolveGoogleUser(dbRef, { sub: 'g-sub-111', email: 'googleuser@example.com' });
+  assert.strictEqual(r2.user.id, r1.user.id, '同 google_id 复用账号');
+});
+
+test('Google：同邮箱已验证账号自动关联；未验证账号拒绝（防预注册劫持）', async () => {
+  // 建一个已验证的密码账号
+  await req('POST', '/api/auth/register', { email: 'linkme@example.com', password: 'link-pass-123' });
+  const vt = extractTokenFromMail();
+  await req('POST', '/api/auth/verify-email', { token: vt });
+
+  const linked = resolveGoogleUser(dbRef, { sub: 'g-sub-222', email: 'linkme@example.com' });
+  assert.ok(linked.user.google_id === 'g-sub-222', '自动关联');
+  assert.ok(linked.user.email_verified_at, '保留已验证状态');
+  assert.notStrictEqual(linked.user.password_hash, '', '原密码保留可继续用');
+
+  // 未验证账号 → 拒绝
+  await req('POST', '/api/auth/register', { email: 'unverified@example.com', password: 'some-pass-123' });
+  const rejected = resolveGoogleUser(dbRef, { sub: 'g-sub-333', email: 'unverified@example.com' });
+  assert.strictEqual(rejected.error, 'email_unverified_exists');
+});
+
+test('Google：未配置时访问入口重定向到带错误码的 account 页', async () => {
+  const r = await fetch(base + '/api/auth/google', { redirect: 'manual' });
+  assert.strictEqual(r.status, 302);
+  const loc = r.headers.get('location');
+  assert.ok(loc.startsWith('/account/?authError=google_not_configured'), 'redirect: ' + loc);
+});
+
+test('Google：callback 缺 state/伪造 state 一律被拒', async () => {
+  const bad1 = await fetch(base + '/api/auth/google/callback?code=x&state=forged-state-1234567890', { redirect: 'manual' });
+  assert.strictEqual(bad1.status, 302);
+  assert.ok(bad1.headers.get('location').includes('invalid_state'));
+  const bad2 = await fetch(base + '/api/auth/google/callback?error=access_denied', { redirect: 'manual' });
+  assert.ok(bad2.headers.get('location').includes('google_error'));
 });
 
 test('登录限流：连续失败最终 429', async () => {
