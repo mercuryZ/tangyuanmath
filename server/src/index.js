@@ -55,6 +55,22 @@ function createApp(db, opts) {
 
   app.use('/api', api);
 
+  /* ---------- 无语言前缀的简写路径 → 英文页 ----------
+   * 用户与外部审核方常直接输入 /privacy、/about 这类地址。若不重定向，它们会落到
+   * 下方 404 兜底：状态码 404 + 正文是首页，容易被误判为「页面不存在/内容不足」。 */
+  const BARE_PAGE_REDIRECTS = {
+    '/privacy': '/en/privacy/',
+    '/about': '/en/about/',
+    '/terms': '/en/terms/',
+    '/faq': '/en/faq/'
+  };
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    const target = BARE_PAGE_REDIRECTS[req.path.replace(/\/+$/, '')];
+    if (target) return res.redirect(301, target);
+    next();
+  });
+
   /* ---------- 静态站点（public/） ---------- */
   app.use(express.static(config.publicDir, {
     extensions: ['html'],
