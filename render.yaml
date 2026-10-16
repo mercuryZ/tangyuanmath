@@ -1,35 +1,51 @@
 # Render Blueprint — Tangyuan Math (M1：Express + SQLite)
 # 部署：render.com → New → Blueprint → 选择本仓库，一键创建 Web Service + 持久磁盘。
 #
-# 与 M0（纯静态站）的区别：
-#   - 从 Static Site 改为 Node Web Service：同一个进程托管 public/ 静态文件 + /api 接口；
-#   - 新增持久磁盘挂载 SQLite（数据库不能放在临时文件系统，否则每次部署/重启数据清零）；
-#   - 环境变量里配置生产参数（见下方注释）。
+# ⚠️ 本文件必须与线上实况保持一致。当前线上服务（name: tangyuanmath）是手工创建的，
+#    Blueprint 同步是「按 name 认领」：一旦你为本仓库创建 Blueprint 或点同步，
+#    Render 会把下面的配置应用到那个已存在的服务上。所以这里写的每一项都应等于控制台现值，
+#    否则同步会改动生产配置（包括磁盘挂载点，而磁盘上放着唯一的 SQLite 数据）。
+#    对齐依据：部署日志（buildCommand 为 `cd server && pnpm install`，说明未设置 rootDir）
+#    + 控制台环境变量。
 #
 # 重要提示：
+#   - 磁盘挂载点与 TM_DB_FILE 必须落在同一个目录下，否则数据不会写到持久盘上。
 #   - 持久磁盘是付费功能：服务需 Starter 及以上实例（约 $7/月），磁盘约 $0.25/GB/月。
+#   - 挂载磁盘会禁用零停机部署（旧实例先停、新实例再起，期间数秒不可用），且无法扩容到多实例。
 #   - 若坚持 Free 实例：无法挂载磁盘，SQLite 数据在每次部署/重启后都会清空，只适合临时演示。
 services:
   - type: web
     name: tangyuanmath
     runtime: node
-    rootDir: server          # package.json 位于 server/ 目录
-    buildCommand: npm install -g pnpm && pnpm install --frozen-lockfile  # 依据 pnpm-lock.yaml 精确安装
-    startCommand: node src/index.js
+    # 不设 rootDir：构建/启动命令自行 cd 进 server/（与线上一致，见文件头说明）
+    buildCommand: cd server && pnpm install
+    startCommand: cd server && node src/index.js
     healthCheckPath: /
     plan: starter            # 需要持久磁盘；若接受丢数据可改回 free 并删除下方 disk 块
     disk:
       name: tm-data
-      mountPath: /var/data
+      mountPath: /data       # 与控制台磁盘挂载点一致
       sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production            # 启用 secure cookie、严格 CSP、静态缓存
-      - key: NODE_VERSION
-        value: "22"                  # 固定 Node 主版本，与 engines >=22.5 一致
       - key: TM_DB_FILE
-        value: /var/data/app.db      # 数据库写到持久磁盘
+        value: /data/app.db          # 必须位于上方 mountPath 之内，数据库才写到持久磁盘
       - key: TM_MAIL_TRANSPORT
         value: console               # M1 邮件先打到日志；接真实 SMTP 时改为 smtp 并配 TM_SMTP_URL
-      # TM_PUBLIC_BASE_URL 不必手动填：config.js 会自动回退到 Render 注入的 RENDER_EXTERNAL_URL。
-      # 若以后绑定自定义域名，再在控制台加 TM_PUBLIC_BASE_URL 覆盖即可。
+      - key: TM_PUBLIC_BASE_URL
+        value: https://tangyuanmath.onrender.com   # 拼验证/重置链接；不设也能回退到 RENDER_EXTERNAL_URL
+      # Google 登录（OAuth 2.0）。密钥不进仓库：sync: false 表示值在控制台填写，
+      # 后续同步会保留控制台已有值。注意：首次创建 Blueprint 时 Render 会提示你输入这两项，
+      # 请把控制台里已有的值粘贴进去，留空会导致 Google 登录失效。
+      # 另需在 Google Cloud Console 的 OAuth 2.0 客户端里登记回调地址：
+      #   https://tangyuanmath.onrender.com/api/auth/google/callback
+      #   http://127.0.0.1:3000/api/auth/google/callback  （本地开发用）
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # NODE_VERSION 故意不设：线上由 server/package.json 的 engines(>=22.5) 决定，当前解析为 Node 26.x。
+      # 若要固定大版本，取消下面两行注释（注意：换大版本会触发 better-sqlite3 原生模块重新编译）。
+      # - key: NODE_VERSION
+      #   value: "22"
