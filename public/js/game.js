@@ -57,6 +57,14 @@
   function loadBook() { return TMRecords.load(null, TMRecords.KEYS.wrongbook); }
   function saveBook(book) { TMRecords.save(null, TMRecords.KEYS.wrongbook, book); }
 
+  /* 云端模式：登录且有档案时，错题本与记录以服务端为准（DESIGN M1）
+   * - 首次错误：由服务端在记录上报时入库，跳过本地写；
+   * - 重练对账：POST /wrongbook/review；
+   * - 游客：完全本地。 */
+  function cloudActive() {
+    return !!(global.TMAPI && global.TMAPI.state && global.TMAPI.state.user && global.TMAPI.state.currentProfileId);
+  }
+
   /* ---------- 回合构建 ---------- */
   function newState(cfg) {
     return {
@@ -180,7 +188,8 @@
         if (p.first_answer === null) { // 该题首次提交（DESIGN 2.4）
           p.first_answer = val;
           p.first_correct = correct;
-          if (!correct && state.mode !== 'mistakes') { // 首次错误进错题本（重练走 review 规则）
+          if (!correct && state.mode !== 'mistakes' && !cloudActive()) {
+            // 首次错误进错题本（重练走 review 规则）；云端模式下由服务端在记录上报时入库
             saveBook(TMWrongBook.recordFirstWrong(loadBook(), q.a, q.b, val));
           }
         }
@@ -199,6 +208,20 @@
   /* 重练对账：对局结束时按「最终结果」一次应用（每题每轮最多一次） */
   function applyReview() {
     if (state.mode !== 'mistakes') return;
+    if (cloudActive()) {
+      var results = [];
+      var seen = {};
+      state.per.forEach(function (p) {
+        if (p.reviewApplied || p.final_answer === null) return;
+        var k = Math.min(p.a, p.b) + 'x' + Math.max(p.a, p.b);
+        if (seen[k]) return;
+        seen[k] = true;
+        results.push({ a: p.a, b: p.b, correct: !!p.final_correct, userAnswer: p.final_answer });
+        p.reviewApplied = true;
+      });
+      if (results.length) global.TMAPI.reviewWrong(results); // 服务端按同样规则对账
+      return;
+    }
     var book = loadBook();
     state.per.forEach(function (p) {
       if (p.reviewApplied || p.final_answer === null) return; // blank 不处理
@@ -239,8 +262,10 @@
     if (state.mode === 'challenge') meta.level = state.level;
     var usedS = usedTimeSeconds();
     if (usedS !== null) meta.usedTimeS = usedS;
-    TMRecords.append(null, TMRecords.buildRecord(meta, snapshotPer()));
+    var rec = TMRecords.buildRecord(meta, snapshotPer());
+    TMRecords.append(null, rec); // 本地始终保留一份（离线备份 / 游客导入源）
     state.saved = true;
+    if (global.TMAPI && global.TMAPI.onRecord) global.TMAPI.onRecord(rec); // 云端：入队上报
   }
 
   /* ---------- Check Answers ---------- */
@@ -441,18 +466,26 @@
     },
 
     startMistakes: function () {
-      var book = loadBook();
-      if (book.length === 0) { global.TMUI.toast(t('mistakes.emptyToast'), false); return false; }
-      var count = Math.min(10, Math.max(5, book.length));
-      var qs = [];
-      for (var i = 0; i < count; i++) {
-        var e = book[i % book.length];
-        qs.push({ a: e.a, b: e.b, answer: e.a * e.b });
+      var done = function (book) {
+        if (!book.length) { global.TMUI.toast(t('mistakes.emptyToast'), false); return false; }
+        var count = Math.min(10, Math.max(5, book.length));
+        var qs = [];
+        for (var i = 0; i < count; i++) {
+          var e = book[i % book.length];
+          qs.push({ a: e.a, b: e.b, answer: e.a * e.b });
+        }
+        state = newState({ mode: 'mistakes', difficulty: 'mixed', questions: qs });
+        global.TMUI.showView('round');
+        renderRound();
+        return true;
+      };
+      if (cloudActive()) {
+        global.TMAPI.getWrongbook().then(function (r) {
+          done(r.ok ? r.data.items : []);
+        });
+        return true; // 异步加载中
       }
-      state = newState({ mode: 'mistakes', difficulty: 'mixed', questions: qs });
-      global.TMUI.showView('round');
-      renderRound();
-      return true;
+      return done(loadBook());
     },
 
     exitRound: exitRound,

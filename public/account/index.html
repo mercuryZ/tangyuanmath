@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tangyuan Math — Parent Center</title>
+<meta name="description" content="Sign in to sync your child's learning data across devices. The game itself works fully without an account.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../img/tangyuan_small.png">
+<link rel="stylesheet" href="../css/play.css">
+<link rel="stylesheet" href="../css/account.css">
+</head>
+<body>
+
+<div class="bg-particles" aria-hidden="true"></div>
+
+<header class="app-header">
+  <a class="brand" href="../play/" id="backToPlay">
+    <span class="mascot"><img src="../img/tangyuan_small.png" alt="Tangyuan"></span>
+    <span class="brand-text">
+      <h1 data-i18n="acct.title">Parent Center</h1>
+      <span class="tag" data-i18n="acct.backToPlay">← Back to game</span>
+    </span>
+  </a>
+  <div class="header-actions" role="group" aria-label="Language">
+    <button class="chip-btn" id="langEn" type="button" aria-pressed="false">EN</button>
+    <button class="chip-btn" id="langZh" type="button" aria-pressed="false">中文</button>
+  </div>
+</header>
+
+<main class="app" id="app">
+
+  <!-- 邮箱验证 / 密码重置 结果视图（?token=…） -->
+  <section class="view" id="view-token" aria-live="polite">
+    <h2 class="page-title" id="tokenTitle" data-i18n="acct.verifyTitle">Verifying your email…</h2>
+    <p class="page-sub" id="tokenMsg"></p>
+    <div class="reset-form" id="resetFormWrap" hidden>
+      <form id="resetForm" class="setup-form">
+        <label class="f-label" for="resetPassword" data-i18n="acct.newPassword">New password</label>
+        <input class="acct-input" type="password" id="resetPassword" autocomplete="new-password" required minlength="8">
+        <p class="hint" data-i18n="acct.pwdHint">At least 8 characters.</p>
+        <div class="btn-row" id="resetBtnRow">
+          <button class="btn primary" type="submit" data-i18n="acct.resetBtn">Set new password</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- 未登录：登录 / 注册 / 忘记密码 -->
+  <section class="view" id="view-auth">
+    <h2 class="page-title" data-i18n="acct.title">Parent Center</h2>
+    <p class="page-sub" data-i18n="acct.intro"></p>
+
+    <div class="tab-row" role="tablist">
+      <button class="chip-btn tab" id="tabLogin" role="tab" type="button" aria-selected="true" data-i18n="acct.tabLogin">Sign in</button>
+      <button class="chip-btn tab" id="tabRegister" role="tab" type="button" aria-selected="false" data-i18n="acct.tabRegister">Create account</button>
+      <button class="chip-btn tab" id="tabForgot" role="tab" type="button" aria-selected="false" data-i18n="acct.tabForgot">Forgot password</button>
+    </div>
+
+    <form id="authForm" class="setup-form acct-form" novalidate>
+      <div class="field">
+        <label class="f-label" for="authEmail" data-i18n="acct.email">Email</label>
+        <input class="acct-input" type="email" id="authEmail" autocomplete="email" required>
+      </div>
+      <div class="field" id="passwordField">
+        <label class="f-label" for="authPassword" data-i18n="acct.password">Password</label>
+        <input class="acct-input" type="password" id="authPassword" autocomplete="current-password" required minlength="8">
+        <p class="hint" id="pwdHint" data-i18n="acct.pwdHint">At least 8 characters.</p>
+      </div>
+      <p class="hint" id="formMsg" role="status" aria-live="polite"></p>
+      <div class="btn-row acct-btn-row">
+        <button class="btn primary" type="submit" id="authSubmit">Sign in</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- 已登录 -->
+  <section class="view" id="view-main">
+    <div class="s-group acct-head">
+      <div class="s-row">
+        <span><span data-i18n="acct.signedInAs">Signed in as</span> <b id="meEmail"></b>
+          <span class="badge-ok" id="meVerified"></span></span>
+      </div>
+      <div class="s-row">
+        <label for="tzSelect" data-i18n="acct.timezone">Timezone</label>
+        <select class="acct-input acct-select" id="tzSelect"></select>
+      </div>
+      <div class="s-row">
+        <button class="s-btn" id="logoutBtn" type="button" data-i18n="acct.logout">Sign out</button>
+        <button class="s-btn" id="logoutAllBtn" type="button" data-i18n="acct.logoutAll">Sign out everywhere</button>
+      </div>
+    </div>
+
+    <div class="s-group" id="profileGroup">
+      <h3 data-i18n="acct.profileTitle">Child profile</h3>
+      <p class="hint" data-i18n="acct.profileLimitNote"></p>
+      <div id="profileFormWrap">
+        <form id="profileForm" class="setup-form acct-form" novalidate>
+          <div class="field">
+            <label class="f-label" for="profileNickname" data-i18n="acct.nickname">Nickname</label>
+            <input class="acct-input" type="text" id="profileNickname" maxlength="20" required>
+          </div>
+          <div class="field">
+            <span class="f-label" data-i18n="acct.avatar">Avatar</span>
+            <div class="opt-row" id="avatarOptions" role="radiogroup"></div>
+          </div>
+          <div class="btn-row acct-btn-row">
+            <button class="btn primary" type="submit" id="profileSubmit" data-i18n="acct.createProfile">Create profile</button>
+            <button class="s-btn danger" type="button" id="deleteProfileBtn" hidden data-i18n="acct.deleteProfile">Delete profile</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="s-group" id="statsGroup">
+      <h3 data-i18n="acct.statsTitle">Synced stats</h3>
+      <div id="statsBody"><p class="hint" data-i18n="acct.loading">Loading…</p></div>
+    </div>
+
+    <div class="s-group" id="wrongbookGroup">
+      <h3 data-i18n="acct.wrongbookTitle">Synced mistake book</h3>
+      <div id="wrongbookBody"><p class="hint" data-i18n="acct.loading">Loading…</p></div>
+    </div>
+
+    <div class="s-group" id="importGroup" hidden>
+      <h3 data-i18n="acct.importTitle">Import guest data</h3>
+      <p class="hint" id="importDesc"></p>
+      <div class="s-row">
+        <button class="s-btn" id="importBtn" type="button" data-i18n="acct.importBtn">Import into profile</button>
+      </div>
+      <p class="hint" id="importResult" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="s-group">
+      <h3 data-i18n="acct.dataTitle">My data</h3>
+      <div class="s-row">
+        <a class="s-btn" id="exportLink" href="/api/account/export" download data-i18n="acct.exportBtn">Export (JSON)</a>
+        <button class="s-btn danger" id="deleteAccountBtn" type="button" data-i18n="acct.deleteAccount">Delete account</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../locales/en.js"></script>
+<script src="../locales/zh.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="../js/questions.js"></script>
+<script src="../js/wrongbook.js"></script>
+<script src="../js/records.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/account.js"></script>
+</body>
+</html>

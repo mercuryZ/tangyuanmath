@@ -1,2 +1,6 @@
 .zcode/
-docs/
+node_modules/
+dist/
+
+# M1 server data (SQLite local)
+server/data/

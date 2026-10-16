@@ -52,16 +52,30 @@ python -m http.server 8000   # 或 npx serve .
 
 ```
 tobemathmaster/
-├── public/                    # 静态站点（M0）
+├── public/                    # 静态站点（同源托管）
 │   ├── index.html             # 默认英文首页（x-default，右上角可切中文）
 │   ├── en/ · zh/              # 英文/中文公开页（首页、FAQ、关于、隐私）
 │   ├── play/                  # 游戏应用（练习/挑战/错题重练）
+│   ├── account/               # 家长中心（M1：登录/档案/云统计/数据管理）
 │   ├── js/ css/ locales/ img/ # 模块、样式、双语语言包、素材
 │   └── robots.txt · sitemap.xml
-├── tests/                     # node:test 单元测试
+├── server/                    # Express + SQLite 后端（M1）
+│   ├── src/                   # 认证/档案/记录/统计/错题/账号数据/安全中间件
+│   └── data/                  # SQLite 数据文件（gitignore）
+├── tests/                     # node:test（18 单元 + 16 服务端集成）
 ├── docs/DESIGN.md             # 设计文档（v3.0 合并版，唯一设计文档）
 ├── multiplication_game.html   # 第一阶段成果：可独立游玩的单文件版
 └── README.md · readme.zh.md
+```
+
+### 本地运行（M1 起需服务器）
+
+```bash
+cd server
+npm install
+npm start          # 默认 3000，可用 PORT=3100 覆盖；静态站与 API 同源
+# 打开 http://127.0.0.1:3000（邮箱验证/重置链接打印在服务器控制台）
+npm test           # 或在仓库根目录 node --test tests/*.test.js
 ```
 
 ## 路线图
@@ -69,7 +83,7 @@ tobemathmaster/
 里程碑详见 [docs/DESIGN.md](docs/DESIGN.md)（v3.0 合并版：海外优先、家长账号、永不投放广告）。
 
 - **M0 ✅ 免费海外试玩**：英文完整界面 + 中文版、不限时练习（自选范围与题量）、十关挑战、错题重练、首次/最终答案口径、逐题活动计时、无障碍支持、公开页（首页/FAQ/关于/隐私）、游客本地数据可清除、零广告零第三方脚本。
-- **M1 ⏳ 家长账号与云端学习数据**：邮箱注册、儿童档案、错题与统计上云、游客数据幂等导入。
+- **M1 ✅ 家长账号与云端学习数据**：Express + SQLite（版本化迁移）、邮箱注册/验证/登录/重置/会话撤销（CSRF + 限流 + 严格 CSP）、儿童档案与归属校验、服务端权威判分与幂等上报（首次/最终口径 + 逐题活动时间）、云端错题重练、游客数据幂等导入、按账号时区的打卡统计、导出与删号级联。
 - **M1.5 ⏳ 多人实时对战 Live Race**：房间码邀请制同题竞速。
 - **M2 ⏳ 真实支付与 Supporter**：托管结账、PDF 练习卷、自定义本地庆祝图片。
 - **M3 ⏳ 内容与增长**：英文教程、SEO/GEO、社区推广。

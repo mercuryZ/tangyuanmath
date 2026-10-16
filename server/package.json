@@ -1,0 +1,20 @@
+{
+  "name": "tangyuan-math-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tangyuan Math — Express + SQLite backend (M1: parent accounts & cloud learning data)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test ../tests/server.test.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.19.2"
+  }
+}

@@ -22,20 +22,27 @@ Tangyuan Math is a pure front-end mental-math practice game that turns two-digit
 
 ## Quick start
 
-### Option 1: full site (recommended)
-
-`public/` is the complete multi-language static site. Serve it with any static server:
+### Option 1: full site with server (recommended, M1)
 
 ```bash
-cd public
-python -m http.server 8000   # or npx serve .
-# open http://127.0.0.1:8000
+cd server
+npm install
+npm start          # default 3000, override with PORT=3100; serves the static site + API from one origin
+# open http://127.0.0.1:3000 — email verification/reset links print to the server console
 ```
 
 - Home: `/` (English by default, switchable to 中文) · `/en/` · `/zh/`
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
+- Parent center: `/account/` (sign in, child profile, synced stats & data management)
 
-### Option 2: standalone single file
+### Option 2: static-only (guest mode)
+
+```bash
+cd public
+python -m http.server 8000   # game + public pages work fully; account features need the server
+```
+
+### Option 3: standalone single file
 
 Open [multiplication_game.html](multiplication_game.html) directly (the Phase I deliverable, kept playable on its own).
 
@@ -71,7 +78,7 @@ tobemathmaster/
 Milestones are detailed in [docs/DESIGN.md](docs/DESIGN.md) (v3.0 merged edition: overseas-first, parent accounts, never any ads).
 
 - **M0 ✅ Free overseas trial**: full English UI + Chinese, untimed practice (choose range & count), 10-level challenge, mistake review, first/final answer tracking, per-question active time, accessibility, public pages (home/FAQ/about/privacy), local-only visitor data you can clear, zero ads and zero third-party scripts.
-- **M1 ⏳ Parent accounts & cloud data**: email sign-up, child profiles, mistakes & stats in the cloud, idempotent import of visitor data.
+- **M1 ✅ Parent accounts & cloud data**: Express + SQLite (versioned migrations), email register/verify/login/reset + session revocation (CSRF + rate limits + strict CSP), child profiles with ownership checks, server-authoritative grading with idempotent upload (first/final answers + per-question active time), cloud mistake review, idempotent guest import, timezone-aware streaks, export & account deletion.
 - **M1.5 ⏳ Live Race (multiplayer)**: invite-code, same-question speed battle.
 - **M2 ⏳ Real payments & Supporter**: hosted checkout, PDF worksheets, custom local celebration images.
 - **M3 ⏳ Content & growth**: English tutorials, SEO/GEO, community outreach.

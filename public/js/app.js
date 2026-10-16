@@ -175,6 +175,20 @@
     $('challengeCta').textContent = lvl > 1
       ? t('home.challenge.ctaLevel', { level: lvl })
       : t('home.challenge.cta');
+
+    // 云端模式：错题本以服务端为准，异步覆盖显示（DESIGN M1）
+    var api = global.TMAPI;
+    if (api && api.state.user && api.state.currentProfileId) {
+      api.getWrongbook().then(function (r) {
+        if (!r.ok) return;
+        var n = r.data.items.length;
+        var cardEl = $('cardMistakes');
+        cardEl.disabled = n === 0;
+        $('mistakesDesc').textContent = n === 0
+          ? t('home.mistakes.emptyDesc')
+          : t('home.mistakes.descN', { n: n });
+      });
+    }
   }
 
   /* ---------- Practice 设置表单 ---------- */
@@ -389,7 +403,23 @@
     $('btnTips').addEventListener('click', function () { openOverlay($('tipsOverlay')); });
     $('btnStats').addEventListener('click', function () { renderStats(); TMUI.showView('stats'); });
     $('btnSettings').addEventListener('click', function () { renderSettings(); openOverlay($('settingsOverlay')); });
+    $('btnAccount').addEventListener('click', function () { location.href = '/account/'; });
     $('statsBack').addEventListener('click', function () { TMUI.showView('home'); refreshHome(); });
+
+    // 登录态刷新：恢复会话、清空离线上报队列（按账号隔离，DESIGN 4.3）
+    if (global.TMAPI && global.TMAPI.refresh) {
+      global.TMAPI.refresh().then(function () {
+        refreshHome();
+        var btn = $('btnAccount');
+        var st = global.TMAPI.state;
+        if (st.user && st.profiles.length) {
+          btn.textContent = st.profiles[0].nickname; // 已登录且有档案：显示孩子昵称
+          btn.setAttribute('aria-pressed', 'true');
+        } else if (st.user) {
+          btn.textContent = t('nav.account');
+        }
+      });
+    }
 
     // 弹窗关闭（含 Esc 与遮罩点击）
     [['tipsOverlay', 'tipsCloseBtn'], ['settingsOverlay', 'settingsCloseBtn'], ['resultOverlay', null]].forEach(function (pair) {

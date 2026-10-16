@@ -176,3 +176,6 @@ section.block > h1, section.block > h2 {
 @media (prefers-reduced-motion: reduce) {
   .btn, .lang-card, .site-nav a { transition: none !important; }
 }
+
+.icon-sprite { position: absolute; }
+.hero.hero-tight { padding-top: 0; }
