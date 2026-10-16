@@ -132,6 +132,7 @@ section.block > h1, section.block > h2 {
 .prose ul { padding-left: 22px; margin: 8px 0; }
 .prose li { margin: 6px 0; }
 .prose .muted { color: var(--ink-soft); font-size: 13.5px; }
+.prose .muted a { color: inherit; text-decoration: underline; }
 
 .faq-item { border-bottom: 2px dashed var(--pink-light); padding: 14px 0; }
 .faq-item:last-child { border-bottom: none; }

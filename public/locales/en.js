@@ -10,6 +10,7 @@ window.TM_I18N.en = {
   'nav.faq': 'FAQ',
   'nav.about': 'About',
   'nav.privacy': 'Privacy',
+  'nav.terms': 'Terms',
   'nav.account': 'Account',
 
   'common.back': 'Back',

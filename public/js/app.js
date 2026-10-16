@@ -329,6 +329,7 @@
     $('footFaq').setAttribute('href', zh ? '/zh/faq/' : '/en/faq/');
     $('footAbout').setAttribute('href', zh ? '/zh/about/' : '/en/about/');
     $('footPrivacy').setAttribute('href', zh ? '/zh/privacy/' : '/en/privacy/');
+    $('footTerms').setAttribute('href', zh ? '/zh/terms/' : '/en/terms/');
   }
   function switchLang(lang) {
     TMI18N.setLang(lang);

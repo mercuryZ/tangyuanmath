@@ -10,6 +10,7 @@ window.TM_I18N.zh = {
   'nav.faq': '常见问题',
   'nav.about': '关于',
   'nav.privacy': '隐私',
+  'nav.terms': '条款',
   'nav.account': '账号',
 
   'common.back': '返回',
