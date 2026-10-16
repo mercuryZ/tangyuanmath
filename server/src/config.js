@@ -20,6 +20,6 @@ module.exports = {
   mailTransport: process.env.TM_MAIL_TRANSPORT || 'console',
   smtpUrl: process.env.TM_SMTP_URL || '',
   mailFrom: process.env.TM_MAIL_FROM || 'Tangyuan Math <no-reply@example.invalid>',
-  // 公开基址（拼验证/重置链接）
-  publicBaseUrl: process.env.TM_PUBLIC_BASE_URL || 'http://127.0.0.1:3000'
+  // 公开基址（拼验证/重置链接）：Render 上自动用 RENDER_EXTERNAL_URL，自定义域名时用 TM_PUBLIC_BASE_URL 覆盖
+  publicBaseUrl: process.env.TM_PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://127.0.0.1:3000'
 };

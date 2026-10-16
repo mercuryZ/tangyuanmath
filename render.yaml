@@ -1,9 +1,35 @@
-# Render Blueprint — Tangyuan Math (M0 静态站)
-# 部署：render.com → New → Blueprint → 选择本仓库，一键创建静态站。
-# 纯静态、无构建步骤，直接发布 public/ 目录。
+# Render Blueprint — Tangyuan Math (M1：Express + SQLite)
+# 部署：render.com → New → Blueprint → 选择本仓库，一键创建 Web Service + 持久磁盘。
+#
+# 与 M0（纯静态站）的区别：
+#   - 从 Static Site 改为 Node Web Service：同一个进程托管 public/ 静态文件 + /api 接口；
+#   - 新增持久磁盘挂载 SQLite（数据库不能放在临时文件系统，否则每次部署/重启数据清零）；
+#   - 环境变量里配置生产参数（见下方注释）。
+#
+# 重要提示：
+#   - 持久磁盘是付费功能：服务需 Starter 及以上实例（约 $7/月），磁盘约 $0.25/GB/月。
+#   - 若坚持 Free 实例：无法挂载磁盘，SQLite 数据在每次部署/重启后都会清空，只适合临时演示。
 services:
   - type: web
     name: tangyuanmath
-    runtime: static
-    buildCommand: ""
-    staticPublishPath: ./public
+    runtime: node
+    rootDir: server          # package.json 位于 server/ 目录
+    buildCommand: npm install -g pnpm && pnpm install --frozen-lockfile  # 依据 pnpm-lock.yaml 精确安装
+    startCommand: node src/index.js
+    healthCheckPath: /
+    plan: starter            # 需要持久磁盘；若接受丢数据可改回 free 并删除下方 disk 块
+    disk:
+      name: tm-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production            # 启用 secure cookie、严格 CSP、静态缓存
+      - key: NODE_VERSION
+        value: "22"                  # 固定 Node 主版本，与 engines >=22.5 一致
+      - key: TM_DB_FILE
+        value: /var/data/app.db      # 数据库写到持久磁盘
+      - key: TM_MAIL_TRANSPORT
+        value: console               # M1 邮件先打到日志；接真实 SMTP 时改为 smtp 并配 TM_SMTP_URL
+      # TM_PUBLIC_BASE_URL 不必手动填：config.js 会自动回退到 Render 注入的 RENDER_EXTERNAL_URL。
+      # 若以后绑定自定义域名，再在控制台加 TM_PUBLIC_BASE_URL 覆盖即可。
