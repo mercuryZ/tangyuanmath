@@ -48,8 +48,10 @@ function issueOneTimeToken(db, userId, purpose, email, capture) {
   const now = Date.now();
   db.prepare('INSERT INTO auth_tokens (token_hash, user_id, purpose, expires_at, created_at) VALUES (?,?,?,?,?)')
     .run(U.hashToken(token), userId, purpose, now + config.tokenTtlMs, now);
-  const pathMap = { verify_email: '/account/verify-email', reset_password: '/account/reset' };
-  const url = config.publicBaseUrl + pathMap[purpose] + '?token=' + encodeURIComponent(token);
+  /* 链接必须落在前端真正解析的页面上：account.js 在 /account/ 读取 ?mode=verify|reset 与 ?token=。
+   * 早先指向 /account/verify-email 与 /account/reset，那两个路径不存在，点击后 404 落到首页。 */
+  const queryMap = { verify_email: 'mode=verify', reset_password: 'mode=reset' };
+  const url = config.publicBaseUrl + '/account/?' + queryMap[purpose] + '&token=' + encodeURIComponent(token);
   if (purpose === 'verify_email') mailer.sendVerificationEmail(email, url, capture);
   else mailer.sendResetEmail(email, url, capture);
   return { token, url };

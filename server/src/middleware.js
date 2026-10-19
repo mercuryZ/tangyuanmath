@@ -12,15 +12,22 @@ const { hashToken } = require('./util');
 function ok(res, data) { res.json({ ok: true, data }); }
 function fail(res, status, code, msg) { res.status(status).json({ ok: false, code, msg }); }
 
-/* ---------- 安全响应头 + 严格 CSP（DESIGN 10.2） ---------- */
+/* ---------- 安全响应头 + 严格 CSP（DESIGN 10.2） ----------
+ * Live Race 需要 WebSocket：connect-src 除 'self' 外只放行「本请求的同源 ws/wss」，
+ * 不用 `ws:` / `wss:` 通配——那等于允许脚本连任意主机。 */
 function securityHeaders(req, res, next) {
+  const host = String(req.headers.host || '');
+  const wsHost = /^[A-Za-z0-9.:[\]-]+$/.test(host) ? host : '';
+  const connectSrc = wsHost
+    ? `'self' ws://${wsHost} wss://${wsHost}`
+    : "'self'";
   res.set({
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'no-referrer',
     'Content-Security-Policy':
       "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
-      "connect-src 'self'; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'",
+      `connect-src ${connectSrc}; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'`,
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
   });
   next();

@@ -113,6 +113,63 @@ const MIGRATIONS = [
       -- 部分唯一索引：google_id 为空（纯密码账号）不受约束
       CREATE UNIQUE INDEX idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
     `
+  },
+  {
+    /* M1.5 Live Race（DESIGN §6、§13.3）
+     * attempts 需要容纳 mode='versus'，但 SQLite 不能直接修改 CHECK 约束，
+     * 因此按「建新表 → 拷贝 → 删旧表 → 改名」重建；迁移期间 foreign_keys 关闭
+     * （见 initDb），否则 DROP TABLE 会级联删掉 attempt_questions 的历史数据。 */
+    version: 3,
+    name: 'live-race',
+    sql: `
+      CREATE TABLE attempts_v3 (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        profile_id      INTEGER NOT NULL REFERENCES child_profiles(id) ON DELETE CASCADE,
+        client_event_id TEXT NOT NULL,
+        mode            TEXT NOT NULL CHECK (mode IN ('practice','challenge','mistakes','versus')),
+        difficulty      TEXT NOT NULL,
+        level           INTEGER,
+        passed          INTEGER NOT NULL DEFAULT 0,
+        used_time_s     INTEGER,
+        active_time_ms  INTEGER,
+        created_at      INTEGER NOT NULL,
+        received_at     INTEGER NOT NULL,
+        UNIQUE (profile_id, client_event_id)
+      );
+      INSERT INTO attempts_v3
+        (id, profile_id, client_event_id, mode, difficulty, level, passed, used_time_s, active_time_ms, created_at, received_at)
+        SELECT id, profile_id, client_event_id, mode, difficulty, level, passed, used_time_s, active_time_ms, created_at, received_at
+        FROM attempts;
+      DROP TABLE attempts;
+      ALTER TABLE attempts_v3 RENAME TO attempts;
+      CREATE INDEX idx_attempts_profile ON attempts(profile_id, created_at);
+
+      -- 对局主体：仅登录档案落库；游客对局全程在内存里
+      CREATE TABLE matches (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        room_code   TEXT NOT NULL,
+        mode        TEXT NOT NULL DEFAULT 'versus' CHECK (mode = 'versus'),
+        difficulty  TEXT NOT NULL,
+        count       INTEGER NOT NULL,
+        started_at  INTEGER NOT NULL,
+        ended_at    INTEGER NOT NULL
+      );
+
+      -- 座位与名次；display_name 是系统生成名，不是儿童档案昵称（DESIGN 13.0）
+      CREATE TABLE match_players (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        match_id     INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+        profile_id   INTEGER NOT NULL REFERENCES child_profiles(id) ON DELETE CASCADE,
+        seat         INTEGER NOT NULL,
+        display_name TEXT NOT NULL,
+        solved       INTEGER NOT NULL DEFAULT 0,
+        used_ms      INTEGER,
+        rank         INTEGER,
+        disconnected INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (match_id, seat)
+      );
+      CREATE INDEX idx_match_players_profile ON match_players(profile_id);
+    `
   }
 ];
 
@@ -120,8 +177,10 @@ function initDb(dbFile) {
   fs.mkdirSync(path.dirname(dbFile), { recursive: true });
   const db = new Database(dbFile);
   db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
   db.pragma('busy_timeout = 3000');
+  /* 迁移期间关闭外键：重建表（DROP TABLE attempts）在开启外键时会级联删除子表数据。
+   * PRAGMA foreign_keys 不能在事务内修改，因此必须在跑迁移之前设置。 */
+  db.pragma('foreign_keys = OFF');
 
   db.exec(`CREATE TABLE IF NOT EXISTS migrations (
     version INTEGER PRIMARY KEY,
@@ -140,6 +199,13 @@ function initDb(dbFile) {
       record.run(m.version, m.name, Date.now());
     });
     tx();
+  }
+
+  db.pragma('foreign_keys = ON');
+  // 迁移后自检：外键不一致说明重建过程出了问题，宁可启动失败也不带病运行
+  const violations = db.pragma('foreign_key_check');
+  if (violations.length) {
+    throw new Error('数据库外键校验失败：' + JSON.stringify(violations.slice(0, 5)));
   }
   return db;
 }

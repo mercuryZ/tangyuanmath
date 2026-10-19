@@ -84,7 +84,46 @@ test('未登录 /api/me 返回 null 用户；静态首页带 CSP 头', async () 
   const home = await req('GET', '/');
   assert.strictEqual(home.status, 200);
   assert.ok(home.text.includes('Tangyuan Math'));
-  assert.ok((home.headers.get('content-security-policy') || '').includes("default-src 'self'"));
+  const csp = home.headers.get('content-security-policy') || '';
+  assert.ok(csp.includes("default-src 'self'"));
+  /* Live Race 需要 WebSocket：connect-src 必须放行同源 ws/wss，
+   * 否则浏览器会拦掉 /api/race/ws 的连接。同时不能放行通配 ws:。 */
+  assert.ok(/connect-src [^;]*ws:\/\//.test(csp), 'connect-src 应放行同源 ws：' + csp);
+  assert.ok(/connect-src [^;]*wss:\/\//.test(csp), 'connect-src 应放行同源 wss：' + csp);
+  assert.ok(!/connect-src [^;]*\bws:\s/.test(csp), '不得使用 ws: 通配：' + csp);
+});
+
+/* 裸路径 301 到英文页：不带语言前缀时不能落到「404 + 首页正文」的兜底 */
+test('裸路径 /privacy /about /terms /faq 301 到对应英文页（带不带斜杠都行）', async () => {
+  const cases = [['/privacy', '/en/privacy/'], ['/about', '/en/about/'], ['/terms', '/en/terms/'], ['/faq', '/en/faq/']];
+  for (const [from, to] of cases) {
+    for (const variant of [from, from + '/']) {
+      const r = await fetch(base + variant, { redirect: 'manual' });
+      assert.strictEqual(r.status, 301, variant + ' 应为 301');
+      assert.ok((r.headers.get('location') || '').endsWith(to), variant + ' → ' + r.headers.get('location'));
+    }
+  }
+  // 重定向目标本身必须存在且是内容页
+  const target = await req('GET', '/en/privacy/');
+  assert.strictEqual(target.status, 200);
+  assert.ok(target.text.includes('Privacy Policy'));
+});
+
+/* 早期邮件里的旧链接形式也要能用：转成前端解析的地址并保留 token */
+test('旧令牌链接 /account/verify-email 与 /account/reset 301 到 /account/ 并保留 token', async () => {
+  const legacy = [
+    ['/account/verify-email?token=abc123', 'mode=verify'],
+    ['/account/reset?token=abc123', 'mode=reset']
+  ];
+  for (const [from, mode] of legacy) {
+    const r = await fetch(base + from, { redirect: 'manual' });
+    assert.strictEqual(r.status, 301, from);
+    const loc = r.headers.get('location');
+    assert.ok(loc.startsWith('/account/?' + mode), from + ' → ' + loc);
+    assert.ok(loc.includes('token=abc123'), 'token 必须保留：' + loc);
+    const landed = await req('GET', loc);
+    assert.strictEqual(landed.status, 200);
+  }
 });
 
 test('注册 → 邮箱验证 → 重复注册 409', async () => {
@@ -97,6 +136,16 @@ test('注册 → 邮箱验证 → 重复注册 409', async () => {
   assert.strictEqual(r.status, 200);
   assert.strictEqual(mailCapture.length, 1);
   const token = extractTokenFromMail();
+
+  /* 邮件里的链接必须是前端真正能解析的地址：/account/?mode=verify&token=…
+   * 曾经写成 /account/verify-email?token=…，该路径不存在，点击后 404 落到首页。 */
+  const mailedUrl = mailCapture[mailCapture.length - 1].text.match(/https?:\/\/\S+/)[0];
+  const parsed = new URL(mailedUrl);
+  assert.strictEqual(parsed.pathname, '/account/', '链接必须落在 /account/ 页面：' + mailedUrl);
+  assert.strictEqual(parsed.searchParams.get('mode'), 'verify');
+  assert.strictEqual(parsed.searchParams.get('token'), token);
+  const page = await req('GET', parsed.pathname + parsed.search);
+  assert.strictEqual(page.status, 200, '邮件链接应可直接打开');
 
   const dup = await req('POST', '/api/auth/register', { email: 'parent@example.com', password: 'whatever-123' });
   assert.strictEqual(dup.status, 409);

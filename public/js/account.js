@@ -189,6 +189,29 @@
       });
       box.innerHTML = html;
     }
+    renderVersusStats(box);
+  }
+
+  /* 对战战绩（DESIGN 13.1：私密，只显示给本人，不公开排行榜） */
+  async function renderVersusStats(box) {
+    var pid = global.TMAPI.state.currentProfileId;
+    if (!pid) return;
+    var r = await global.TMAPI.call('GET', '/api/profiles/' + pid + '/versus');
+    if (!r.ok) return;
+    var d = r.data;
+    var p = document.createElement('p');
+    p.className = 'stats-line';
+    p.innerHTML = '<b>' + t('stats.mode.versus') + '</b> — ' +
+      t('acct.versusWins') + ': <b>' + d.wins + '</b>, ' +
+      t('acct.versusLosses') + ': <b>' + d.losses + '</b>, ' +
+      t('stats.rounds') + ': <b>' + d.matches + '</b>';
+    box.appendChild(p);
+    if (!d.matches) {
+      var hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = t('acct.versusHint');
+      box.appendChild(hint);
+    }
   }
 
   async function renderWrongbook() {

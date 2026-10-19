@@ -15,6 +15,8 @@ const { buildAuthRouter, meHandler, updateMeHandler } = require('./auth');
 const { buildProfilesRouter } = require('./profiles');
 const { buildRecordsRouter, buildWrongbookRouter } = require('./records');
 const { buildAccountRouter } = require('./account');
+const { buildVersusRouter } = require('./match-store');
+const { attachLiveRace } = require('./race-ws');
 
 function createApp(db, opts) {
   const app = express();
@@ -43,6 +45,7 @@ function createApp(db, opts) {
   /* 档案子资源：先挂 profiles 归属中间件再挂子路由 */
   api.use('/profiles/:id/records', mw.requireAuth, buildRecordsRouter(db));
   api.use('/profiles/:id/wrongbook', mw.requireAuth, buildWrongbookRouter(db));
+  api.use('/profiles/:id/versus', mw.requireAuth, buildVersusRouter(db));
 
   /* /api 内的 404 与错误处理：统一 JSON，不外露堆栈（DESIGN 10.2） */
   api.use((req, res) => mw.fail(res, 404, 'not_found', 'No such API endpoint.'));
@@ -64,11 +67,19 @@ function createApp(db, opts) {
     '/terms': '/en/terms/',
     '/faq': '/en/faq/'
   };
+  /* 早期邮件里发出去的令牌链接形式（/account/verify-email?token=…、/account/reset?token=…）。
+   * 这两个路径没有对应文件，直接访问会 404 并显示首页；这里带 query 转成前端真正解析的地址。 */
+  const TOKEN_LINK_REDIRECTS = {
+    '/account/verify-email': '/account/?mode=verify',
+    '/account/reset': '/account/?mode=reset'
+  };
   app.use((req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return next();
-    const target = BARE_PAGE_REDIRECTS[req.path.replace(/\/+$/, '')];
-    if (target) return res.redirect(301, target);
-    next();
+    const path = req.path.replace(/\/+$/, '');
+    const target = BARE_PAGE_REDIRECTS[path] || TOKEN_LINK_REDIRECTS[path];
+    if (!target) return next();
+    const i = req.originalUrl.indexOf('?');
+    return res.redirect(301, i === -1 ? target : target + '&' + req.originalUrl.slice(i + 1));
   });
 
   /* ---------- 静态站点（public/） ---------- */
@@ -89,15 +100,16 @@ function createApp(db, opts) {
   return app;
 }
 
-/* 直接运行：初始化数据库并监听 */
+/* 直接运行：初始化数据库并监听（同一 HTTP 服务同时承载 /api/race/ws 升级） */
 if (require.main === module) {
   const db = initDb(config.dbFile);
   const app = createApp(db);
-  app.listen(config.port, () => {
-    console.log(`Tangyuan Math server (M1) listening on http://127.0.0.1:${config.port}`);
+  const server = app.listen(config.port, () => {
+    console.log(`Tangyuan Math server (M1.5) listening on http://127.0.0.1:${config.port}`);
     console.log(`  db=${config.dbFile} public=${config.publicDir} mail=${config.mailTransport}`);
     if (!config.isProd) console.log('  development mode: email links are printed to this console');
   });
+  attachLiveRace(server, db, { log: console.error });
 }
 
-module.exports = { createApp, initDb };
+module.exports = { createApp, initDb, attachLiveRace };

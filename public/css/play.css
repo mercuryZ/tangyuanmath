@@ -343,6 +343,74 @@ body {
   100% { transform: translateY(108vh) rotate(360deg); opacity: .5; }
 }
 
+/* ---------- Live Race（DESIGN 13.4） ---------- */
+.race-lobby { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 8px; }
+.race-card {
+  background: var(--cream); border: 2px solid var(--red-light); border-radius: 20px;
+  padding: 18px 18px 20px; display: grid; gap: 12px; align-content: start;
+}
+.race-card h3 { font-size: 16px; font-weight: 900; color: var(--red-deep); }
+.race-hint { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); line-height: 1.6; }
+.race-card .field { margin: 0; }
+.race-code-input {
+  width: 100%; max-width: 240px; text-align: center; letter-spacing: .32em;
+  text-transform: uppercase; font: 900 22px/1.2 inherit; color: var(--red-deep);
+  padding: 12px 10px; border: 2px solid var(--pink-light); border-radius: 14px;
+  background: #fff; outline: none;
+}
+.race-code-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(242, 85, 90, .16); }
+
+.race-code-big {
+  text-align: center; font: 900 40px/1.1 inherit; letter-spacing: .28em;
+  color: var(--red-deep); padding: 16px 0 6px; text-indent: .28em;
+}
+
+.seat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 14px 0 18px; }
+.seat {
+  background: var(--cream); border: 2px solid var(--red-light); border-radius: 18px;
+  padding: 14px 12px; text-align: center; display: grid; gap: 4px; justify-items: center;
+}
+.seat.self { border-color: var(--red); background: var(--red-light); }
+.seat.offline { opacity: .5; }
+.seat .seat-avatar { font-size: 26px; line-height: 1; }
+.seat .seat-name { font-size: 13.5px; font-weight: 800; color: var(--red-deep); }
+.seat .seat-tag { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+.seat .seat-tag.host { color: var(--red); }
+.seat-empty { border-style: dashed; color: var(--ink-soft); font-size: 12.5px; font-weight: 700; }
+
+.race-settings { font-size: 13px; font-weight: 700; color: var(--ink-soft); text-align: center; margin-bottom: 6px; }
+
+/* 对战中的对手进度条 */
+.peer-strip { display: grid; gap: 8px; margin-bottom: 14px; }
+.peer {
+  display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px;
+  background: var(--cream); border: 2px solid var(--red-light); border-radius: 14px; padding: 7px 12px;
+}
+.peer.self { border-color: var(--red); background: var(--red-light); }
+.peer.offline { opacity: .5; }
+.peer .peer-avatar { font-size: 20px; text-align: center; }
+.peer .peer-name { font-size: 12.5px; font-weight: 800; color: var(--red-deep); margin-bottom: 3px; }
+.peer .peer-bar { height: 9px; border-radius: 999px; background: #fff; border: 1.5px solid var(--pink-light); overflow: hidden; }
+.peer .peer-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #FF8A8E, var(--red)); transition: width .35s; }
+.peer .peer-solved { font-size: 12px; font-weight: 900; color: var(--red); min-width: 34px; text-align: right; }
+.peer.done .peer-solved::after { content: ' ✓'; }
+
+/* 结算排名 */
+.race-ranking { display: grid; gap: 8px; margin: 4px 0 16px; }
+.rank-row {
+  display: grid; grid-template-columns: 34px 28px 1fr auto; align-items: center; gap: 10px;
+  background: var(--cream); border: 2px solid var(--red-light); border-radius: 14px; padding: 9px 14px;
+}
+.rank-row.win { border-color: var(--red); background: var(--red-light); }
+.rank-row .rank-no { font: 900 16px/1 inherit; color: var(--red); text-align: center; }
+.rank-row .rank-avatar { font-size: 20px; text-align: center; }
+.rank-row .rank-name { font-size: 13.5px; font-weight: 800; color: var(--red-deep); }
+.rank-row .rank-meta { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+
+/* 减少动画：进度跳动与过渡一并关闭（DESIGN 13.4） */
+.reduce-motion .peer .peer-fill { transition: none; }
+.reduce-motion .confetti { display: none; }
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 640px) {
   .app { padding: 20px 14px 24px; }

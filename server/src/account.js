@@ -46,7 +46,22 @@ function buildAccountRouter(db) {
           finalCorrect: !!q.final_correct, activeMs: q.active_time_ms
         }))
       }));
-      out.profiles.push({ id: p.id, nickname: p.nickname, avatarKey: p.avatar_key, createdAt: p.created_at, attempts });
+      out.profiles.push({
+        id: p.id, nickname: p.nickname, avatarKey: p.avatar_key, createdAt: p.created_at,
+        attempts,
+        // 对战记录（DESIGN 13.3）：家长导出时也应能看到自己的对局成绩
+        versus: db.prepare(
+          `SELECT mp.seat, mp.display_name, mp.solved, mp.used_ms, mp.rank, mp.disconnected,
+                  m.room_code, m.difficulty, m.count, m.started_at, m.ended_at
+           FROM match_players mp JOIN matches m ON m.id = mp.match_id
+           WHERE mp.profile_id = ? ORDER BY mp.id`
+        ).all(p.id).map(v => ({
+          roomCode: v.room_code, difficulty: v.difficulty, count: v.count,
+          startedAt: v.started_at, endedAt: v.ended_at,
+          seat: v.seat, displayName: v.display_name, solved: v.solved,
+          usedMs: v.used_ms, rank: v.rank, disconnected: !!v.disconnected
+        }))
+      });
       out.wrongbook.push(...db.prepare(
         'SELECT profile_id, a, b, user_answer, wrong_count, last_wrong_at FROM wrong_questions WHERE profile_id = ?'
       ).all(p.id).map(w => ({
@@ -66,7 +81,13 @@ function buildAccountRouter(db) {
     const tx = db.transaction(() => {
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
       db.prepare('DELETE FROM auth_tokens WHERE user_id = ?').run(req.user.id);
-      db.prepare('DELETE FROM child_profiles WHERE user_id = ?').run(req.user.id); // 级联 attempts 等
+      db.prepare('DELETE FROM child_profiles WHERE user_id = ?').run(req.user.id); // 级联 attempts / wrong_questions / match_players
+      /* match_players 随档案级联删除后，matches 主体会变成没有参与者的空对局；
+       * 它不属于任何账号（DESIGN 6：对局数据仅归属儿童档案），这里一并清掉，
+       * 避免删除账号后仍留下可反推「某场对战存在过」的残行。 */
+      db.prepare(
+        'DELETE FROM matches WHERE id NOT IN (SELECT match_id FROM match_players)'
+      ).run();
       db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
     });
     tx();

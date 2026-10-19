@@ -235,8 +235,11 @@
     var body = $('statsBody');
     body.innerHTML = '';
 
-    var order = ['practice', 'challenge', 'mistakes'];
-    var names = { practice: 'stats.mode.practice', challenge: 'stats.mode.challenge', mistakes: 'stats.mode.mistakes' };
+    var order = ['practice', 'challenge', 'mistakes', 'versus'];
+    var names = {
+      practice: 'stats.mode.practice', challenge: 'stats.mode.challenge',
+      mistakes: 'stats.mode.mistakes', versus: 'stats.mode.versus'
+    };
     var shown = 0;
     order.forEach(function (m) {
       var s = by[m];
@@ -375,11 +378,14 @@
     TMUI.showView('home');
     global.addEventListener('hashchange', function () {
       var name = (location.hash || '#/home').replace('#/', '') || 'home';
-      if (name === 'home' || name === 'setup' || name === 'stats') TMUI.showView(name);
+      // 对战视图由 race.js 管理，避免 hash 回退把用户从对局里拽出来
+      if (name === 'home' || name === 'setup' || name === 'stats' || name === 'versus') TMUI.showView(name);
     });
 
     // 首页卡片
     $('brandHome').addEventListener('click', function () {
+      // 对战中先确认再离开（race.js 内部已有确认框）
+      if (global.TMRace && global.TMRace.isActive()) { global.TMRace.exitToHome(); return; }
       // exitRound 内部已负责「有答案时先确认」，此处不再重复询问
       if (TMGame.isActive()) { TMGame.exitRound(); }
       else { TMUI.showView('home'); refreshHome(); }

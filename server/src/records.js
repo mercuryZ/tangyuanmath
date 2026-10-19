@@ -14,7 +14,7 @@ const { ok, fail, csrfProtect, rateLimit } = require('./middleware');
 const { loadOwnProfile } = require('./profiles');
 const U = require('./util');
 
-const MODES = ['practice', 'challenge', 'mistakes'];
+const MODES = ['practice', 'challenge', 'mistakes', 'versus'];
 const DIFFS = ['times_tables_10', 'times_tables_12', 'two_by_one', 'two_by_two', 'mixed'];
 const MAX_QUESTIONS = 20;
 const IMPORT_BATCH_MAX = 50;

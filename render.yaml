@@ -32,15 +32,27 @@ services:
       - key: TM_DB_FILE
         value: /data/app.db          # 必须位于上方 mountPath 之内，数据库才写到持久磁盘
       - key: TM_MAIL_TRANSPORT
-        value: console               # M1 邮件先打到日志；接真实 SMTP 时改为 smtp 并配 TM_SMTP_URL
+        value: cloudflare             # 走 Cloudflare Email Service 的 REST API（HTTPS 443，不经 SMTP）
+      - key: TM_MAIL_FROM
+        value: Tangyuan Math <no-reply@tangyuanmath.com>   # 发信域须在 Cloudflare 完成 Email Sending 接入
+      # Cloudflare Email Service 凭据：sync: false 表示值在控制台填写，后续同步会保留控制台已有值。
+      # API Token 需要「Email Sending: Edit」权限；账号 ID 见 Cloudflare 控制台概览页。
+      - key: TM_CF_ACCOUNT_ID
+        sync: false
+      - key: TM_CF_API_TOKEN
+        sync: false
+      # 邮件里的验证/重置链接用这个基址拼出。必须是用户实际访问的域名：
+      # 若填 onrender.com，用户点邮件链接后会在 onrender.com 上建立会话，
+      # 回到 tangyuanmath.com 时看起来仍是未登录状态。
+      # ⚠️ 改这里之前先在 Render 控制台把同名环境变量改成同样的值，否则下次 Blueprint 同步会以本文件为准覆盖控制台。
       - key: TM_PUBLIC_BASE_URL
-        value: https://tangyuanmath.onrender.com   # 拼验证/重置链接；不设也能回退到 RENDER_EXTERNAL_URL
+        value: https://tangyuanmath.com
       # Google 登录（OAuth 2.0）。密钥不进仓库：sync: false 表示值在控制台填写，
       # 后续同步会保留控制台已有值。注意：首次创建 Blueprint 时 Render 会提示你输入这两项，
       # 请把控制台里已有的值粘贴进去，留空会导致 Google 登录失效。
       # 另需在 Google Cloud Console 的 OAuth 2.0 客户端里登记回调地址：
-      #   https://tangyuanmath.onrender.com/api/auth/google/callback
-      #   http://127.0.0.1:3000/api/auth/google/callback  （本地开发用）
+      #   https://tangyuanmath.com/api/auth/google/callback      （线上，回调地址由请求推导）
+      #   http://127.0.0.1:3000/api/auth/google/callback        （本地开发用）
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

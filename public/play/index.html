@@ -57,6 +57,12 @@
         <p id="mistakesDesc" data-i18n="home.mistakes.desc">Replay the questions you got wrong until they're gone.</p>
         <span class="m-cta" data-i18n="home.mistakes.cta">Review Mistakes →</span>
       </button>
+      <button class="mode-card" id="cardVersus" type="button">
+        <svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg>
+        <h2 data-i18n="home.versus.title">Race a Friend</h2>
+        <p data-i18n="home.versus.desc">Same questions, same clock. Share a room code and see who finishes first.</p>
+        <span class="m-cta" data-i18n="home.versus.cta">Start a race →</span>
+      </button>
     </div>
   </section>
 
@@ -109,6 +115,94 @@
       <button class="btn primary" id="nextLevelBtn" type="button" hidden data-i18n="round.nextLevel">Next Level</button>
       <button class="btn ghost" id="tryAgainBtn" type="button" hidden data-i18n="round.tryAgain">Try Again</button>
       <button class="btn ghost" id="exitBtn" type="button" data-i18n="round.exit">Exit</button>
+    </div>
+  </section>
+
+  <!-- 对战大厅（Live Race，DESIGN 13.4） -->
+  <section class="view" id="view-versus" aria-labelledby="versusTitle">
+    <h2 class="page-title" id="versusTitle" data-i18n="versus.title">Race a Friend</h2>
+    <p class="page-sub" data-i18n="versus.subtitle">Same questions, same clock. No chat, no strangers — just a room code you share.</p>
+
+    <div class="race-lobby" id="raceLobby">
+      <div class="race-card">
+        <h3 data-i18n="versus.createTitle">Start a race</h3>
+        <p class="race-hint" data-i18n="versus.createDesc">You become the host and pick the settings.</p>
+        <fieldset class="field">
+          <legend data-i18n="versus.difficulty">Number range</legend>
+          <div class="opt-row" id="raceDiffOptions" role="group"></div>
+        </fieldset>
+        <fieldset class="field">
+          <legend data-i18n="versus.count">Questions</legend>
+          <div class="opt-row" id="raceCountOptions" role="group"></div>
+        </fieldset>
+        <div class="btn-row btn-row-left">
+          <button class="btn primary" id="raceCreateBtn" type="button" data-i18n="versus.createBtn">Create room</button>
+        </div>
+      </div>
+
+      <div class="race-card">
+        <h3 data-i18n="versus.joinTitle">Join a race</h3>
+        <p class="race-hint" data-i18n="versus.joinDesc">Ask your friend for the 5-character room code.</p>
+        <label class="f-label" for="raceJoinCode" data-i18n="versus.codeLabel">Room code</label>
+        <input class="race-code-input" id="raceJoinCode" type="text" inputmode="text"
+               autocomplete="off" autocapitalize="characters" spellcheck="false"
+               maxlength="5" aria-describedby="raceJoinHint">
+        <p class="race-hint" id="raceJoinHint" data-i18n="versus.codeHint">Letters and numbers, 5 characters.</p>
+        <div class="btn-row btn-row-left">
+          <button class="btn primary" id="raceJoinBtn" type="button" data-i18n="versus.joinBtn">Join room</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn ghost" id="versusBack" type="button" data-i18n="common.back">Back</button>
+    </div>
+  </section>
+
+  <!-- 等待室 -->
+  <section class="view" id="view-lobby" aria-labelledby="lobbyTitle">
+    <h2 class="page-title" id="lobbyTitle" data-i18n="lobby.title">Waiting room</h2>
+    <p class="page-sub" data-i18n="lobby.subtitle">Share this code so your friend can join.</p>
+
+    <div class="race-code-big" id="lobbyCode" aria-live="polite"></div>
+    <div class="btn-row">
+      <button class="btn ghost" id="raceCopyBtn" type="button" data-i18n="lobby.copy">Copy invite</button>
+    </div>
+
+    <div class="seat-grid" id="lobbySeats" aria-live="polite"></div>
+
+    <div class="race-settings" id="lobbySettings"></div>
+
+    <div class="btn-row">
+      <button class="btn primary" id="raceStartBtn" type="button" data-i18n="lobby.start">Start race</button>
+      <button class="btn ghost" id="lobbyLeaveBtn" type="button" data-i18n="lobby.leave">Leave</button>
+    </div>
+  </section>
+
+  <!-- 对战视图 -->
+  <section class="view" id="view-race" aria-labelledby="raceBadge">
+    <div class="round-top">
+      <span class="round-badge" id="raceBadge" data-i18n="race.badge">Race</span>
+      <div class="progress-wrap">
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+             aria-valuenow="0" id="raceProgressRole">
+          <div class="progress-fill" id="raceProgressFill"></div>
+        </div>
+      </div>
+      <div class="timer" id="raceTimer">0</div>
+    </div>
+
+    <div class="peer-strip" id="racePeers" aria-live="polite"></div>
+
+    <div class="sub-info">
+      <span id="raceDesc"></span>
+      <span id="raceScoreDesc"></span>
+    </div>
+
+    <div class="grid" id="raceGrid"></div>
+
+    <div class="btn-row">
+      <button class="btn ghost" id="raceExitBtn" type="button" data-i18n="race.leave">Leave race</button>
     </div>
   </section>
 
@@ -232,6 +326,26 @@
   </div>
 </div>
 
+<!-- 对战结算弹窗 -->
+<div class="overlay" id="raceResultOverlay" role="dialog" aria-modal="true" aria-labelledby="raceResultTitle">
+  <div class="modal">
+    <div class="m-banner"></div>
+    <div class="m-avatar-wrap">
+      <img class="m-avatar" src="../img/tangyuan_web.png" alt="Tangyuan">
+      <div class="m-emote" aria-hidden="true"><svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg></div>
+    </div>
+    <div class="modal-body">
+      <h2 id="raceResultTitle">Race complete</h2>
+      <p class="m-sub" id="raceResultSub"></p>
+      <div class="race-ranking" id="raceRanking"></div>
+      <div class="btn-row">
+        <button class="btn primary" id="raceRematchBtn" type="button" data-i18n="race.rematch">Rematch</button>
+        <button class="btn ghost" id="raceLobbyBtn" type="button" data-i18n="race.backToLobby">Back to lobby</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="../locales/en.js"></script>
@@ -242,6 +356,7 @@
 <script src="../js/records.js"></script>
 <script src="../js/api.js"></script>
 <script src="../js/game.js"></script>
+<script src="../js/race.js"></script>
 <script src="../js/app.js"></script>
 </body>
 </html>
