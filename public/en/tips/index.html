@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Tips — Tangyuan Math</title>
+<meta name="description" content="Six mental-math tricks for two-digit multiplication: split numbers, same-tens and same-units shortcuts, base numbers near 100, multiplying by 11 or 99, and cross multiplication.">
+<link rel="canonical" href="https://tangyuanmath.com/en/tips/">
+<link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/tips/">
+<link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/tips/">
+<link rel="icon" href="/img/tangyuan_small.png">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/img/tangyuan_small.png" alt="Tangyuan the mascot"><b>Tangyuan Math</b></a>
+    <nav class="site-nav" aria-label="Main">
+      <a class="play-cta" href="/play/">▶ Play</a>
+      <a href="/en/tips/" aria-current="page">Math Tips</a>
+      <a href="/en/blog/">Blog</a>
+      <a href="/en/about/">About</a>
+      <a href="/account/">Parent Center</a>
+      <a class="lang-switch" href="/zh/tips/" hreflang="zh" lang="zh">中文</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block">
+    <h1>💡 Tangyuan's Math Tips</h1>
+    <div class="prose">
+      <p>Six mental-math tricks for two-digit multiplication. Every trick has conditions — when they don't match, fall back to splitting the number.</p>
+
+      <h2>1. Split one number (the basic move)</h2>
+      <p>Break any two-digit number into “tens + ones”, multiply step by step, then add. This is the foundation — every trick below is a special case of it.</p>
+      <div class="tip-eg">24 × 13 = 24 × 10 + 24 × 3 = 240 + 72 = <b>312</b></div>
+
+      <h2>2. Same tens, units add to 10</h2>
+      <p>When the tens digits match and the units add up to 10: multiply tens × (tens + 1) for the front, units × units for the back. Pad the back with a 0 if it's a single digit.</p>
+      <div class="tip-eg">23 × 27 → front: 2 × 3 = 6, back: 3 × 7 = 21 → <b>621</b><br>45 × 45 → front: 4 × 5 = 20, back: 5 × 5 = 25 → <b>2025</b></div>
+
+      <h2>3. Same units, tens add to 10</h2>
+      <p>When the units match and the tens add up to 10: the front is tens × tens + units, the back is units × units (pad to two digits).</p>
+      <div class="tip-eg">32 × 72 → front: 3 × 7 + 2 = 23, back: 2 × 2 = 04 → <b>2304</b><br>41 × 61 → front: 4 × 6 + 1 = 25, back: 1 × 1 = 01 → <b>2501</b></div>
+
+      <h2>4. Near 100? Use a base number</h2>
+      <p>Write numbers as “(round ± difference)” and expand. See 25, look for 4; see 5, look for 2.</p>
+      <div class="tip-eg">98 × 96 = (100−2)(100−6) = 10000 − 800 + 12 = <b>9408</b><br>25 × 24 = 25 × 4 × 6 = 100 × 6 = <b>600</b></div>
+
+      <h2>5. Multiplying by 11 or 99</h2>
+      <p>× 11: pull the two ends apart, add them for the middle (carry if needed). × 99: multiply by 100, then subtract the number itself.</p>
+      <div class="tip-eg">34 × 11 → 3 (3+4) 4 = <b>374</b><br>57 × 11 → 5 (12) 7 → carry → <b>627</b><br>23 × 99 = 2300 − 23 = <b>2277</b></div>
+
+      <h2>6. Cross multiplication (for anything else)</h2>
+      <p>The mental version of long multiplication: units × units for the ones digit, cross-sum for the tens, tens × tens for the top — watch the carries.</p>
+      <div class="tip-eg">34 × 56:<br>units 4×6 = 24 → write 4 carry 2<br>cross 3×6 + 4×5 = 38, +2 = 40 → write 0 carry 4<br>tens 3×5 = 15, +4 = 19 → <b>1904</b></div>
+
+      <p class="muted">Want to try them? <a href="/play/">Practice with Tangyuan →</a></p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 Tangyuan Math · Free, no ads, no tracking</span>
+    <span>
+      <a href="/en/faq/">FAQ</a>
+      <a href="/en/about/">About</a>
+      <a href="/en/privacy/">Privacy</a>
+      <a href="/en/terms/">Terms</a>
+      <a href="/zh/tips/" lang="zh">中文</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

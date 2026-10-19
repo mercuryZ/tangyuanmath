@@ -65,7 +65,9 @@ function createApp(db, opts) {
     '/privacy': '/en/privacy/',
     '/about': '/en/about/',
     '/terms': '/en/terms/',
-    '/faq': '/en/faq/'
+    '/faq': '/en/faq/',
+    '/tips': '/en/tips/',
+    '/blog': '/en/blog/'
   };
   /* 早期邮件里发出去的令牌链接形式（/account/verify-email?token=…、/account/reset?token=…）。
    * 这两个路径没有对应文件，直接访问会 404 并显示首页；这里带 query 转成前端真正解析的地址。 */

@@ -139,6 +139,14 @@ section.block > h1, section.block > h2 {
 .faq-item h2 { font-size: 16px; color: var(--red-deep); margin-bottom: 6px; }
 .faq-item p { font-size: 14.5px; color: var(--ink); }
 
+/* 速算技巧页的示例块 */
+.tip-eg {
+  background: var(--red-light); border-radius: 12px; padding: 10px 14px;
+  font-size: 14.5px; font-weight: 700; color: var(--red-deep);
+  margin: 6px 0 4px; line-height: 1.8;
+}
+.tip-eg b { color: var(--red-dark); }
+
 /* 语言入口页 */
 .lang-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 28px; }
 .lang-card {
