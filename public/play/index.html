@@ -23,9 +23,17 @@
     </span>
   </button>
   <div class="header-actions" role="group" aria-label="Language / menu">
-    <button class="chip-btn" id="langEn" type="button" aria-pressed="false" data-lang="en">EN</button>
-    <button class="chip-btn" id="langZh" type="button" aria-pressed="false" data-lang="zh">中文</button>
+    <div class="lang-menu" id="langMenu">
+      <button class="chip-btn lang-btn" id="langBtn" type="button"
+              aria-haspopup="listbox" aria-expanded="false"
+              data-i18n-aria-label="nav.language" aria-label="Language">
+        <span id="langCurrent">EN</span><span class="lang-caret" aria-hidden="true">▾</span>
+      </button>
+      <div class="lang-dropdown" id="langDropdown" role="listbox"
+           data-i18n-aria-label="nav.language" aria-label="Language" hidden></div>
+    </div>
     <button class="chip-btn" id="btnTips" type="button" data-i18n="nav.tips">Math Tips</button>
+    <a class="chip-btn" id="btnBlog" href="/en/blog/" data-i18n="nav.blog">Blog</a>
     <button class="chip-btn" id="btnStats" type="button" data-i18n="nav.stats">My Stats</button>
     <button class="chip-btn" id="btnSettings" type="button" data-i18n="nav.settings">Settings</button>
     <button class="chip-btn" id="btnAccount" type="button" data-i18n="nav.account">Account</button>
@@ -51,17 +59,17 @@
         <p id="challengeDesc" data-i18n="home.challenge.desc">10 levels, 10 questions each, time shrinks each level.</p>
         <span class="m-cta" id="challengeCta" data-i18n="home.challenge.cta">Start Challenge →</span>
       </button>
-      <button class="mode-card" id="cardMistakes" type="button">
-        <svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg>
-        <h2 data-i18n="home.mistakes.title">Practice My Mistakes</h2>
-        <p id="mistakesDesc" data-i18n="home.mistakes.desc">Replay the questions you got wrong until they're gone.</p>
-        <span class="m-cta" data-i18n="home.mistakes.cta">Review Mistakes →</span>
-      </button>
       <button class="mode-card" id="cardVersus" type="button">
         <svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg>
         <h2 data-i18n="home.versus.title">Race a Friend</h2>
         <p data-i18n="home.versus.desc">Same questions, same clock. Share a room code and see who finishes first.</p>
         <span class="m-cta" data-i18n="home.versus.cta">Start a race →</span>
+      </button>
+      <button class="mode-card" id="cardMistakes" type="button">
+        <svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg>
+        <h2 data-i18n="home.mistakes.title">Practice My Mistakes</h2>
+        <p id="mistakesDesc" data-i18n="home.mistakes.desc">Replay the questions you got wrong until they're gone.</p>
+        <span class="m-cta" data-i18n="home.mistakes.cta">Review Mistakes →</span>
       </button>
     </div>
   </section>
@@ -228,6 +236,7 @@
   <a id="footAbout" href="/en/about/"><span data-i18n="nav.about">About</span></a>
   <a id="footPrivacy" href="/en/privacy/"><span data-i18n="nav.privacy">Privacy</span></a>
   <a id="footTerms" href="/en/terms/"><span data-i18n="nav.terms">Terms</span></a>
+  <a id="footContact" href="mailto:hi@tangyuanmath.com"><span data-i18n="nav.contact">Contact</span></a>
 </footer>
 
 <!-- 结果弹窗 -->

@@ -3,7 +3,9 @@ window.TM_I18N = window.TM_I18N || {};
 window.TM_I18N.zh = {
   'brand.title': '汤圆数学',
   'brand.tagline': '一题一题，成为数学小英雄。',
+  'nav.language': '语言',
   'nav.tips': '速算秘籍',
+  'nav.blog': '博客',
   'nav.stats': '我的统计',
   'nav.settings': '设置',
   'nav.home': '首页',
@@ -11,6 +13,7 @@ window.TM_I18N.zh = {
   'nav.about': '关于',
   'nav.privacy': '隐私',
   'nav.terms': '条款',
+  'nav.contact': '联系我们',
   'nav.account': '账号',
 
   'common.back': '返回',

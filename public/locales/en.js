@@ -3,7 +3,9 @@ window.TM_I18N = window.TM_I18N || {};
 window.TM_I18N.en = {
   'brand.title': 'Tangyuan Math',
   'brand.tagline': 'Become a Math Hero, One Problem at a Time.',
+  'nav.language': 'Language',
   'nav.tips': 'Math Tips',
+  'nav.blog': 'Blog',
   'nav.stats': 'My Stats',
   'nav.settings': 'Settings',
   'nav.home': 'Home',
@@ -11,6 +13,7 @@ window.TM_I18N.en = {
   'nav.about': 'About',
   'nav.privacy': 'Privacy',
   'nav.terms': 'Terms',
+  'nav.contact': 'Contact',
   'nav.account': 'Account',
 
   'common.back': 'Back',

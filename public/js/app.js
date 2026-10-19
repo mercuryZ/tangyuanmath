@@ -8,6 +8,13 @@
   function t(key, vars) { return global.TMI18N.t(key, vars); }
   function $(id) { return document.getElementById(id); }
 
+  /* 语言注册表：新增语言时在此加一项，并在 i18n.js 的 SUPPORTED 与 locales/ 中登记。
+     语言名使用该语言自身的写法（endonym），方便用户找到自己的语言。 */
+  var LANGS = [
+    { code: 'en', short: 'EN', label: 'English' },
+    { code: 'zh', short: '中文', label: '中文' }
+  ];
+
   /* ---------- 设置存储 ---------- */
   var SETTINGS_KEY = 'tm_settings';
   var settings = { difficulty: 'times_tables_10', count: 10, stopwatch: false, reduceMotion: null };
@@ -320,15 +327,58 @@
   }
 
   /* ---------- 语言切换 ---------- */
+  /* 下拉菜单由 LANGS 生成，新增语言只改注册表一处 */
+  function renderLangMenu() {
+    var box = $('langDropdown');
+    if (!box) return;
+    box.innerHTML = '';
+    LANGS.forEach(function (l) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lang-option';
+      b.setAttribute('role', 'option');
+      b.setAttribute('data-lang', l.code);
+      b.textContent = l.label;
+      b.addEventListener('click', function () {
+        switchLang(l.code);
+        closeLangMenu(true);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function openLangMenu() {
+    var dd = $('langDropdown');
+    if (!dd) return;
+    dd.hidden = false;
+    $('langBtn').setAttribute('aria-expanded', 'true');
+    var sel = dd.querySelector('.lang-option[aria-selected="true"]') || dd.querySelector('.lang-option');
+    if (sel) sel.focus();
+  }
+
+  function closeLangMenu(returnFocus) {
+    var dd = $('langDropdown');
+    if (!dd || dd.hidden) return;
+    dd.hidden = true;
+    $('langBtn').setAttribute('aria-expanded', 'false');
+    if (returnFocus) $('langBtn').focus();
+  }
+
   function syncLangButtons() {
     var lang = TMI18N.lang();
-    $('langEn').setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
-    $('langZh').setAttribute('aria-pressed', lang === 'zh' ? 'true' : 'false');
+    var current = LANGS.filter(function (l) { return l.code === lang; })[0] || LANGS[0];
+    $('langCurrent').textContent = current.short;
+    var options = $('langDropdown').querySelectorAll('.lang-option');
+    for (var i = 0; i < options.length; i++) {
+      var selected = options[i].getAttribute('data-lang') === lang;
+      options[i].setAttribute('aria-selected', selected ? 'true' : 'false');
+    }
   }
   /* 底部链接跟随当前语言切换 /en/ 与 /zh/ 路径 */
   function syncFooterLinks() {
     var zh = TMI18N.lang() === 'zh';
     $('footHome').setAttribute('href', zh ? '/zh/' : '/');
+    $('btnBlog').setAttribute('href', zh ? '/zh/blog/' : '/en/blog/');
     $('footFaq').setAttribute('href', zh ? '/zh/faq/' : '/en/faq/');
     $('footAbout').setAttribute('href', zh ? '/zh/about/' : '/en/about/');
     $('footPrivacy').setAttribute('href', zh ? '/zh/privacy/' : '/en/privacy/');
@@ -350,6 +400,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     applyMotion();
     TMI18N.setLang(TMI18N.lang(), false); // 应用初始语言（不重复写入）
+    renderLangMenu();
     syncLangButtons();
     syncFooterLinks();
     renderSetup();
@@ -405,8 +456,32 @@
     $('setupBack').addEventListener('click', function () { TMUI.showView('home'); });
 
     // 顶栏
-    $('langEn').addEventListener('click', function () { switchLang('en'); });
-    $('langZh').addEventListener('click', function () { switchLang('zh'); });
+    $('langBtn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      if ($('langDropdown').hidden) openLangMenu(); else closeLangMenu(true);
+    });
+    $('langBtn').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        openLangMenu();
+      } else if (e.key === 'Escape') {
+        closeLangMenu(false);
+      }
+    });
+    $('langDropdown').addEventListener('keydown', function (e) {
+      var opts = Array.prototype.slice.call($('langDropdown').querySelectorAll('.lang-option'));
+      var idx = opts.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeLangMenu(true); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); opts[(idx + 1) % opts.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); opts[(idx - 1 + opts.length) % opts.length].focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
+      else if (e.key === 'Tab') { closeLangMenu(false); }
+    });
+    // 点击菜单外部时收起
+    document.addEventListener('click', function (e) {
+      if (!$('langMenu').contains(e.target)) closeLangMenu(false);
+    });
     $('btnTips').addEventListener('click', function () { openOverlay($('tipsOverlay')); });
     $('btnStats').addEventListener('click', function () { renderStats(); TMUI.showView('stats'); });
     $('btnSettings').addEventListener('click', function () { renderSettings(); openOverlay($('settingsOverlay')); });
