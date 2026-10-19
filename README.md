@@ -103,6 +103,14 @@ Milestones are detailed in [docs/DESIGN.md](docs/DESIGN.md) (v3.0 merged edition
 - **M2 ⏳ Real payments & Supporter**: hosted checkout, PDF worksheets, custom local celebration images.
 - **M3 ⏳ Content & growth**: English tutorials, SEO/GEO, community outreach.
 
+## License
+
+Code and content in this repository are released under the [MIT License](LICENSE).
+
+You are free to use, modify, distribute and sell copies of this project, provided the copyright notice and permission notice are retained in all copies or substantial portions. The software is provided "as is", without warranty of any kind.
+
+The Tangyuan Math name and the Tangyuan mascot are the project's brand. The MIT License does not grant trademark rights, so modified redistributions should not present themselves as the official product.
+
 ## Contributing
 
 Issues and pull requests are welcome — let's raise Tangyuan together! 🍡

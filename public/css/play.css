@@ -156,10 +156,13 @@ body {
 .mode-card[disabled] { opacity: .55; cursor: not-allowed; }
 
 /* ---------- Practice 设置表单 ---------- */
-.setup-form { display: grid; gap: 18px; max-width: 560px; }
+.setup-form { display: grid; gap: 18px; max-width: 720px; }
 .field { border: none; }
 .field legend, .field .f-label { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 8px; display: block; }
 .opt-row { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Number range 的四个选项固定在同一行 */
+#diffOptions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+#diffOptions .opt { min-width: 0; }
 .opt {
   border: 2px solid var(--pink-light); background: var(--cream); color: var(--ink);
   font: 700 14px/1.3 inherit; padding: 10px 16px; border-radius: 16px; cursor: pointer;
@@ -449,6 +452,9 @@ body {
 @media (max-width: 640px) {
   .app { padding: 20px 14px 24px; }
   .grid { grid-template-columns: 1fr; }
+  /* 四列仍保持一行：缩小内边距与字号，给标签留出换行空间 */
+  #diffOptions .opt { padding: 9px 8px; font-size: 12.5px; }
+  #diffOptions .opt small { font-size: 11px; }
   .progress-wrap { display: none; }
   .app-header { justify-content: center; text-align: center; }
   .header-actions { justify-content: center; }

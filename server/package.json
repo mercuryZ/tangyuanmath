@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Tangyuan Math — Express + SQLite backend (M1: parent accounts & cloud learning data)",
+  "license": "MIT",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
