@@ -16,6 +16,7 @@ const { buildProfilesRouter } = require('./profiles');
 const { buildRecordsRouter, buildWrongbookRouter } = require('./records');
 const { buildAccountRouter } = require('./account');
 const { buildVersusRouter } = require('./match-store');
+const { buildPdfRouter } = require('./pdf');
 const { attachLiveRace } = require('./race-ws');
 
 function createApp(db, opts) {
@@ -41,6 +42,7 @@ function createApp(db, opts) {
   api.patch('/me', ...updateMeHandler(db).map(h => h)); // [csrfProtect, handler]
   api.use('/profiles', mw.requireAuth, buildProfilesRouter(db));
   api.use('/account', mw.requireAuth, buildAccountRouter(db));
+  api.use('/pdf', mw.requireAuth, buildPdfRouter(db));
 
   /* 档案子资源：先挂 profiles 归属中间件再挂子路由 */
   api.use('/profiles/:id/records', mw.requireAuth, buildRecordsRouter(db));
@@ -67,7 +69,8 @@ function createApp(db, opts) {
     '/terms': '/en/terms/',
     '/faq': '/en/faq/',
     '/tips': '/en/tips/',
-    '/blog': '/en/blog/'
+    '/blog': '/en/blog/',
+    '/worksheets': '/en/worksheets/'
   };
   /* 早期邮件里发出去的令牌链接形式（/account/verify-email?token=…、/account/reset?token=…）。
    * 这两个路径没有对应文件，直接访问会 404 并显示首页；这里带 query 转成前端真正解析的地址。 */

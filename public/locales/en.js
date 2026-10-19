@@ -232,6 +232,7 @@ window.TM_I18N.en = {
   'acct.signedInAs': 'Signed in as',
   'acct.verified': 'verified',
   'acct.unverified': 'not verified yet',
+  'acct.supporter': '★ Supporter',
   'acct.timezone': 'Timezone (for daily streaks)',
   'acct.logout': 'Sign out',
   'acct.logoutAll': 'Sign out everywhere',

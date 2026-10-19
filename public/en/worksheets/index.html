@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Printable Multiplication Worksheets (PDF) — Tangyuan Math</title>
+<meta name="description" content="Free printable multiplication worksheets in black and white — US Letter and A4, from times tables to two-digit multiplication, each with an optional answer page. Fixed samples are free for everyone; supporters can generate custom PDFs.">
+<link rel="canonical" href="https://tangyuanmath.com/en/worksheets/">
+<link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/worksheets/">
+<link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/worksheets/">
+<link rel="icon" href="/img/tangyuan_small.png">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/img/tangyuan_small.png" alt="Tangyuan the mascot"><b>Tangyuan Math</b></a>
+    <nav class="site-nav" aria-label="Main">
+      <a class="play-cta" href="/play/">▶ Play</a>
+      <a href="/en/tips/">Math Tips</a>
+      <a href="/en/worksheets/" aria-current="page">Worksheets</a>
+      <a href="/en/blog/">Blog</a>
+      <a href="/en/about/">About</a>
+      <a href="/account/">Parent Center</a>
+      <a class="lang-switch" href="/zh/worksheets/" hreflang="zh" lang="zh">中文</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block">
+    <h1>🖨️ Printable Multiplication Worksheets</h1>
+    <div class="prose">
+      <p>Print-friendly multiplication practice in black and white — clear on any printer, low on ink. Every worksheet has blank <b>Name / Date / Score</b> fields, generous writing space, and an <b>answer page you can choose to print or skip</b>. Both US Letter and A4 paper sizes are supported.</p>
+    </div>
+  </section>
+
+  <section class="block" id="free-samples">
+    <h2>Free samples</h2>
+    <div class="prose">
+      <p>These fixed sample worksheets are free for everyone — no account needed. They show exactly what our worksheets look like, answer page included.</p>
+      <div class="ws-sample-grid">
+        <a class="ws-sample" href="/en/worksheets/samples/times-tables-1-10-letter.pdf">
+          <b>Times tables 1–10</b>
+          <small>20 questions · US Letter · with answer page (PDF)</small>
+        </a>
+        <a class="ws-sample" href="/en/worksheets/samples/two-digit-by-one-digit-a4.pdf">
+          <b>2-digit × 1-digit</b>
+          <small>20 questions · A4 · with answer page (PDF)</small>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="custom-generator">
+    <h2>Custom worksheets <span class="ws-chip">Supporter</span></h2>
+    <div class="prose">
+      <p>Pick the difficulty, number of questions, and paper size — then download a freshly generated PDF with a brand-new set of questions every time.</p>
+    </div>
+    <div id="wsGate" class="ws-gate"><p class="muted">Checking sign-in status…</p></div>
+    <form id="wsForm" class="ws-form" hidden>
+      <div class="ws-row">
+        <div class="ws-field">
+          <label for="wsDifficulty">Difficulty</label>
+          <select id="wsDifficulty">
+            <option value="times_tables_10" selected>Times tables 1–10</option>
+            <option value="times_tables_12">Times tables 1–12</option>
+            <option value="two_by_one">2-digit × 1-digit</option>
+            <option value="two_by_two">2-digit × 2-digit</option>
+          </select>
+        </div>
+        <div class="ws-field">
+          <label for="wsCount">Questions</label>
+          <select id="wsCount">
+            <option value="20" selected>20</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="ws-field">
+          <label for="wsPaper">Paper</label>
+          <select id="wsPaper">
+            <option value="letter" selected>US Letter</option>
+            <option value="a4">A4</option>
+          </select>
+        </div>
+        <div class="ws-field ws-check">
+          <label for="wsAnswers">Include answer page</label>
+          <input type="checkbox" id="wsAnswers" checked>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="wsDownload">⬇ Download PDF</button>
+      <p class="ws-error" id="wsError" hidden></p>
+      <p class="ws-fine">Custom generation is a Supporter feature. Fair-use limit: 20 downloads per 10 minutes per account.</p>
+    </form>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 Tangyuan Math · Free, no ads, no tracking</span>
+    <span>
+      <a href="/en/faq/">FAQ</a>
+      <a href="/en/about/">About</a>
+      <a href="/en/privacy/">Privacy</a>
+      <a href="/en/terms/">Terms</a>
+      <a href="mailto:hi@tangyuanmath.com">Contact</a>
+      <a href="/zh/worksheets/" lang="zh">中文</a>
+    </span>
+  </div>
+</footer>
+
+<script src="/js/worksheets.js" defer></script>
+
+</body>
+</html>

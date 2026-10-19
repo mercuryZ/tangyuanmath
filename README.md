@@ -100,7 +100,7 @@ Milestones are detailed in [docs/DESIGN.md](docs/DESIGN.md) (v3.0 merged edition
 - **M0 ✅ Free overseas trial**: full English UI + Chinese, untimed practice (choose range & count), 10-level challenge, mistake review, first/final answer tracking, per-question active time, accessibility, public pages (home/FAQ/about/privacy), local-only visitor data you can clear, zero ads and zero third-party scripts.
 - **M1 ✅ Parent accounts & cloud data**: Express + SQLite (versioned migrations), email register/verify/login/reset + session revocation (CSRF + rate limits + strict CSP), child profiles with ownership checks, server-authoritative grading with idempotent upload (first/final answers + per-question active time), cloud mistake review, idempotent guest import, timezone-aware streaks, export & account deletion.
 - **M1.5 ✅ Live Race (multiplayer)**: invite-code 2–4 player speed races over WebSocket. Server-authoritative grading (clients never receive answers), system-generated display names with no chat or free text, guests play without an account and leave no trace, 30-second reconnect window back to the same seat, and results saved only for signed-in child profiles. Not yet load-tested.
-- **M2 ⏳ Real payments & Supporter**: hosted checkout, PDF worksheets, custom local celebration images.
+- **M2 ⏳ Real payments & Supporter**: hosted checkout (pending), printable PDF worksheets (live — free samples for everyone, supporter-only custom generation with US Letter/A4 and optional answer pages), custom local celebration images.
 - **M3 ⏳ Content & growth**: English tutorials, SEO/GEO, community outreach.
 
 ## License

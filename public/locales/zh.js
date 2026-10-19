@@ -232,6 +232,7 @@ window.TM_I18N.zh = {
   'acct.signedInAs': '当前登录',
   'acct.verified': '已验证',
   'acct.unverified': '未验证',
+  'acct.supporter': '★ 支持者',
   'acct.timezone': '时区（用于每日打卡）',
   'acct.logout': '退出登录',
   'acct.logoutAll': '退出全部设备',

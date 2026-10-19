@@ -16,6 +16,7 @@ const config = require('./config');
 const { ok, fail, rateLimit, sessionCookieName, createSession, issueCsrfCookie, csrfProtect } = require('./middleware');
 const U = require('./util');
 const mailer = require('./mailer');
+const { activeFeatureKeys } = require('./entitlements');
 
 function setSessionCookie(req, res, token) {
   res.cookie(sessionCookieName(), token, {
@@ -298,7 +299,7 @@ function buildAuthRouter(db) {
   return r;
 }
 
-/* GET /api/me：语言、时区、档案与权益（M1 无付费权益 → 空 entitlements） */
+/* GET /api/me：语言、时区、档案与权益（权益自 M2 起由 entitlements 表提供） */
 function meHandler(db) {
   return (req, res) => {
     if (!req.user) return ok(res, { user: null, authMethods: { google: googleEnabled() } });
@@ -308,7 +309,7 @@ function meHandler(db) {
     ok(res, {
       user: publicUser(req.user),
       profiles,
-      entitlements: [], // M2 起由 orders/entitlements 提供
+      entitlements: activeFeatureKeys(db, req.user.id),
       authMethods: { google: googleEnabled() }
     });
   };

@@ -101,6 +101,10 @@
     var v = $('meVerified');
     v.textContent = t(st.user.emailVerified ? 'acct.verified' : 'acct.unverified');
     v.className = 'badge-ok' + (st.user.emailVerified ? '' : ' off');
+    var sup = $('meSupporter'); // Supporter 徽章（M2）：entitlements 含 pdf_worksheet 即显示
+    var ents = st.entitlements || [];
+    sup.hidden = ents.indexOf('pdf_worksheet') === -1;
+    sup.href = global.TMI18N && global.TMI18N.lang() === 'zh' ? '/zh/worksheets/' : '/en/worksheets/';
 
     renderTzSelect(st.user.timezone);
     renderProfile(st);

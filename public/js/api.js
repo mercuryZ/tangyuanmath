@@ -9,6 +9,7 @@
   const state = {
     user: null,
     profiles: [],
+    entitlements: [],
     currentProfileId: null,
     csrfToken: null
   };
@@ -54,6 +55,7 @@
     const r = await call('GET', '/api/me');
     state.user = r.ok && r.data ? r.data.user : null;
     state.profiles = r.ok && r.data ? r.data.profiles : [];
+    state.entitlements = r.ok && r.data && r.data.entitlements ? r.data.entitlements : [];
     if (state.user) {
       const saved = Number(localStorage.getItem(activeProfileKey()));
       state.currentProfileId = state.profiles.some(p => p.id === saved) ? saved

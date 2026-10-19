@@ -170,6 +170,26 @@ const MIGRATIONS = [
       );
       CREATE INDEX idx_match_players_profile ON match_players(profile_id);
     `
+  },
+  {
+    /* M2 权益表（DESIGN §6）：会员权益以 entitlements 为准，不使用 users.plan 字段。
+     * source_type/source_id 记录来源，退款时只撤销该来源的权益，不影响其他有效来源。
+     * orders / payment_events 表随支付渠道接入时另行迁移。 */
+    version: 4,
+    name: 'entitlements',
+    sql: `
+      CREATE TABLE entitlements (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        feature_key TEXT NOT NULL,
+        source_type TEXT NOT NULL CHECK (source_type IN ('order','redeem','grant')),
+        source_id   TEXT,
+        starts_at   INTEGER NOT NULL,
+        expires_at  INTEGER,
+        revoked_at  INTEGER
+      );
+      CREATE INDEX idx_entitlements_user_feature ON entitlements(user_id, feature_key);
+    `
   }
 ];
 
