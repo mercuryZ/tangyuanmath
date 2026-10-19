@@ -221,6 +221,11 @@ test('WS：端到端对局——两名游客跑完一局，游客全程零落库
     tick();
   });
   await Promise.all([solve(a, gsA), solve(b, gsB)]);
+  a.send({ type: 'submit', answers: [] });
+  b.send({ type: 'submit', answers: [] });
+  const subA = await a.wait('submitted');
+  assert.strictEqual(subA.solved, 5, '交卷后返回逐题判定的总分');
+  assert.ok(Array.isArray(subA.results));
 
   const over = await a.wait('game_over', null, 6000);
   assert.strictEqual(over.ranking.length, 2);
@@ -268,6 +273,9 @@ test('WS：登录档案参战会落库，且能通过 /api/profiles/:id/versus �
     tick();
   });
   await Promise.all([solve(a, gs.problems), solve(b, gsB.problems)]);
+  a.send({ type: 'submit', answers: [] });
+  b.send({ type: 'submit', answers: [] });
+  await a.wait('submitted');
   const over = await a.wait('game_over', null, 10000);
   assert.strictEqual(over.ranking[0].solved, 5);
 

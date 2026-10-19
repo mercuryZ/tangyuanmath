@@ -94,6 +94,7 @@
       case 'countdown': showCountdown(msg.seconds); break;
       case 'game_start': onGameStart(msg); break;
       case 'judge': onJudge(msg); break;
+      case 'submitted': onSubmitted(msg); break;
       case 'peer_progress': onPeerProgress(msg); break;
       case 'game_over': onGameOver(msg); break;
       case 'error': onServerError(msg.code); break;
@@ -260,6 +261,7 @@
     state.problems = msg.problems;
     state.per = msg.problems.map(function () { return { answer: null, correct: false }; });
     state.deadline = msg.deadline;
+    state.submitted = !!msg.submitted; // 重连时可能已交卷
     // 用服务端时间校准本地时钟，避免设备时间不准导致倒计时偏差
     state.serverSkew = (msg.serverNow || Date.now()) - Date.now();
     (msg.solvedPositions || []).forEach(function (i) {
@@ -270,12 +272,32 @@
     var badge = $('raceBadge');
     if (badge) badge.textContent = t('race.badge');
     $('raceDesc').textContent = t('race.desc', { n: msg.count });
+    $('raceScoreDesc').textContent = '';
     renderGrid();
     renderPeers(state.room);
     updateProgress();
     startClock();
+    resetSubmitUi();
+    if (state.submitted) {
+      markSubmittedBoard();
+      lockBoard();
+      var btn0 = $('raceSubmitBtn');
+      if (btn0) { btn0.disabled = true; btn0.textContent = t('race.submitted'); }
+      var hint0 = $('raceSubmitHint');
+      if (hint0) hint0.textContent = t('race.submitted');
+      var solvedN = state.per.filter(function (p) { return p.correct; }).length;
+      $('raceScoreDesc').textContent = t('race.submittedScore', { solved: solvedN, total: msg.count });
+    }
     var firstOpen = $('raceGrid').querySelector('input:not([disabled])');
     if (firstOpen) setTimeout(function () { firstOpen.focus(); }, 60);
+  }
+
+  /* 每局开始时恢复提交按钮与提示文案 */
+  function resetSubmitUi() {
+    var btn = $('raceSubmitBtn');
+    if (btn) { btn.disabled = false; btn.textContent = t('race.submit'); }
+    var hint = $('raceSubmitHint');
+    if (hint) hint.textContent = t('race.submitHint');
   }
 
   function renderGrid() {
@@ -422,12 +444,77 @@
     if (left === 0) stopClock();
   }
 
+  /* ---------- 交卷 ----------
+   * 把当前整张卷子一次性发给服务端：已答对（锁定）的题跳过，
+   * 其余取输入框当前值。服务端判定后返回 submitted，此后本方棋盘锁定。 */
+  function collectAnswers() {
+    var answers = [];
+    if (!state || !state.problems) return answers;
+    state.problems.forEach(function (q, i) {
+      if (state.per[i] && state.per[i].correct) return; // 已答对，无需重发
+      var card = $('raceGrid').querySelector('.card[data-idx="' + i + '"]');
+      if (!card) return;
+      var inp = card.querySelector('input');
+      if (!inp || inp.disabled) return;
+      var raw = inp.value.trim();
+      if (raw === '') return; // 空题不占答案，按未答处理
+      var v = Number(raw);
+      if (!isFinite(v)) return;
+      answers.push({ position: i, value: Math.round(v) });
+    });
+    return answers;
+  }
+
+  function submitSheet() {
+    if (!state || state.submitted) return;
+    if (!send({ type: 'submit', answers: collectAnswers() })) {
+      showError('disconnected');
+      return;
+    }
+  }
+
+  /* 服务端确认交卷：逐题打 ✓/✗，锁定棋盘并提示等待 */
+  function onSubmitted(msg) {
+    if (!state) return;
+    state.submitted = true;
+    // 服务端返回本张卷子的逐题判定，写回本地进度
+    (msg.results || []).forEach(function (r) {
+      if (r && state.per[r.position] && r.correct) state.per[r.position].correct = true;
+    });
+    markSubmittedBoard();
+    lockBoard();
+    var btn = $('raceSubmitBtn');
+    if (btn) { btn.disabled = true; btn.textContent = t('race.submitted'); }
+    var hint = $('raceSubmitHint');
+    if (hint) hint.textContent = t('race.waitingOthers', { n: msg.waitingFor || 0 });
+    $('raceScoreDesc').textContent = t('race.submittedScore', {
+      solved: msg.solved, total: msg.total
+    });
+    if (!msg.solved && msg.solved !== 0) { /* 兼容缺省 */ }
+  }
+
+  /* 交卷后逐题标记：答对 ✓，答错或未答 ✗（与服务端计分口径一致）。
+   * 重连恢复已交卷的棋局时也走这里：solvedPositions 之外的一律视为未答对。 */
+  function markSubmittedBoard() {
+    if (!state || !state.problems) return;
+    state.problems.forEach(function (q, i) {
+      var ok = !!(state.per[i] && state.per[i].correct);
+      markCard(i, ok ? 'correct' : 'wrong');
+    });
+  }
+
+  function lockBoard() {
+    var inputs = $('raceGrid').querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) inputs[i].disabled = true;
+  }
+
   /* ---------- 结算 ---------- */
   function onGameOver(msg) {
     if (!state) return;
     stopClock();
     clearSeat();
     var ranking = msg.ranking || [];
+    var total = msg.total || (state.problems ? state.problems.length : 0);
     var me = ranking.filter(function (r) { return r.seat === state.seat; })[0];
     var box = $('raceRanking');
     box.innerHTML = '';
@@ -439,13 +526,14 @@
         '<span class="rank-no" aria-hidden="true">' + medal + '</span>' +
         '<span class="rank-avatar" aria-hidden="true">' + r.avatar + '</span>' +
         '<span class="rank-name"></span>' +
-        '<span class="rank-meta">' + r.solved + ' · ' + Math.round(r.usedMs / 1000) + 's</span>';
+        '<span class="rank-meta">' + r.solved + '/' + total + ' · ' + Math.round(r.usedMs / 1000) + 's' +
+        (r.submitted === false ? ' · ' + t('race.notSubmitted') : '') + '</span>';
       d.querySelector('.rank-name').textContent = r.name;
       box.appendChild(d);
     });
     $('raceResultTitle').textContent = me && me.rank === 1 ? t('race.win') : t('race.done');
     $('raceResultSub').textContent = me
-      ? t('race.yourRank', { rank: me.rank, solved: me.solved })
+      ? t('race.yourRank', { rank: me.rank, solved: me.solved, total: total })
       : t('race.doneSub');
     if (me && me.rank === 1 && !global.TMUI.reduceMotion()) global.TMUI.confetti();
     // Rematch 仅房主可见
@@ -579,6 +667,7 @@
     $('raceStartBtn').addEventListener('click', function () { TMRace.start(); });
     $('lobbyLeaveBtn').addEventListener('click', function () { TMRace.leave(); });
     $('raceExitBtn').addEventListener('click', function () { TMRace.exitToHome(); });
+    $('raceSubmitBtn').addEventListener('click', function () { submitSheet(); });
     $('raceRematchBtn').addEventListener('click', function () { TMRace.rematch(); });
     $('raceLobbyBtn').addEventListener('click', function () { TMRace.backToLobby(); });
 

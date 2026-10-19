@@ -80,8 +80,11 @@ function toMatchRecord(room, endedAt, reason) {
   };
 }
 
-/* 排名规则（DESIGN 13.1）：先全部答对者胜；时间到则答对多者胜；
- * 再平局比最后一题答对的服务器接收时刻（更早者优先）。 */
+/* 排名规则（DESIGN 13.1 修订）：
+ *   1) 准确度优先：答对题数多者靠前；
+ *   2) 准确度相同则比用时：交卷更早（用时更短）者靠前；
+ *   3) 仍未分胜负时比最后一题答对的服务器时刻，最后以座位序兜底保证确定性。
+ * 用时一律取「交卷时刻 − 开局时刻」；未交卷者按结算时刻计算。 */
 function rankPlayers(room, endedAt) {
   const list = room.players.map(p => {
     const solved = p.correctPositions.size;
@@ -98,13 +101,12 @@ function rankPlayers(room, endedAt) {
     };
   });
   list.sort((x, y) => {
-    if (x.finished !== y.finished) return x.finished ? -1 : 1;      // 完成者在前
-    if (x.finished && y.finished) return x.usedMs - y.usedMs;        // 谁先完成谁靠前
-    if (x.solved !== y.solved) return y.solved - x.solved;           // 答对多者靠前
+    if (x.solved !== y.solved) return y.solved - x.solved;           // 准确度优先
+    if (x.usedMs !== y.usedMs) return x.usedMs - y.usedMs;           // 同准确度比用时
     const lx = x.lastCorrectAt === null ? Infinity : x.lastCorrectAt;
     const ly = y.lastCorrectAt === null ? Infinity : y.lastCorrectAt;
     if (lx !== ly) return lx - ly;                                   // 最后一题更早答对者靠前
-    return x.seat - y.seat;                                          // 兜底：座位序，保证确定性
+    return x.seat - y.seat;                                          // 兜底：座位序
   });
   return list.map((p, i) => Object.assign({}, p, { rank: i + 1 }));
 }
@@ -290,6 +292,7 @@ class RoomManager {
     switch (type) {
       case 'start_game': return this.startGame(room, player);
       case 'answer': return this.answer(room, player, msg);
+      case 'submit': return this.submit(room, player, msg);
       case 'rematch': return this.rematch(room, player);
       case 'leave': return this.leave(room, player);
       default: return { error: 'unknown_type' };
@@ -352,6 +355,21 @@ class RoomManager {
   }
 
   /* ---------- 逐题判定 ---------- */
+  /* 纯判定：把一次作答写进玩家状态，返回是否答对。不广播、不限速。 */
+  applyAnswer(room, player, pos, value, now) {
+    const q = room.problems[pos];
+    const correct = value === q.a * q.b;
+    const slot = player.per[pos];
+    if (slot.first === null) slot.first = value;
+    slot.final = value;
+    if (correct) {
+      slot.correct = true;
+      player.correctPositions.add(pos);
+      player.lastCorrectAt = now;
+    }
+    return correct;
+  }
+
   answer(room, player, msg) {
     if (room.status !== 'running') return { error: 'not_running' };
     const pos = msg.position;
@@ -369,17 +387,7 @@ class RoomManager {
     }
     player.answerTimes.push(now);
 
-    const q = room.problems[pos];
-    const correct = value === q.a * q.b;
-    const slot = player.per[pos];
-    if (slot.first === null) slot.first = value;
-    slot.final = value;
-    if (correct) {
-      slot.correct = true;
-      player.correctPositions.add(pos);
-      player.lastCorrectAt = now;
-      if (player.correctPositions.size === room.settings.count) player.finishedAt = now;
-    }
+    const correct = this.applyAnswer(room, player, pos, value, now);
 
     this.send(player.connId, {
       type: 'judge',
@@ -395,8 +403,52 @@ class RoomManager {
       finished: player.finishedAt !== null
     });
 
-    if (room.players.every(p => p.finishedAt !== null)) this.endGame(room, 'all_finished');
     return { ok: true, correct };
+  }
+
+  /* ---------- 交卷 ----------
+   * 玩家主动点「提交」结束自己这一局：
+   *  - 可携带尚未上报的答案（客户端一次性把整张卷子发来），逐题服务端判定；
+   *  - 记录交卷时刻，之后不再接受作答；
+   *  - 全员交卷即结算。判定口径：准确度（答对题数）优先，同准确度比用时。 */
+  submit(room, player, msg) {
+    if (room.status !== 'running') return { error: 'not_running' };
+    if (player.finishedAt !== null) return { error: 'already_submitted' };
+
+    const now = this.now();
+    const answers = Array.isArray(msg && msg.answers) ? msg.answers.slice(0, room.settings.count) : [];
+    const results = [];
+    for (const a of answers) {
+      if (!a || typeof a !== 'object') continue;
+      const pos = a.position;
+      const value = a.value;
+      if (!isInt(pos, 0, room.settings.count - 1)) continue;
+      if (!isInt(value, -1, 100000)) continue;
+      if (player.correctPositions.has(pos)) continue; // 已答对的题不再改写
+      const correct = this.applyAnswer(room, player, pos, value, now);
+      results.push({ position: pos, correct });
+    }
+
+    player.finishedAt = now;
+
+    this.send(player.connId, {
+      type: 'submitted',
+      seat: player.seat,
+      solved: player.correctPositions.size,
+      total: room.settings.count,
+      usedMs: now - room.startedAt,
+      waitingFor: room.players.filter(p => p.finishedAt === null).length,
+      results
+    });
+    this.broadcast(room, {
+      type: 'peer_progress',
+      seat: player.seat,
+      solved: player.correctPositions.size,
+      finished: true
+    });
+
+    if (room.players.every(p => p.finishedAt !== null)) this.endGame(room, 'all_submitted');
+    return { ok: true };
   }
 
   /* ---------- 结算 ---------- */
@@ -409,9 +461,11 @@ class RoomManager {
     this.broadcast(room, {
       type: 'game_over',
       reason,
+      total: room.settings.count,
       ranking: record.ranking.map(r => ({
         seat: r.seat, name: r.name, avatar: r.avatar, solved: r.solved,
-        usedMs: r.usedMs, rank: r.rank, disconnected: r.disconnected
+        usedMs: r.usedMs, rank: r.rank, disconnected: r.disconnected,
+        submitted: r.finished
       }))
     });
     this.broadcastState(room);
@@ -511,6 +565,7 @@ class RoomManager {
           seat: p.seat, name: p.name, avatar: p.avatar,
           connected: !!p.connId,
           solved: p.correctPositions.size,
+          // finished 表示「已交卷」：交卷后不再接受作答
           finished: p.finishedAt !== null
         }))
     };
@@ -534,7 +589,8 @@ class RoomManager {
       serverNow: this.now(),
       seat: player.seat,
       resumed: true,
-      solvedPositions: Array.from(player.correctPositions).sort((a, b) => a - b)
+      solvedPositions: Array.from(player.correctPositions).sort((a, b) => a - b),
+      submitted: player.finishedAt !== null
     });
   }
 }

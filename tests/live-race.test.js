@@ -127,6 +127,36 @@ test('伪造 answer：客户端无法声明 correct，只能报 {position,value}
   assert.strictEqual(judge.solved, 1);
 });
 
+test('交卷：一次性判定整张卷子，返回逐题结果供棋盘打 ✓/✗', () => {
+  const h = harness();
+  const { A } = startTwoPlayer(h);
+  const room = h.mgr.rooms.get(h.mgr.byConn.get(A).code);
+  const q0 = room.problems[0], q1 = room.problems[1], q2 = room.problems[2];
+  // 第 0 题此前已逐题答对
+  h.mgr.handle(A, { type: 'answer', position: 0, value: q0.a * q0.b });
+  h.advance(300);
+
+  // 交卷时补报第 1 题（对）与第 2 题（错），第 3/4 题未答
+  const r = h.mgr.handle(A, { type: 'submit', answers: [
+    { position: 1, value: q1.a * q1.b },
+    { position: 2, value: q2.a * q2.b + 1 }
+  ] });
+  assert.deepStrictEqual(r, { ok: true });
+
+  const sub = h.lastOf(A, 'submitted');
+  assert.strictEqual(sub.solved, 2, '逐题答对 + 交卷判定合并计数');
+  assert.strictEqual(sub.total, 5);
+  assert.strictEqual(sub.waitingFor, 1, '只统计其他未交卷玩家');
+  assert.deepStrictEqual(sub.results, [
+    { position: 1, correct: true },
+    { position: 2, correct: false }
+  ], '逐题结果只含本次交卷判定的题，足够客户端标记整张棋盘');
+
+  // 交卷后不再接受作答，也不能重复交卷
+  assert.strictEqual(h.mgr.handle(A, { type: 'answer', position: 3, value: 0 }).error, 'finished');
+  assert.strictEqual(h.mgr.handle(A, { type: 'submit', answers: [] }).error, 'already_submitted');
+});
+
 test('peer_progress 只广播座位号与答对数，不含用户/档案标识', () => {
   const h = harness();
   const { A, B } = startTwoPlayer(h);
@@ -185,13 +215,15 @@ test('排名：先全部答对者胜；超时则答对多者胜；再平局比�
   assert.strictEqual(ranked2[0].usedMs, 12000 - 1000);
 });
 
-test('全员答对即结束：广播 game_over 并触发一次落库回调', () => {
+test('全员交卷即结束：广播 game_over 并触发一次落库回调', () => {
   const h = harness();
   const { A, B } = startTwoPlayer(h);
   const room = h.mgr.rooms.get(h.mgr.byConn.get(A).code);
   h.solveAll(A, room);
-  assert.strictEqual(h.ended.length, 0, '还有人没答完，不结束');
+  h.mgr.handle(A, { type: 'submit', answers: [] });
+  assert.strictEqual(h.ended.length, 0, '还有人没交卷，不结束');
   h.solveAll(B, room);
+  h.mgr.handle(B, { type: 'submit', answers: [] });
   assert.strictEqual(room.status, 'over');
   assert.strictEqual(h.ended.length, 1, '只落库一次');
   const over = h.msgsTo(B).filter(m => m.type === 'game_over').pop();
@@ -299,7 +331,9 @@ test('非房主不能开局；rematch 只有房主能发起，且重置进度', 
   const room = h.mgr.rooms.get(h.mgr.byConn.get(A).code);
   assert.strictEqual(h.mgr.handle(B, { type: 'rematch' }).error, 'not_over');
   h.solveAll(A, room);
+  h.mgr.handle(A, { type: 'submit', answers: [] });
   h.solveAll(B, room);
+  h.mgr.handle(B, { type: 'submit', answers: [] });
   assert.strictEqual(room.status, 'over');
   assert.strictEqual(h.mgr.handle(B, { type: 'rematch' }).error, 'host_only');
   h.mgr.handle(A, { type: 'rematch' });

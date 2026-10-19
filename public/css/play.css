@@ -351,6 +351,7 @@ body {
 }
 .race-card h3 { font-size: 16px; font-weight: 900; color: var(--red-deep); }
 .race-hint { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); line-height: 1.6; }
+.race-submit-hint { text-align: center; margin-top: -6px; }
 .race-card .field { margin: 0; }
 .race-code-input {
   width: 100%; max-width: 240px; text-align: center; letter-spacing: .32em;
