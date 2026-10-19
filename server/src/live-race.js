@@ -14,10 +14,24 @@ const crypto = require('node:crypto');
 const path = require('node:path');
 const Q = require(path.join(__dirname, '..', '..', 'public', 'js', 'questions.js'));
 
-/* 房间码：去掉 0/O/1/I/L 等易混淆字符；5 位 → 约 2800 万组合，
- * 配合加入限速后，靠猜码闯入陌生人房间在实践中不可行（DESIGN 13.0 只做邀请制）。 */
-const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-const CODE_LENGTH = 5;
+/* 房间码：简单常见的水果 / 动物 / 数字单词，全大写、3–5 个字母，
+ * 方便孩子口头转述或手输（DESIGN 13.7）。词表约 80 个，配合加入限速，
+ * 足以覆盖同时在线房间；房间码大小写不敏感。 */
+const ROOM_CODE_WORDS = [
+  /* fruits */
+  'APPLE', 'MANGO', 'PEACH', 'LEMON', 'GRAPE', 'MELON', 'BERRY', 'OLIVE', 'GUAVA',
+  'PLUM', 'PEAR', 'LIME', 'KIWI', 'DATE', 'FIG',
+  /* animals */
+  'CAT', 'DOG', 'COW', 'PIG', 'FOX', 'ANT', 'BEE', 'OWL', 'BAT', 'RAT', 'HEN',
+  'DUCK', 'FROG', 'BEAR', 'LION', 'WOLF', 'DEER', 'GOAT', 'CRAB', 'FISH', 'BIRD',
+  'SWAN', 'SEAL', 'MOUSE', 'HORSE', 'SHEEP', 'TIGER', 'PANDA', 'KOALA', 'ZEBRA',
+  'SNAKE', 'CAMEL', 'SHARK', 'WHALE', 'SNAIL', 'SLOTH', 'OTTER', 'BISON', 'MOOSE',
+  'LLAMA', 'HIPPO', 'RHINO', 'EAGLE', 'GOOSE', 'ROBIN', 'TROUT', 'SQUID', 'TOAD',
+  'MOLE', 'HARE', 'MULE', 'ORCA', 'PUMA', 'LYNX', 'CRANE',
+  /* number words */
+  'ONE', 'TWO', 'SIX', 'TEN', 'FOUR', 'FIVE', 'NINE', 'ZERO', 'THREE', 'SEVEN', 'EIGHT'
+];
+const MAX_CODE_LENGTH = 5;
 
 const MAX_PLAYERS = 4;
 const MIN_PLAYERS_TO_START = 2;
@@ -36,9 +50,7 @@ const AVATAR_POOL = ['🍡', '⭐', '❤️', '🌸', '🌙', '☀️', '🍵', 
 
 function randomCode(rand) {
   const r = rand || crypto.randomBytes;
-  let out = '';
-  for (let i = 0; i < CODE_LENGTH; i++) out += CODE_ALPHABET[r(1)[0] % CODE_ALPHABET.length];
-  return out;
+  return ROOM_CODE_WORDS[r(1)[0] % ROOM_CODE_WORDS.length];
 }
 
 function randomToken() {
@@ -144,9 +156,12 @@ class RoomManager {
   }
 
   /* ---------- 房间码 ---------- */
+  /* 从随机起点线性扫描词表：既随机，又能保证有容量时一定找到未占用的词。 */
   newCode() {
-    for (let i = 0; i < 50; i++) {
-      const code = randomCode(this.rand);
+    const n = ROOM_CODE_WORDS.length;
+    const start = this.rand(1)[0] % n;
+    for (let i = 0; i < n; i++) {
+      const code = ROOM_CODE_WORDS[(start + i) % n];
       if (!this.rooms.has(code)) return code;
     }
     return null;
@@ -597,7 +612,7 @@ class RoomManager {
 
 module.exports = {
   RoomManager, rankPlayers, toMatchRecord, randomCode,
-  CODE_ALPHABET, CODE_LENGTH, MAX_PLAYERS, MIN_PLAYERS_TO_START,
+  ROOM_CODE_WORDS, MAX_CODE_LENGTH, MAX_PLAYERS, MIN_PLAYERS_TO_START,
   DIFFICULTIES, COUNTS, DURATION_BY_COUNT,
   RECONNECT_WINDOW_MS, ROOM_IDLE_MS, ANSWER_RATE_PER_SEC, COUNTDOWN_MS,
   NAME_POOL, AVATAR_POOL

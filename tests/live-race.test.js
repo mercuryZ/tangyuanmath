@@ -9,7 +9,10 @@ const os = require('node:os');
 const path = require('node:path');
 const fs = require('node:fs');
 
-const { RoomManager, rankPlayers, RECONNECT_WINDOW_MS, ROOM_IDLE_MS, ANSWER_RATE_PER_SEC } = require('../server/src/live-race');
+const {
+  RoomManager, rankPlayers, RECONNECT_WINDOW_MS, ROOM_IDLE_MS, ANSWER_RATE_PER_SEC,
+  ROOM_CODE_WORDS, MAX_CODE_LENGTH
+} = require('../server/src/live-race');
 
 /* 测试脚手架：可推进的假时钟 + 消息记录 */
 function harness() {
@@ -58,12 +61,13 @@ function startTwoPlayer(h, settings) {
   return { A, B, code: created.code, tokenA: created.token, tokenB: joined.token };
 }
 
-test('创建房间：返回 5 位房间码、座位令牌，并广播 room_state', () => {
+test('创建房间：返回简单单词房间码、座位令牌，并广播 room_state', () => {
   const h = harness();
   const A = h.conn('cA');
   const r = h.mgr.handle(A, { type: 'create_room', difficulty: 'two_by_two', count: 10 });
   assert.ok(r.code, 'has code');
-  assert.match(r.code, /^[2-9A-HJKMNP-Z]{5}$/, '房间码字符集去混淆: ' + r.code);
+  assert.ok(ROOM_CODE_WORDS.includes(r.code), '房间码来自水果/动物/数字词表: ' + r.code);
+  assert.ok(r.code.length <= MAX_CODE_LENGTH, '房间码不超过 5 个字符: ' + r.code);
   assert.strictEqual(r.seat, 0);
   assert.ok(r.token && r.token.length > 10);
   const joined = h.lastOf(A, 'joined');
@@ -73,6 +77,12 @@ test('创建房间：返回 5 位房间码、座位令牌，并广播 room_state
   assert.strictEqual(state.room.status, 'waiting');
   assert.strictEqual(state.room.players.length, 1);
   assert.strictEqual(state.room.players[0].seat, 0);
+});
+
+test('房间码词表：全大写、3–5 个字母、无重复', () => {
+  assert.ok(ROOM_CODE_WORDS.length >= 50, '词表需覆盖同时在线的房间数量: ' + ROOM_CODE_WORDS.length);
+  for (const w of ROOM_CODE_WORDS) assert.match(w, /^[A-Z]{3,5}$/, '非法词: ' + w);
+  assert.strictEqual(new Set(ROOM_CODE_WORDS).size, ROOM_CODE_WORDS.length, '词表不得重复');
 });
 
 test('房间码大小写不敏感；不存在的码返回 room_not_found', () => {

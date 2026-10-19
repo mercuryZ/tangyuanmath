@@ -596,8 +596,9 @@
       }
     },
     join: function (rawCode) {
+      // 房间码是 3–5 个字母的简单单词（水果 / 动物 / 数字），大小写不敏感
       var code = String(rawCode || '').trim().toUpperCase();
-      if (!/^[2-9A-HJKMNP-Z]{5}$/.test(code)) {
+      if (!/^[A-Z]{3,5}$/.test(code)) {
         global.TMUI.toast(t('race.err.badCode'), true);
         return;
       }
@@ -638,7 +639,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     /* 邀请链接 /play/?room=CODE：直接进大厅并自动加入 */
     var invited = (new URLSearchParams(location.search).get('room') || '').toUpperCase();
-    if (/^[2-9A-HJKMNP-Z]{5}$/.test(invited)) {
+    if (/^[A-Z]{3,5}$/.test(invited)) {
       TMRace.enter({ code: invited });
     } else {
       /* 刷新 / 闪断后自动回归原座位（30 秒重连窗口内）。
