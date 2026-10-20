@@ -30,7 +30,10 @@ body {
 /* 图标：Phosphor 自托管 SVG，随字号缩放、随文字颜色着色 */
 .ico { width: 1em; height: 1em; fill: currentColor; flex-shrink: 0; vertical-align: -0.125em; }
 
-.wrap { width: 100%; max-width: 880px; margin: 0 auto; padding: 0 20px; }
+.wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+/* 长文段落保持可读行宽；页头页脚与卡片网格仍用整个 .wrap 宽度 */
+.prose { max-width: 860px; }
 
 /* ---------- 头部 ---------- */
 .site-header {
