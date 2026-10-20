@@ -27,6 +27,14 @@ body {
 
 :focus-visible { outline: 3px solid var(--red-deep); outline-offset: 2px; border-radius: 6px; }
 
+/* 全站超链接基样式：深红 + 加粗 + 下划线（不使用浏览器默认蓝色）
+ * 按钮/导航胶囊/卡片磁贴等自身已有 text-decoration:none 的视觉控件不受影响 */
+a {
+  color: var(--red-deep); font-weight: 700;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+a:hover { color: var(--red-dark); }
+
 /* 图标：Phosphor 自托管 SVG（/img/icons.svg），随字号缩放、随文字颜色着色 */
 .ico { width: 1em; height: 1em; fill: currentColor; flex-shrink: 0; vertical-align: -0.125em; }
 /* 标题里的独立图标用品牌深红（phosphoricons.com ?color=ac3939） */
@@ -160,11 +168,10 @@ section.block > h1, section.block > h2 {
 .post-meta, .post-card-date { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
 .post-meta { margin-bottom: 20px; }
 .post-back { margin: 0 0 10px; font-size: 13.5px; font-weight: 800; }
-.post-back a, .post-card-more { color: var(--red-deep); text-decoration: none; font-weight: 800; }
-.post-back a:hover, .post-card-more:hover { text-decoration: underline; }
+.post-back a, .post-card-more { color: var(--red-deep); font-weight: 800; text-underline-offset: 2px; }
 .post-back-bottom { margin: 22px 0 0; }
 
-.prose a { color: var(--red-deep); text-decoration: underline; text-underline-offset: 2px; }
+.prose a { color: var(--red-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 .prose a:hover { color: var(--red-dark); }
 
 .post-list { display: grid; gap: 14px; margin: 14px 0 18px; }
@@ -174,7 +181,7 @@ section.block > h1, section.block > h2 {
 .post-card h3 a:hover { text-decoration: underline; }
 .prose .post-card p { font-size: 14.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 10px; }
 .prose .post-card .post-card-date { font-size: 12.5px; margin-bottom: 0; }
-.prose .post-card-more { text-decoration: none; font-size: 14px; }
+.prose .post-card-more { font-size: 14px; }
 
 /* 语言入口页 */
 .lang-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 28px; }
@@ -202,8 +209,7 @@ section.block > h1, section.block > h2 {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); font-weight: 600;
 }
-.site-footer a { color: var(--red-deep); text-decoration: none; font-weight: 800; margin-left: 14px; }
-.site-footer a:hover { text-decoration: underline; }
+.site-footer a { color: var(--red-deep); font-weight: 800; margin-left: 14px; text-underline-offset: 2px; }
 
 @media (max-width: 640px) {
   .hero h1 { font-size: 27px; }
@@ -226,7 +232,7 @@ section.block > h1, section.block > h2 {
   border-radius: 999px; padding: 3px 12px; letter-spacing: .04em;
 }
 .ws-sample-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 14px 0 4px; }
-.ws-sample {
+a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose a 的下划线 */
   display: block; text-decoration: none; background: var(--cream);
   border: 2px dashed var(--pink); border-radius: 16px; padding: 14px 18px;
   transition: border-color .15s;
