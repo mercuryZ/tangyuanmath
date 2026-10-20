@@ -36,6 +36,8 @@ body {
 
 /* 长文段落保持可读行宽；页头页脚与卡片网格仍用整个 .wrap 宽度 */
 .prose { max-width: 860px; }
+/* 需要撑满父容器的段落（首页「适合谁」「隐私与AI」等短文板块） */
+.prose-wide { max-width: none; }
 
 /* ---------- 头部 ---------- */
 .site-header {
