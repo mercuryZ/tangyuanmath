@@ -261,11 +261,132 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 .ws-error { color: var(--red-deep); font-weight: 700; margin: 12px 0 0; }
 .ws-fine { color: var(--ink-soft); font-size: 12.5px; font-weight: 600; margin: 12px 0 0; }
 
-/* ---------- 定价页 ---------- */
-.price-tag { font-size: 26px; font-weight: 900; color: var(--red-deep); margin: 4px 0 10px; }
-.price-tag small { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
-.price-card { border: 2px solid var(--pink); }
-.price-card ul { padding-left: 18px; margin: 0 0 12px; }
-.price-card li { font-size: 14px; color: var(--ink); margin-bottom: 6px; line-height: 1.6; }
 .info-card ul { padding-left: 18px; margin: 0 0 12px; }
 .info-card li { font-size: 14px; color: var(--ink); margin-bottom: 6px; line-height: 1.6; }
+
+/* ---------- 定价页 ---------- */
+/* 布局参考 Level Read 的 membership 页：居中标题 + 共用一个边框的套餐栏 +
+ * 居中分区标题 + 单容器 Q&A。配色沿用本站红白。 */
+.pricing-hero { text-align: center; padding: 18px 0 4px; }
+.eyebrow {
+  font-size: 12px; font-weight: 900; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--red);
+}
+.pricing-hero h1 {
+  font-size: 38px; line-height: 1.18; font-weight: 900; letter-spacing: .2px;
+  margin-top: 8px; color: var(--red-deep);
+}
+.pricing-hero .lede {
+  max-width: 720px; margin: 14px auto 0;
+  font-size: 17px; font-weight: 600; color: var(--ink-soft);
+}
+.pricing-hero .lede b { color: var(--red-deep); }
+
+/* 套餐栏：四列共用一个外框，列间 2px 缝隙充当分隔线 */
+.plans {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+  max-width: 1080px; margin: 34px auto 0;
+  background: var(--red-light);
+  border: 2px solid var(--red-light); border-radius: 22px;
+  overflow: hidden; box-shadow: 0 10px 30px rgba(217, 59, 71, .08);
+}
+.plan { min-width: 0; background: #fff; display: flex; flex-direction: column; padding: 26px 22px 30px; }
+.plan-featured { background: linear-gradient(180deg, #FFF1EC, #FFFAF7 72%); }
+.plan h2 {
+  font-size: 21px; line-height: 1.25; font-weight: 900; color: var(--ink);
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+}
+.plan-featured h2 { color: var(--red-deep); }
+.plan-badge {
+  display: inline-block; padding: 5px 8px; border-radius: 8px;
+  background: var(--pink-light); color: var(--red-dark);
+  font-size: 10.5px; font-weight: 900; letter-spacing: .07em;
+  text-transform: uppercase; white-space: nowrap;
+}
+.plan-desc {
+  min-height: 46px; margin-top: 8px;
+  font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--ink-soft);
+}
+.plan-price {
+  margin-top: 20px; font-size: 34px; line-height: 1; font-weight: 900;
+  letter-spacing: -.5px; color: var(--ink);
+}
+.plan-featured .plan-price { color: var(--red-deep); }
+.plan-price small {
+  font-size: 12px; font-weight: 700; letter-spacing: 0; color: var(--ink-soft);
+}
+.plan-note {
+  min-height: 40px; margin-top: 8px;
+  font-size: 13px; line-height: 1.5; font-weight: 700; color: var(--ink-soft);
+}
+.plan-cta { width: 100%; margin-top: 18px; border-radius: 12px; padding: 13px 12px; font-size: 15px; }
+.plan-inherit {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 24px; font-size: 13.5px; font-weight: 800; color: var(--ink);
+}
+.plan-inherit .ico { font-size: 18px; color: var(--red); }
+.plan-features {
+  list-style: none; margin: 24px 0 0; padding: 0;
+  display: grid; gap: 11px;
+}
+.plan-inherit + .plan-features { margin-top: 12px; }
+.plan-features li {
+  display: flex; align-items: flex-start; gap: 9px;
+  font-size: 14px; line-height: 1.5; color: var(--ink);
+}
+.plan-features .ico {
+  width: 18px; height: 18px; margin-top: 2px;
+  fill: var(--red-deep);
+}
+.plans-fine {
+  max-width: 1080px; margin: 12px auto 0; text-align: center;
+  font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+}
+
+/* 分区标题（先试后买 / 常见问题） */
+.pricing-section { max-width: 900px; margin: 54px auto 0; }
+.section-head { text-align: center; margin-bottom: 20px; }
+.section-head h2 {
+  margin-top: 6px; font-size: 26px; line-height: 1.25; font-weight: 900; color: var(--ink);
+}
+.section-sub {
+  max-width: 560px; margin: 8px auto 0;
+  font-size: 14.5px; font-weight: 600; color: var(--ink-soft);
+}
+.pricing-samples-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  max-width: 720px; margin: 0 auto;
+}
+
+/* 问与答：单个容器，Q/A 两行式条目 */
+.faq-list {
+  background: #fff; border: 2px solid var(--red-light); border-radius: 22px;
+  overflow: hidden; box-shadow: 0 6px 16px rgba(217, 59, 71, .07);
+}
+.faq-row { padding: 18px 24px; }
+.faq-row + .faq-row { border-top: 2px solid var(--red-light); }
+.faq-q { display: flex; align-items: flex-start; gap: 12px; }
+.faq-q > span {
+  flex-shrink: 0; font-size: 15px; font-weight: 900; line-height: 1.5; color: var(--red-deep);
+}
+.faq-q h3 { font-size: 16.5px; line-height: 1.5; font-weight: 800; color: var(--ink); }
+.faq-a { display: flex; align-items: flex-start; gap: 12px; margin-top: 6px; }
+.faq-a > span {
+  flex-shrink: 0; font-size: 15px; font-weight: 900; line-height: 1.6; color: var(--ink-soft);
+}
+.faq-a p { font-size: 14.5px; line-height: 1.6; color: var(--ink); }
+
+@media (max-width: 1099px) {
+  .plans { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 760px) {
+  .pricing-hero h1 { font-size: 30px; }
+  .plans { grid-template-columns: 1fr; margin-top: 26px; }
+  .plan { padding: 24px 20px 26px; }
+  .plan-desc, .plan-note { min-height: 0; }
+  .plan-price { margin-top: 16px; font-size: 34px; }
+  .pricing-samples-grid { grid-template-columns: 1fr; }
+  .pricing-section { margin-top: 42px; }
+  .section-head h2 { font-size: 22px; }
+  .faq-row { padding: 16px 18px; }
+}
