@@ -76,7 +76,7 @@ cd server
 npm install
 npm start          # 默认 3000，可用 PORT=3100 覆盖；静态站与 API 同源
 # 打开 http://127.0.0.1:3000（邮箱验证/重置链接打印在服务器控制台）
-npm test           # 98 项测试：题目生成、记录、错题本、家庭会员/邀请/子女登录，以及完整 HTTP/WebSocket API（含 Google 登录与邮件通道）
+npm test           # 105 项测试：题目生成、记录、错题本、家庭会员/邀请/子女登录、加密备份，以及完整 HTTP/WebSocket API（含 Google 登录与邮件通道）
 ```
 
 ### 邮件发送
@@ -93,6 +93,40 @@ npm test           # 98 项测试：题目生成、记录、错题本、家庭�
 本项目没有 dotenv 之类的自动加载器——`server/src/config.js` 只读 `process.env`——因此本地要测真实发信，需用 `node --env-file=../.env.development src/index.js` 启动，并在该文件里把 `TM_MAIL_TRANSPORT` 改成 `cloudflare` 并填入两个 Cloudflare 值。
 
 邮件发送失败不会影响接口：即使服务商故障或配置有误，注册与找回密码仍返回正常响应，失败会以 `[mailer:cloudflare]` 记入日志。
+
+### 数据库备份
+
+服务每天自动生成一份**加密备份**，保留 **30 天**；每份新备份创建后会立即解密并执行 SQLite `integrity_check` 与 `foreign_key_check`。备份使用 SQLite 在线备份 API（不是直接复制正在写入的 `.db` 文件），因此服务运行中也能得到一致的快照。失败只以 `[backup]` 记日志，不影响服务。
+
+| 环境变量 | 默认值 | 说明 |
+|---|---|---|
+| `TM_BACKUP_DIR` | `<数据库目录>/backups` | 加密备份写入目录（Render 上是 `/data/backups`） |
+| `TM_BACKUP_KEY` | 自动生成密钥文件 | AES-256-GCM 口令（用 scrypt 派生密钥） |
+| `TM_BACKUP_RETENTION_DAYS` | `30` | 每份备份保留天数 |
+| `TM_BACKUP_INTERVAL_HOURS` | `24` | 两次自动备份的最小间隔 |
+| `TM_BACKUP_DISABLED` | 未设置 | 设为 `1` 可关闭自动备份 |
+
+未设置 `TM_BACKUP_KEY` 时，首次运行会生成 `<备份目录>/backup.key`。这样开箱即用，但密钥与数据在同一块盘上——**请另行妥善保存该密钥**；生产环境建议直接在服务端环境变量里设置 `TM_BACKUP_KEY`。
+
+```bash
+cd server
+npm run backup                    # 立即备份
+npm run backup:list               # 列出备份（UTC 时间与大小）
+npm run backup:verify             # 解密并校验最新一份
+node scripts/backup.js verify tangyuan-20261020T031500Z.db.enc
+node scripts/backup.js decrypt tangyuan-20261020T031500Z.db.enc /tmp/restore.db
+npm run backup:prune              # 立即按保留期清理
+```
+
+恢复步骤：
+
+1. 停止 Web 服务，确保没有进程写数据库。
+2. 保留当前文件：`cp app.db app.db.before-restore`。
+3. 解密选定的备份（见上方命令）。
+4. 用解密出的文件替换 `app.db`，并删除同目录下的 `app.db-wal` / `app.db-shm`。
+5. 启动服务，未执行的迁移会自动补齐。
+
+备份默认与数据库在**同一块持久盘**上，能防误删、损坏和错误迁移，但防不了整块盘丢失。灾难恢复需要把备份复制到异地，并把加密密钥分开保存。备份可能仍包含之后被删除的数据，等该备份过期后才会彻底清除；恢复旧备份后，请重新执行备份时间点之后收到的删除请求。
 
 ## 路线图
 

@@ -21,6 +21,7 @@ const {
   buildFamilyRouter, familyInviteLandingHandler, familyInvitePendingHandler
 } = require('./family-routes');
 const { attachLiveRace } = require('./race-ws');
+const { startBackupScheduler } = require('./backup');
 
 function createApp(db, opts) {
   const app = express();
@@ -123,6 +124,15 @@ if (require.main === module) {
     console.log(`Tangyuan Math server (M1.5) listening on http://127.0.0.1:${config.port}`);
     console.log(`  db=${config.dbFile} public=${config.publicDir} mail=${config.mailTransport}`);
     if (!config.isProd) console.log('  development mode: email links are printed to this console');
+
+    /* 每日加密备份（DESIGN 12.2）：默认开启；TM_BACKUP_DISABLED=1 可关闭。
+     * 首次检查在启动 30 秒后，此后每小时检查一次，距最近备份满 24 小时才创建。 */
+    if (!config.backupDisabled) {
+      startBackupScheduler(db, { dbFile: config.dbFile });
+      console.log('  backups=every ' + config.backupIntervalHours + 'h, keep ' +
+        config.backupRetentionDays + 'd, dir=' +
+        (config.backupDir || require('node:path').join(require('node:path').dirname(config.dbFile), 'backups')));
+    }
   });
   attachLiveRace(server, db, { log: console.error });
 }

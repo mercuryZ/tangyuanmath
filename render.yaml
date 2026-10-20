@@ -31,6 +31,10 @@ services:
         value: production            # 启用 secure cookie、严格 CSP、静态缓存
       - key: TM_DB_FILE
         value: /data/app.db          # 必须位于上方 mountPath 之内，数据库才写到持久磁盘
+      # 每日加密备份默认写到 /data/backups（与数据库同盘），保留 30 天，无需额外配置。
+      # 建议在控制台设置 TM_BACKUP_KEY（备份口令，不要写进仓库）；未设置时会自动生成
+      # /data/backups/backup.key。该密钥与备份同盘，异地副本时必须另行离线保存，
+      # 否则磁盘损坏后备份无法解密。异地副本与恢复演练仍属运维待办（DESIGN 12.2）。
       - key: TM_MAIL_TRANSPORT
         value: cloudflare             # 走 Cloudflare Email Service 的 REST API（HTTPS 443，不经 SMTP）
       - key: TM_MAIL_FROM

@@ -27,5 +27,16 @@ module.exports = {
   publicBaseUrl: process.env.TM_PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://127.0.0.1:3000',
   // Google 登录（OAuth 2.0 授权码重定向流程；两者都配置后功能自动开启）
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
-  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || ''
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  // 每日加密备份（DESIGN 12.2）：默认与数据库同盘（/data/backups），保留 30 天
+  backupDisabled: process.env.TM_BACKUP_DISABLED === '1',
+  backupDir: process.env.TM_BACKUP_DIR || '',
+  backupKey: process.env.TM_BACKUP_KEY || '',
+  backupRetentionDays: intEnv('TM_BACKUP_RETENTION_DAYS', 30),
+  backupIntervalHours: intEnv('TM_BACKUP_INTERVAL_HOURS', 24)
 };
+
+function intEnv(name, fallback) {
+  const n = Number.parseInt(process.env[name] || '', 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}

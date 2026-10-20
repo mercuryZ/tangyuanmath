@@ -35,7 +35,7 @@ npm start          # default 3000, override with PORT=3100; serves the static si
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
 - Parent center: `/account/` (parent sign-in, family membership, co-parent invites, child accounts, synced stats & data management)
 
-Run the tests with `cd server && npm test` (98 tests: question generation, records, mistake book, family membership/invites, child logins, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
+Run the tests with `cd server && npm test` (105 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
 
 ### Email delivery
 
@@ -51,6 +51,40 @@ To use the Cloudflare transport you must first onboard the sending domain under 
 The project has no dotenv-style loader — `server/src/config.js` reads only `process.env` — so to exercise real delivery locally, start with `node --env-file=../.env.development src/index.js` and set `TM_MAIL_TRANSPORT=cloudflare` plus the two Cloudflare values in that file.
 
 Mail failures never break the request: registration and password reset return their normal response even if the provider is down or misconfigured, and the failure is logged as `[mailer:cloudflare]`.
+
+### Backups
+
+The server makes an **encrypted database backup once a day**, keeps the last **30 days**, and verifies each new backup by decrypting it and running SQLite `integrity_check` + `foreign_key_check`. It uses SQLite's online backup API (not a raw copy of a live file), so a backup is consistent while the app keeps serving requests. Failures are logged as `[backup]` and never stop the server.
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `TM_BACKUP_DIR` | `<database dir>/backups` | Where encrypted backups are written (on Render: `/data/backups`) |
+| `TM_BACKUP_KEY` | auto-generated key file | Passphrase for AES-256-GCM (key derived with scrypt) |
+| `TM_BACKUP_RETENTION_DAYS` | `30` | How long each backup is kept |
+| `TM_BACKUP_INTERVAL_HOURS` | `24` | Minimum interval between automatic backups |
+| `TM_BACKUP_DISABLED` | unset | Set to `1` to turn the scheduler off |
+
+If `TM_BACKUP_KEY` is not set, the first run generates `<backupDir>/backup.key`. That makes backups work out of the box, but the key then sits on the same disk as the data — **copy it somewhere safe**. In production, set `TM_BACKUP_KEY` in the service environment instead.
+
+```bash
+cd server
+npm run backup                    # back up now
+npm run backup:list               # list backups (UTC timestamps, size)
+npm run backup:verify             # decrypt + integrity-check the newest backup
+node scripts/backup.js verify tangyuan-20261020T031500Z.db.enc
+node scripts/backup.js decrypt tangyuan-20261020T031500Z.db.enc /tmp/restore.db
+npm run backup:prune              # apply the retention period now
+```
+
+Restore:
+
+1. Stop the web service so nothing writes to the database.
+2. Keep the current file: `cp app.db app.db.before-restore`.
+3. Decrypt the chosen backup (command above).
+4. Replace `app.db` with the decrypted file and delete `app.db-wal` / `app.db-shm` next to it.
+5. Start the service. Any pending migrations run automatically.
+
+Backups live **on the same persistent disk** by default, so they protect against corruption, a bad migration or an accidental delete — not against losing the disk itself. Copy them off the server for disaster recovery and keep the encryption key separate. A backup can contain records that were deleted later; those records disappear when the backup holding them expires. Re-apply any deletion requests made after the restored backup's timestamp.
 
 ### Option 2: static-only (guest mode)
 
