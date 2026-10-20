@@ -12,6 +12,11 @@ const WebSocket = require('../server/node_modules/ws');
 
 const { initDb } = require('../server/src/db');
 const { createApp, attachLiveRace } = require('../server/src/index');
+const { revokeFamilySource } = require('../server/src/entitlements');
+
+function familyIdFor(email) {
+  return db.prepare('SELECT family_id FROM users WHERE email_normalized = ?').get(email).family_id;
+}
 
 let base, httpBase, db, server, race, dbFile, mailCapture;
 
@@ -39,25 +44,46 @@ async function newSession(email) {
   return { session, setCookies };
 }
 
-async function createProfile(session, nickname) {
-  // 需要 CSRF 双提交
+async function csrfFor(session) {
   const csrfRes = await fetch(httpBase + '/api/csrf', { headers: { cookie: session } });
   const csrfCookie = csrfRes.headers.getSetCookie().map(c => c.split(';')[0]).join('; ');
   const csrf = csrfRes.headers.getSetCookie()
     .map(c => /tm_csrf=([^;]+)/.exec(c)).filter(Boolean)[0][1];
+  return { csrf, cookie: session + '; ' + csrfCookie };
+}
+
+async function createProfile(session, nickname, credentials) {
+  const { csrf, cookie } = await csrfFor(session);
+  const body = Object.assign({ nickname }, credentials || {});
   const r = await fetch(httpBase + '/api/profiles', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       origin: httpBase,
-      cookie: session + '; ' + csrfCookie,
+      cookie,
       'x-csrf-token': csrf
     },
-    body: JSON.stringify({ nickname })
+    body: JSON.stringify(body)
   });
   const j = await r.json();
   assert.ok(j.ok, 'profile created: ' + JSON.stringify(j));
   return j.data.profile.id;
+}
+
+/* 家长创建子女账号 → 子女用用户名密码登录，拿到 tm_session */
+async function newChild(email, username) {
+  const { session } = await newSession(email);
+  const pid = await createProfile(session, 'Kid ' + username, {
+    username, password: 'child-pass-123'
+  });
+  const login = await fetch(httpBase + '/api/auth/child-login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: httpBase },
+    body: JSON.stringify({ username, password: 'child-pass-123' })
+  });
+  assert.strictEqual(login.status, 200, 'child login');
+  const childSession = login.headers.getSetCookie().map(c => c.split(';')[0]).join('; ');
+  return { parentSession: session, childSession, pid };
 }
 
 /* 打开一条 WS，收集所有消息 */
@@ -144,27 +170,39 @@ test('WS：匿名游客可以连接并收到 hello', async () => {
   const hello = await c.wait('hello');
   assert.strictEqual(hello.loggedIn, false);
   assert.strictEqual(hello.profileId, null);
+  assert.strictEqual(hello.canRace, false);
   await c.close();
 });
 
-test('WS：登录会话 + 归属档案在握手时被识别；伪造他人 profileId 降级为游客', async () => {
-  const { session } = await newSession('race1@example.com');
-  const pid = await createProfile(session, 'Kid One');
+test('WS：家长直接参赛不绑定档案；子女会话强制绑定本人档案', async () => {
+  const { parentSession, childSession, pid } = await newChild('race1@example.com', 'kidone');
 
-  const mine = connect({ cookie: session, origin: httpBase, query: '?profileId=' + pid });
-  await mine.open();
-  const hello = await mine.wait('hello');
-  assert.strictEqual(hello.loggedIn, true);
-  assert.strictEqual(hello.profileId, pid, '归属校验通过');
-  await mine.close();
+  // 家长会话：即使带 profileId 也不绑定（家长直接参赛，不写儿童档案）
+  const parent = connect({ cookie: parentSession, origin: httpBase, query: '?profileId=' + pid });
+  await parent.open();
+  const helloParent = await parent.wait('hello');
+  assert.strictEqual(helloParent.loggedIn, true);
+  assert.strictEqual(helloParent.role, 'parent');
+  assert.strictEqual(helloParent.profileId, null, '家长不绑定儿童档案');
+  assert.strictEqual(helloParent.canRace, true);
+  await parent.close();
 
-  // 另一个账号尝试用这个 profileId
+  // 子女会话：绑定本人档案
+  const child = connect({ cookie: childSession, origin: httpBase, query: '?profileId=99999' });
+  await child.open();
+  const helloChild = await child.wait('hello');
+  assert.strictEqual(helloChild.loggedIn, true);
+  assert.strictEqual(helloChild.role, 'child');
+  assert.strictEqual(helloChild.profileId, pid, '子女强制绑定本人档案');
+  assert.strictEqual(helloChild.canRace, true);
+  await child.close();
+
+  // 另一个账号的家长尝试伪造 profileId：仍然不绑定
   const other = await newSession('race2@example.com');
   const stolen = connect({ cookie: other.session, origin: httpBase, query: '?profileId=' + pid });
   await stolen.open();
   const hello2 = await stolen.wait('hello');
-  assert.strictEqual(hello2.loggedIn, true);
-  assert.strictEqual(hello2.profileId, null, '跨账号档案一律降级为游客');
+  assert.strictEqual(hello2.profileId, null, '跨账号档案不会被绑定');
   await stolen.close();
 });
 
@@ -176,79 +214,46 @@ test('WS：非法 JSON 直接断开连接', async () => {
   assert.strictEqual(code, 1003);
 });
 
-test('WS：端到端对局——两名游客跑完一局，游客全程零落库', async () => {
-  const before = {
+test('WS：游客与无会员家长被会员门禁拒绝，且零落库', async () => {
+  const counts = () => ({
     matches: db.prepare('SELECT count(*) c FROM matches').get().c,
     attempts: db.prepare('SELECT count(*) c FROM attempts').get().c,
     players: db.prepare('SELECT count(*) c FROM match_players').get().c
-  };
-
-  const a = connect({ origin: httpBase });
-  const b = connect({ origin: httpBase });
-  await a.open(); await b.open();
-  await a.wait('hello'); await b.wait('hello');
-
-  a.send({ type: 'create_room', difficulty: 'two_by_two', count: 5 });
-  const joinedA = await a.wait('joined');
-  assert.ok(joinedA.code);
-
-  b.send({ type: 'join_room', code: joinedA.code });
-  const joinedB = await b.wait('joined');
-  assert.notStrictEqual(joinedB.seat, joinedA.seat);
-
-  // 等待室里两人都能看到对方
-  const state = await a.wait('room_state', m => m.room.players.length === 2);
-  assert.strictEqual(state.room.status, 'waiting');
-
-  a.send({ type: 'start_game' });
-  const countdown = await a.wait('countdown');
-  assert.ok(countdown.seconds > 0);
-  const gsA = await a.wait('game_start', null, 6000);
-  const gsB = await b.wait('game_start', null, 6000);
-  assert.deepStrictEqual(gsA.problems, gsB.problems, '同题');
-  assert.ok(gsA.problems.every(p => p.answer === undefined), '题目不含答案');
-
-  // 双方都答完（游客也作答，用来验证「游客即便参赛也不落库」）
-  const solve = (c, gs) => new Promise(resolve => {
-    let i = 0;
-    const tick = () => {
-      if (i >= gs.problems.length) return resolve();
-      const p = gs.problems[i];
-      c.send({ type: 'answer', position: i, value: p.a * p.b });
-      i++;
-      setTimeout(tick, 300);
-    };
-    tick();
   });
-  await Promise.all([solve(a, gsA), solve(b, gsB)]);
-  a.send({ type: 'submit', answers: [] });
-  b.send({ type: 'submit', answers: [] });
-  const subA = await a.wait('submitted');
-  assert.strictEqual(subA.solved, 5, '交卷后返回逐题判定的总分');
-  assert.ok(Array.isArray(subA.results));
+  const before = counts();
 
-  const over = await a.wait('game_over', null, 6000);
-  assert.strictEqual(over.ranking.length, 2);
-  assert.strictEqual(over.ranking[0].rank, 1);
-  assert.ok(over.ranking.every(r => r.solved === 5));
+  // 游客：可以连上大厅，但不能创建/加入
+  const guest = connect({ origin: httpBase });
+  await guest.open();
+  const helloGuest = await guest.wait('hello');
+  assert.strictEqual(helloGuest.loggedIn, false);
+  assert.strictEqual(helloGuest.canRace, false);
+  assert.strictEqual(helloGuest.membershipRequired, true);
+  guest.send({ type: 'create_room', difficulty: 'two_by_two', count: 5 });
+  assert.strictEqual((await guest.wait('error')).code, 'login_required');
+  await guest.close();
 
-  // 游客零落库
-  const after = {
-    matches: db.prepare('SELECT count(*) c FROM matches').get().c,
-    attempts: db.prepare('SELECT count(*) c FROM attempts').get().c,
-    players: db.prepare('SELECT count(*) c FROM match_players').get().c
-  };
-  assert.deepStrictEqual(after, before, '游客对局不得写入任何表');
+  // 已登录但没有会员（撤销上线赠送）
+  const { session } = await newSession('nomember@example.com');
+  revokeFamilySource(db, familyIdFor('nomember@example.com'), 'promo');
+  const parent = connect({ cookie: session, origin: httpBase });
+  await parent.open();
+  const helloParent = await parent.wait('hello');
+  assert.strictEqual(helloParent.loggedIn, true);
+  assert.strictEqual(helloParent.canRace, false);
+  parent.send({ type: 'create_room', difficulty: 'two_by_two', count: 5 });
+  assert.strictEqual((await parent.wait('error')).code, 'membership_required');
+  await parent.close();
 
-  await a.close(); await b.close();
+  assert.deepStrictEqual(counts(), before, '被拒绝的请求不得写入任何表');
 });
 
-test('WS：登录档案参战会落库，且能通过 /api/profiles/:id/versus 读到私密战绩', async () => {
-  const { session } = await newSession('race3@example.com');
-  const pid = await createProfile(session, 'Kid Three');
+test('WS：子女对局落库；家长直接参赛不落库', async () => {
+  const { parentSession, childSession, pid } = await newChild('race3@example.com', 'kidthree');
+  const other = await newSession('race4@example.com');
 
-  const a = connect({ cookie: session, origin: httpBase, query: '?profileId=' + pid });
-  const b = connect({ origin: httpBase });
+  const a = connect({ cookie: childSession, origin: httpBase });
+  const b = connect({ cookie: other.session, origin: httpBase });
   await a.open(); await b.open();
   await a.wait('hello'); await b.wait('hello');
 
@@ -260,7 +265,6 @@ test('WS：登录档案参战会落库，且能通过 /api/profiles/:id/versus �
   const gs = await a.wait('game_start', null, 6000);
   const gsB = await b.wait('game_start', null, 6000);
 
-  // 两人都答完：游客也参赛，用来验证「只有登录座位落库」
   const solve = (c, problems) => new Promise(resolve => {
     let i = 0;
     const tick = () => {
@@ -279,16 +283,18 @@ test('WS：登录档案参战会落库，且能通过 /api/profiles/:id/versus �
   const over = await a.wait('game_over', null, 10000);
   assert.strictEqual(over.ranking[0].solved, 5);
 
-  // 落库
+  // 只有子女座位落库；家长没有档案
   const mp = db.prepare('SELECT * FROM match_players WHERE profile_id = ?').all(pid);
-  assert.strictEqual(mp.length, 1, '只有登录座位落库');
+  assert.strictEqual(mp.length, 1, '子女座位落库');
   assert.strictEqual(mp[0].rank, 1);
   const att = db.prepare("SELECT * FROM attempts WHERE profile_id = ? AND mode = 'versus'").all(pid);
   assert.strictEqual(att.length, 1);
+  const totalPlayers = db.prepare('SELECT COUNT(*) c FROM match_players').get().c;
+  assert.strictEqual(totalPlayers, 1, '家长座位不写儿童档案');
 
-  // 家长中心私密战绩
+  // 家长中心私密战绩（家长会话可读本家庭子女）
   const r = await fetch(httpBase + '/api/profiles/' + pid + '/versus', {
-    headers: { cookie: session }
+    headers: { cookie: parentSession }
   });
   const j = await r.json();
   assert.ok(j.ok);
@@ -296,7 +302,6 @@ test('WS：登录档案参战会落库，且能通过 /api/profiles/:id/versus �
   assert.strictEqual(j.data.wins, 1);
 
   // 跨账号读取该战绩 → 404（对象级归属校验）
-  const other = await newSession('race4@example.com');
   const r2 = await fetch(httpBase + '/api/profiles/' + pid + '/versus', {
     headers: { cookie: other.session }
   });
@@ -306,8 +311,10 @@ test('WS：登录档案参战会落库，且能通过 /api/profiles/:id/versus �
 });
 
 test('WS：断线后带座位令牌重连，回归原座位并保留进度', async () => {
-  const a = connect({ origin: httpBase });
-  const b = connect({ origin: httpBase });
+  const aS = (await newSession('race5@example.com')).session;
+  const bS = (await newSession('race6@example.com')).session;
+  const a = connect({ cookie: aS, origin: httpBase });
+  const b = connect({ cookie: bS, origin: httpBase });
   await a.open(); await b.open();
   await a.wait('hello'); await b.wait('hello');
 
@@ -327,8 +334,8 @@ test('WS：断线后带座位令牌重连，回归原座位并保留进度', asy
   await b.close();
   await new Promise(r => setTimeout(r, 300));
 
-  // 新连接带令牌回归
-  const b2 = connect({ origin: httpBase });
+  // 新连接带令牌回归（续连不重新检查会员状态）
+  const b2 = connect({ cookie: bS, origin: httpBase });
   await b2.open();
   await b2.wait('hello');
   b2.send({ type: 'join_room', code: ja.code, resumeToken: jb.token });

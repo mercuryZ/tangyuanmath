@@ -11,10 +11,12 @@
       network: 'Could not reach the server — please try again.',
       fallback: 'Download failed — please try again.',
       downloading: 'Generating…',
-      signIn: 'Custom worksheets need a parent account. <a href="/account/">Sign in or create a free account</a> in the Parent Center first — the free samples above work for everyone.',
-      upsell: '<b>Supporter Edition · US$4.99, one-time</b><br>Custom worksheet generation is a supporter feature. Online checkout is coming soon — until it lands we are inviting early-supporter families directly. Write to <a href="mailto:hi@tangyuanmath.com">hi@tangyuanmath.com</a> if you would like in.',
+      signIn: 'Custom worksheets are part of a family Supporter membership. <a href="/account/">Sign in or create a free parent account</a> — every new family gets 3 months free. The free samples above work for everyone.',
+      childSignIn: 'Custom worksheets are a parent tool. Ask a parent to sign in on this device.',
+      upsell: '<b>Supporter family membership · from US$4.99/month</b><br>Custom worksheets and Live Race are included in one family membership covering up to 2 parents and 2 children. New families get 3 months free. <a href="/en/pricing/">See membership →</a>',
       errors: {
         not_logged_in: 'Please sign in first.',
+        parent_only: 'Custom worksheets are a parent tool.',
         supporter_required: 'Custom worksheets are a supporter feature.',
         rate_limited: 'Too many downloads in a short time — please wait a few minutes.',
         pdf_busy: 'The worksheet service is busy right now, please try again in a moment.'
@@ -24,10 +26,12 @@
       network: '无法连接服务器，请稍后再试。',
       fallback: '下载失败，请重试。',
       downloading: '正在生成…',
-      signIn: '自定义练习卷需要家长账号。请先到<a href="/account/">家长中心</a>登录或免费注册——上面的免费样卷无需账号。',
-      upsell: '<b>支持者版 · US$4.99，一次性买断</b><br>自定义生成是支持者功能。在线购买即将上线，此前我们直接邀请早期支持家庭加入，想参加可以写信到 <a href="mailto:hi@tangyuanmath.com">hi@tangyuanmath.com</a>。',
+      signIn: '自定义练习卷属于家庭支持者会员。请先到<a href="/account/">家长中心</a>登录或免费注册——每个新家庭免费获得 3 个月会员。上面的免费样卷无需账号。',
+      childSignIn: '自定义练习卷是家长工具。请让家长在这台设备上登录。',
+      upsell: '<b>家庭支持者会员 · US$4.99/月起</b><br>自定义练习卷与联机对战包含在同一份家庭会员里，最多覆盖 2 位家长和 2 名子女。新家庭免费获得 3 个月。<a href="/zh/pricing/">查看会员方案 →</a>',
       errors: {
         not_logged_in: '请先登录。',
+        parent_only: '自定义练习卷是家长工具。',
         supporter_required: '自定义练习卷是支持者功能。',
         rate_limited: '短时间内下载次数过多，请几分钟后再试。',
         pdf_busy: '练习卷服务正忙，请稍候再试。'
@@ -51,6 +55,7 @@
     .then(r => r.json())
     .then(r => {
       const user = r.ok && r.data && r.data.user;
+      if (r.ok && r.data && r.data.child) return showGate(T.childSignIn);
       if (!user) return showGate(T.signIn);
       const ents = (r.data.entitlements || []);
       if (ents.indexOf('pdf_worksheet') === -1) return showGate(T.upsell);

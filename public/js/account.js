@@ -1,5 +1,6 @@
-/* Tangyuan Math — 家长中心逻辑（M1）
- * 登录/注册/忘记密码/重置/邮箱验证 + 档案 + 云统计 + 云错题 + 游客导入 + 导出/删号。
+/* Tangyuan Math — 家长中心逻辑（M1 / 家庭会员）
+ * 家长：登录/注册/忘记密码/重置/邮箱验证 + 会员 + 家庭邀请 + 子女账号 + 云端数据。
+ * 子女：用户名 + 密码登录，登录后只显示简化视图。
  * 错误提示：服务端返回稳定 code（DESIGN 4.1），此处映射常用提示，兜底显示 code。
  */
 (function (global) {
@@ -10,12 +11,44 @@
 
   var ERR_MAP = {
     login_failed: { en: 'Email or password is incorrect.', zh: '邮箱或密码不正确。' },
+    child_login_failed: { en: 'Username or password is incorrect.', zh: '用户名或密码不正确。' },
     email_taken: { en: 'This email is already registered.', zh: '该邮箱已注册。' },
     weak_password: { en: 'Password must be at least 8 characters.', zh: '密码至少 8 位。' },
     invalid_email: { en: 'Please enter a valid email address.', zh: '请输入有效的邮箱地址。' },
     rate_limited: { en: 'Too many attempts — please wait a minute.', zh: '尝试过于频繁，请稍等一分钟。' },
-    profile_limit: { en: 'One child profile for now.', zh: '目前支持一个儿童档案。' },
+    profile_limit: { en: 'A family can have up to 2 child accounts.', zh: '一个家庭最多 2 个子女账号。' },
     invalid_nickname: { en: 'Nickname must be 1–20 characters.', zh: '昵称需 1–20 个字符。' },
+    invalid_username: {
+      en: 'Username must be 3–20 characters: letters, numbers, dots, dashes or underscores.',
+      zh: '用户名需 3–20 位，可用字母、数字、点、短横线或下划线。'
+    },
+    username_taken: { en: 'That username is already taken.', zh: '该用户名已被使用。' },
+    username_required: { en: 'Enter a username before setting a password.', zh: '设置密码前请先填写用户名。' },
+    membership_required: {
+      en: 'This needs an active Supporter membership.',
+      zh: '这需要有效的支持者会员。'
+    },
+    family_full: { en: 'This family already has 2 parents.', zh: '这个家庭已经有 2 位家长了。' },
+    already_in_family: {
+      en: 'Your account already belongs to a family with children or paid access.',
+      zh: '你的账号已属于一个有子女或付费权益的家庭。'
+    },
+    already_member: { en: 'This person is already in your family.', zh: '对方已经在这个家庭里了。' },
+    invite_email_mismatch: {
+      en: 'This invitation was sent to a different email address.',
+      zh: '这个邀请是发给另一个邮箱的。'
+    },
+    invite_expired: { en: 'This invitation has expired.', zh: '邀请已过期。' },
+    invalid_invite: { en: 'This invitation is invalid or has expired.', zh: '邀请无效或已过期。' },
+    invite_invalid: { en: 'This invitation is invalid or has expired.', zh: '邀请无效或已过期。' },
+    email_unverified: {
+      en: 'Verify your email first — we sent a link when you registered.',
+      zh: '请先完成邮箱验证——注册时我们已发送验证链接。'
+    },
+    owner_only: { en: 'Only the family owner can do that.', zh: '只有家庭创建者可以执行此操作。' },
+    parent_only: { en: 'This page is for parent accounts.', zh: '此页面仅供家长账号使用。' },
+    invalid_avatar: { en: 'Unknown avatar.', zh: '未知头像。' },
+    nothing_to_update: { en: 'Nothing to update.', zh: '没有需要修改的内容。' },
     network_error: { en: 'Network error — is the server running?', zh: '网络错误——服务器是否在运行？' },
     email_unverified_exists: {
       en: 'This email already has a password account that is not verified yet. Sign in with the password first, verify the email, then Google sign-in will connect automatically.',
@@ -41,6 +74,14 @@
     { key: 'flower', emoji: '🌸' }, { key: 'moon', emoji: '🌙' }, { key: 'sun', emoji: '☀️' }
   ];
   var selectedAvatar = 'tangyuan';
+  var googleEnabled = false;
+  var inviteAttempted = false;
+  var initialAuthMode = 'login'; // ?mode=register|student|login
+
+  function avatarEmoji(key) {
+    for (var i = 0; i < AVATARS.length; i++) if (AVATARS[i].key === key) return AVATARS[i].emoji;
+    return AVATARS[0].emoji;
+  }
 
   var toastTimer;
   function toast(msg, isErr) {
@@ -57,20 +98,39 @@
     if (el) el.classList.add('active');
   }
 
+  function fmtDate(ts) {
+    try {
+      return new Intl.DateTimeFormat(TMI18N.lang() === 'zh' ? 'zh-CN' : 'en-US',
+        { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(ts));
+    } catch (e) { return new Date(ts).toISOString().slice(0, 10); }
+  }
+  function pricingUrl() { return TMI18N.lang() === 'zh' ? '/zh/pricing/' : '/en/pricing/'; }
+  function worksheetsUrl() { return TMI18N.lang() === 'zh' ? '/zh/worksheets/' : '/en/worksheets/'; }
+
   /* ---------- 认证表单（tab 切换） ---------- */
-  var authMode = 'login'; // login | register | forgot | reset
+  var authMode = 'login'; // login | register | forgot | student
   function setAuthMode(mode) {
     authMode = mode;
-    ['tabLogin', 'tabRegister', 'tabForgot'].forEach(function (id, i) {
-      $(id).setAttribute('aria-selected', ['login', 'register', 'forgot'][i] === mode ? 'true' : 'false');
+    var modes = ['login', 'register', 'student', 'forgot'];
+    ['tabLogin', 'tabRegister', 'tabStudent', 'tabForgot'].forEach(function (id, i) {
+      $(id).setAttribute('aria-selected', modes[i] === mode ? 'true' : 'false');
     });
-    $('passwordField').hidden = mode === 'forgot';
-    $('pwdHint').hidden = mode !== 'register';
-    $('authSubmit').textContent = t({
-      login: 'acct.loginBtn', register: 'acct.registerBtn', forgot: 'acct.sendResetBtn', reset: 'acct.resetBtn'
-    }[mode]);
-    $('authPassword').setAttribute('autocomplete', mode === 'register' ? 'new-password' : 'current-password');
-    $('formMsg').textContent = '';
+    var isStudent = mode === 'student';
+    $('authForm').hidden = isStudent;
+    $('studentForm').hidden = !isStudent;
+    $('registerOffer').hidden = mode !== 'register';
+    $('googleRow').hidden = isStudent || !googleEnabled;
+    if (!isStudent) {
+      $('passwordField').hidden = mode === 'forgot';
+      $('pwdHint').hidden = mode !== 'register';
+      $('authSubmit').textContent = t({
+        login: 'acct.loginBtn', register: 'acct.registerBtn', forgot: 'acct.sendResetBtn', reset: 'acct.resetBtn'
+      }[mode]);
+      $('authPassword').setAttribute('autocomplete', mode === 'register' ? 'new-password' : 'current-password');
+      $('formMsg').textContent = '';
+    } else {
+      $('studentMsg').textContent = '';
+    }
   }
 
   async function submitAuth(e) {
@@ -87,30 +147,305 @@
     $('authEmail').value = ''; $('authPassword').value = '';
   }
 
+  async function submitStudent(e) {
+    e.preventDefault();
+    var r = await global.TMAPI.childLogin($('studentUsername').value.trim(), $('studentPassword').value);
+    if (!r.ok) { $('studentMsg').textContent = errMsg(r); return; }
+    location.href = '/play/';
+  }
+
   function guessTz() {
     try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) { return 'UTC'; }
+  }
+
+  /* ---------- 邀请 / 登录后跳转 ---------- */
+  function setInviteFlag() {
+    try { sessionStorage.setItem('tm_invite_pending', '1'); } catch (e) { /* 忽略 */ }
+  }
+  function hasInviteFlag() {
+    try { return sessionStorage.getItem('tm_invite_pending') === '1'; } catch (e) { return false; }
+  }
+  function clearInviteFlag() {
+    try { sessionStorage.removeItem('tm_invite_pending'); } catch (e) { /* 忽略 */ }
+  }
+
+  /* 登录后接受邀请（令牌在 HttpOnly Cookie 里，客户端无需读取） */
+  async function maybeAcceptInvite() {
+    if (!hasInviteFlag() || inviteAttempted) return false;
+    inviteAttempted = true;
+    var token = null;
+    try { token = sessionStorage.getItem('tm_invite_token'); } catch (e) { /* 忽略 */ }
+    var r = await global.TMAPI.acceptInvite(token);
+    if (r.ok) {
+      clearInviteFlag();
+      try { sessionStorage.removeItem('tm_invite_token'); } catch (e) { /* 忽略 */ }
+      toast(t('acct.inviteJoined'), false);
+      return true;
+    }
+    if (r.code === 'email_unverified') {
+      toast(errMsg(r), true);
+      return false;
+    }
+    clearInviteFlag();
+    if (r.code !== 'invalid_invite' && r.code !== 'invite_invalid') toast(errMsg(r), true);
+    return false;
+  }
+
+  function maybeRedirectNext() {
+    var next = null;
+    try { next = localStorage.getItem('tm_next'); } catch (e) { /* 忽略 */ }
+    if (!next || next.charAt(0) !== '/' || next.indexOf('/account') === 0) return false;
+    try { localStorage.removeItem('tm_next'); } catch (e) { /* 忽略 */ }
+    location.href = next;
+    return true;
   }
 
   /* ---------- 已登录主视图 ---------- */
   async function renderMain() {
     var st = await global.TMAPI.refresh();
-    if (!st.user) { showView('auth'); setAuthMode('login'); return; }
-    showView('main');
 
+    if (st.child) { renderChildView(st); return; }
+    if (!st.user) { showView('auth'); setAuthMode(initialAuthMode); return; }
+
+    if (hasInviteFlag()) {
+      var joined = await maybeAcceptInvite();
+      if (joined) st = global.TMAPI.state;
+    }
+    if (maybeRedirectNext()) return;
+
+    showView('main');
     $('meEmail').textContent = st.user.email;
     var v = $('meVerified');
     v.textContent = t(st.user.emailVerified ? 'acct.verified' : 'acct.unverified');
     v.className = 'badge-ok' + (st.user.emailVerified ? '' : ' off');
-    var sup = $('meSupporter'); // Supporter 徽章（M2）：entitlements 含 pdf_worksheet 即显示
-    var ents = st.entitlements || [];
-    sup.hidden = ents.indexOf('pdf_worksheet') === -1;
-    sup.href = global.TMI18N && global.TMI18N.lang() === 'zh' ? '/zh/worksheets/' : '/en/worksheets/';
 
+    var sup = $('meSupporter');
+    sup.hidden = !(st.membership && st.membership.active);
+    sup.href = worksheetsUrl();
+
+    renderMembership(st);
+    renderFamily(st);
+    renderChildren(st);
     renderTzSelect(st.user.timezone);
-    renderProfile(st);
     renderStats();
     renderWrongbook();
     renderImport();
+  }
+
+  function renderChildView(st) {
+    showView('child');
+    $('childTitle').textContent = t('acct.childSignedIn', { name: st.child.nickname });
+    $('childSub').textContent = t('acct.childSub');
+  }
+
+  function renderMembership(st) {
+    var m = st.membership || { active: false };
+    var status = $('membershipStatus');
+    var hint = $('membershipHint');
+    if (!m.active) {
+      status.textContent = t('acct.membershipNone');
+      hint.textContent = t('acct.membershipHintNone');
+    } else if (m.expiresAt === null) {
+      status.textContent = t('acct.membershipLifetime');
+      hint.textContent = t('acct.membershipHintActive');
+    } else {
+      var key = m.plan === 'launch_trial' ? 'acct.membershipTrial' : 'acct.membershipActive';
+      status.textContent = t(key, { date: fmtDate(m.expiresAt) });
+      hint.textContent = t('acct.membershipHintActive');
+    }
+    $('membershipLink').href = pricingUrl();
+  }
+
+  function parentRow(p) {
+    var row = document.createElement('div');
+    row.className = 's-row';
+    var email = document.createElement('span');
+    email.textContent = p.email;
+    var badge = document.createElement('span');
+    badge.className = 'badge-ok';
+    badge.textContent = t(p.role === 'owner' ? 'acct.parentOwner' : 'acct.parentCoparent');
+    row.appendChild(email);
+    row.appendChild(badge);
+    return row;
+  }
+
+  function renderFamily(st) {
+    var fam = st.family || { seats: {} };
+    var seats = fam.seats || {};
+    $('familySeats').textContent = t('acct.familySeats', {
+      parents: seats.parents || 0, maxParents: seats.maxParents || 2,
+      children: seats.children || 0, maxChildren: seats.maxChildren || 2
+    });
+
+    var parentsBox = $('familyParents');
+    parentsBox.innerHTML = '';
+    (fam.parents || []).forEach(function (p) { parentsBox.appendChild(parentRow(p)); });
+
+    var canInvite = st.user.familyRole === 'owner' && seats.parents < 2 &&
+      st.membership && st.membership.active && st.user.emailVerified;
+    $('inviteWrap').hidden = !canInvite;
+
+    global.TMAPI.getFamily().then(function (r) {
+      if (!r.ok) return;
+      renderInvites(r.data.invites || []);
+    });
+  }
+
+  function renderInvites(invites) {
+    var box = $('inviteList');
+    var wrap = $('invitesWrap');
+    box.innerHTML = '';
+    if (!invites.length) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    invites.forEach(function (inv) {
+      var row = document.createElement('div');
+      row.className = 's-row';
+      var label = document.createElement('span');
+      label.textContent = t('acct.invitePending') + ': ' + inv.email + ' · ' + fmtDate(inv.expiresAt);
+      row.appendChild(label);
+      if (global.TMAPI.state.user && global.TMAPI.state.user.familyRole === 'owner') {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 's-btn danger';
+        btn.textContent = t('acct.revokeInvite');
+        btn.addEventListener('click', async function () {
+          var r = await global.TMAPI.revokeInvite(inv.id);
+          if (r.ok) renderMain(); else toast(errMsg(r), true);
+        });
+        row.appendChild(btn);
+      }
+      box.appendChild(row);
+    });
+  }
+
+  async function submitInvite(e) {
+    e.preventDefault();
+    var email = $('inviteEmail').value.trim();
+    var r = await global.TMAPI.inviteParent(email);
+    if (!r.ok) { $('inviteMsg').textContent = errMsg(r); return; }
+    $('inviteMsg').textContent = t('acct.inviteSent');
+    $('inviteEmail').value = '';
+    renderMain();
+  }
+
+  /* ---------- 子女账号 ---------- */
+  function renderChildren(st) {
+    var list = $('childrenList');
+    list.innerHTML = '';
+    var profiles = st.profiles || [];
+    profiles.forEach(function (p) {
+      var card = document.createElement('div');
+      card.className = 's-row child-row';
+
+      var info = document.createElement('span');
+      var name = document.createElement('b');
+      name.textContent = avatarEmoji(p.avatarKey) + ' ' + p.nickname;
+      info.appendChild(name);
+      var meta = document.createElement('small');
+      meta.className = 'hint';
+      meta.textContent = p.hasLogin
+        ? t('acct.childHasLogin') + ': ' + p.username
+        : t('acct.childNoLogin');
+      info.appendChild(meta);
+
+      var actions = document.createElement('span');
+      var edit = document.createElement('button');
+      edit.type = 'button'; edit.className = 's-btn'; edit.textContent = t('acct.childEdit');
+      edit.addEventListener('click', function () { openChildForm(p); });
+      var view = document.createElement('button');
+      view.type = 'button'; view.className = 's-btn'; view.textContent = t('acct.childViewData');
+      view.addEventListener('click', function () {
+        global.TMAPI.selectProfile(p.id);
+        renderStats(); renderWrongbook(); renderImport();
+        updateStatsChild(p);
+      });
+      var del = document.createElement('button');
+      del.type = 'button'; del.className = 's-btn danger'; del.textContent = t('acct.childDelete');
+      del.addEventListener('click', async function () {
+        if (!confirm(t('acct.childDeleteConfirm'))) return;
+        var r = await global.TMAPI.deleteProfile(p.id);
+        if (r.ok) renderMain(); else toast(errMsg(r), true);
+      });
+      actions.appendChild(edit); actions.appendChild(view); actions.appendChild(del);
+
+      card.appendChild(info); card.appendChild(actions);
+      list.appendChild(card);
+    });
+
+    var seats = (st.family && st.family.seats) || {};
+    var atLimit = (seats.children || 0) >= (seats.maxChildren || 2);
+    var canAdd = !atLimit && st.membership && st.membership.active && st.user.emailVerified;
+    $('addChildBtn').disabled = !canAdd;
+    $('addChildBtn').textContent = atLimit ? t('acct.childLimit')
+      : (!st.user.emailVerified ? t('acct.childVerifyFirst')
+        : (!(st.membership && st.membership.active) ? t('acct.childAddingLocked') : t('acct.childAdd')));
+
+    var selected = profiles.find(function (p) { return p.id === st.currentProfileId; }) || profiles[0];
+    updateStatsChild(selected);
+    $('childForm').hidden = true;
+  }
+
+  function updateStatsChild(profile) {
+    $('statsChild').textContent = profile
+      ? t('acct.selectedChild') + ': ' + profile.nickname
+      : '';
+  }
+
+  function renderAvatarOptions() {
+    var box = $('childAvatarOptions');
+    box.innerHTML = '';
+    AVATARS.forEach(function (a) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'avatar-opt';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', a.key === selectedAvatar ? 'true' : 'false');
+      b.setAttribute('aria-label', a.key);
+      b.textContent = a.emoji;
+      b.addEventListener('click', function () { selectedAvatar = a.key; renderAvatarOptions(); });
+      box.appendChild(b);
+    });
+  }
+
+  function openChildForm(profile) {
+    $('childId').value = profile ? profile.id : '';
+    $('childNickname').value = profile ? profile.nickname : '';
+    $('childUsername').value = profile ? (profile.username || '') : '';
+    $('childPassword').value = '';
+    selectedAvatar = profile ? profile.avatarKey : 'tangyuan';
+    renderAvatarOptions();
+    $('childSubmit').textContent = t(profile ? 'acct.childSave' : 'acct.childAdd');
+    $('childMsg').textContent = '';
+    $('childForm').hidden = false;
+    $('childNickname').focus();
+  }
+
+  async function submitChild(e) {
+    e.preventDefault();
+    var id = $('childId').value;
+    var nick = $('childNickname').value.trim();
+    var username = $('childUsername').value.trim();
+    var password = $('childPassword').value;
+    var msg = $('childMsg');
+
+    if (username && password.length < 8) { msg.textContent = t('acct.pwdHint'); return; }
+    if (password && !username) { msg.textContent = errMsg({ code: 'username_required' }); return; }
+
+    var r;
+    if (!id) {
+      r = await global.TMAPI.createProfile(nick, selectedAvatar, username, password);
+    } else {
+      var current = (global.TMAPI.state.profiles || []).find(function (p) { return String(p.id) === String(id); });
+      var usernameChanged = !!username && (!current || current.username !== username);
+      if (usernameChanged && !password) { msg.textContent = t('acct.childPasswordHint'); return; }
+      r = await global.TMAPI.updateProfile(id, { nickname: nick, avatarKey: selectedAvatar });
+      if (r.ok && (usernameChanged || password)) {
+        r = await global.TMAPI.setChildCredentials(id, username || (current && current.username), password);
+      }
+    }
+    if (!r.ok) { msg.textContent = errMsg(r); return; }
+    toast('OK');
+    renderMain();
   }
 
   function renderTzSelect(current) {
@@ -132,50 +467,15 @@
     };
   }
 
-  function renderProfile(st) {
-    var p = st.profiles && st.profiles[0];
-    $('profileNickname').value = p ? p.nickname : '';
-    selectedAvatar = p ? p.avatarKey : 'tangyuan';
-    renderAvatarOptions();
-    $('profileSubmit').textContent = t(p ? 'acct.saveProfile' : 'acct.createProfile');
-    $('deleteProfileBtn').hidden = !p;
-    $('importGroup').hidden = !p;
-  }
-
-  function renderAvatarOptions() {
-    var box = $('avatarOptions');
-    box.innerHTML = '';
-    AVATARS.forEach(function (a) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'avatar-opt';
-      b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', a.key === selectedAvatar ? 'true' : 'false');
-      b.setAttribute('aria-label', a.key);
-      b.textContent = a.emoji;
-      b.addEventListener('click', function () { selectedAvatar = a.key; renderAvatarOptions(); });
-      box.appendChild(b);
-    });
-  }
-
-  async function submitProfile(e) {
-    e.preventDefault();
-    var nick = $('profileNickname').value.trim();
-    var st = global.TMAPI.state;
-    var existing = st.profiles && st.profiles[0];
-    var r = existing
-      ? await global.TMAPI.updateProfile(existing.id, { nickname: nick, avatarKey: selectedAvatar })
-      : await global.TMAPI.createProfile(nick, selectedAvatar);
-    if (!r.ok) { toast(errMsg(r), true); return; }
-    toast('OK');
-    renderMain();
-  }
-
   function pct(x) { return x === null ? '—' : Math.round(x * 100) + '%'; }
   function fmtMs(ms) { return ms === null ? '—' : (ms / 1000).toFixed(1) + 's'; }
 
   async function renderStats() {
     var box = $('statsBody');
+    if (!global.TMAPI.state.currentProfileId) {
+      box.innerHTML = '<p class="hint">' + t('acct.profileEmpty') + '</p>';
+      return;
+    }
     box.innerHTML = '<p class="hint">' + t('acct.loading') + '</p>';
     var r = await global.TMAPI.getStats();
     if (!r.ok) { box.innerHTML = '<p class="hint">' + errMsg(r) + '</p>'; return; }
@@ -220,6 +520,7 @@
 
   async function renderWrongbook() {
     var box = $('wrongbookBody');
+    if (!global.TMAPI.state.currentProfileId) { box.innerHTML = ''; return; }
     box.innerHTML = '<p class="hint">' + t('acct.loading') + '</p>';
     var r = await global.TMAPI.getWrongbook();
     if (!r.ok) { box.innerHTML = '<p class="hint">' + errMsg(r) + '</p>'; return; }
@@ -279,22 +580,27 @@
     ['langEn', 'langZh'].forEach(function (id) {
       $(id).addEventListener('click', function () {
         TMI18N.setLang(id === 'langEn' ? 'en' : 'zh');
-        location.reload(); // 整页重渲染，保证所有文案切换
+        location.reload();
       });
     });
     $('tabLogin').addEventListener('click', function () { setAuthMode('login'); });
     $('tabRegister').addEventListener('click', function () { setAuthMode('register'); });
+    $('tabStudent').addEventListener('click', function () { setAuthMode('student'); });
     $('tabForgot').addEventListener('click', function () { setAuthMode('forgot'); });
     $('authForm').addEventListener('submit', submitAuth);
-    $('profileForm').addEventListener('submit', submitProfile);
+    $('studentForm').addEventListener('submit', submitStudent);
+    $('inviteForm').addEventListener('submit', submitInvite);
+    $('childForm').addEventListener('submit', submitChild);
+    $('addChildBtn').addEventListener('click', function () { openChildForm(null); });
+    $('childCancel').addEventListener('click', function () { $('childForm').hidden = true; });
     $('logoutBtn').addEventListener('click', async function () { await global.TMAPI.logout(); location.reload(); });
     $('logoutAllBtn').addEventListener('click', async function () { await global.TMAPI.logoutAll(); location.reload(); });
-    $('deleteProfileBtn').addEventListener('click', async function () {
-      var st = global.TMAPI.state;
-      var p = st.profiles && st.profiles[0];
-      if (!p || !confirm(t('acct.deleteProfileConfirm'))) return;
-      var r = await global.TMAPI.deleteProfile(p.id);
-      if (r.ok) renderMain(); else toast(errMsg(r), true);
+    $('childLogoutBtn').addEventListener('click', async function () { await global.TMAPI.logout(); location.href = '/play/'; });
+    $('childPasswordForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var r = await global.TMAPI.childPassword($('childCurrentPw').value, $('childNewPw').value);
+      $('childPwMsg').textContent = r.ok ? t('acct.passwordUpdated') : errMsg(r);
+      if (r.ok) { $('childCurrentPw').value = ''; $('childNewPw').value = ''; }
     });
     $('importBtn').addEventListener('click', doImport);
     $('deleteAccountBtn').addEventListener('click', async function () {
@@ -304,18 +610,32 @@
       else toast(errMsg(r), true);
     });
 
-    /* 邮箱验证 / 密码重置：?token=…&mode=verify|reset */
     var q = new URLSearchParams(location.search);
     var token = q.get('token');
     var mode = q.get('mode') || 'verify';
+    if (!token && (mode === 'register' || mode === 'student' || mode === 'login')) {
+      initialAuthMode = mode;
+    }
 
-    /* Google 登录按钮：仅当服务端已配置时显示（?authError= 回跳时也显示，便于重试） */
+    /* 邀请标记：/api/family/invite/landing 会带 ?invite=1 跳回；
+     * Google OAuth 回跳也保留该参数。 */
+    if (q.get('invite') === '1') setInviteFlag();
+    if (q.get('invite_token')) {
+      setInviteFlag();
+      try { sessionStorage.setItem('tm_invite_token', q.get('invite_token')); } catch (e) { /* 忽略 */ }
+    }
+    /* 登录后回到原来的游戏页（对战邀请 / 会员门禁） */
+    var next = q.get('next');
+    if (next && next.charAt(0) === '/' && next.indexOf('/account') !== 0) {
+      try { localStorage.setItem('tm_next', next); } catch (e) { /* 忽略 */ }
+    }
+
     global.TMAPI.call('GET', '/api/me').then(function (r) {
-      var enabled = r.ok && r.data && r.data.authMethods && r.data.authMethods.google;
-      document.getElementById('googleRow').hidden = !(enabled || q.get('authError'));
+      googleEnabled = !!(r.ok && r.data && r.data.authMethods && r.data.authMethods.google);
+      var isStudent = authMode === 'student';
+      $('googleRow').hidden = isStudent || !(googleEnabled || q.get('authError'));
     });
 
-    /* Google 登录失败回跳：?authError=<code> */
     if (q.get('authError')) {
       showView('auth');
       setAuthMode('login');
@@ -345,7 +665,14 @@
         }
       });
     } else {
-      renderMain();
+      // 邀请可能来自另一个标签页（如邮箱里点开验证链接）：Cookie 仍在，登录后自动接受
+      global.TMAPI.call('GET', '/api/family/invite/pending').then(function (r) {
+        if (r.ok && r.data && r.data.pending) setInviteFlag();
+      }).then(function () {
+        renderMain();
+      }, function () {
+        renderMain();
+      });
     }
   });
 })(typeof window !== 'undefined' ? window : globalThis);

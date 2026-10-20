@@ -190,6 +190,121 @@ const MIGRATIONS = [
       );
       CREATE INDEX idx_entitlements_user_feature ON entitlements(user_id, feature_key);
     `
+  },
+  {
+    /* 家庭会员（DESIGN §5、§6、§8）
+     * - 家庭上限：2 位家长 + 2 名子女（在应用层强制）；
+     * - 既有用户即家庭（family.id = users.id），迁移与回填全部用纯 SQL；
+     * - 子女通过用户名 + 密码登录，会话与家长会话共用 sessions 表；
+     * - 权益改为家庭维度，source_type 增加 promo（上线赠送 3 个月）。 */
+    version: 5,
+    name: 'families',
+    sql: `
+      CREATE TABLE families (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at  INTEGER NOT NULL,
+        is_personal INTEGER NOT NULL DEFAULT 1 CHECK (is_personal IN (0,1))
+      );
+
+      INSERT INTO families (id, created_at, is_personal)
+        SELECT id, created_at, 1 FROM users;
+
+      ALTER TABLE users ADD COLUMN family_id INTEGER REFERENCES families(id) ON DELETE SET NULL;
+      ALTER TABLE users ADD COLUMN family_role TEXT NOT NULL DEFAULT 'owner'
+        CHECK (family_role IN ('owner','coparent'));
+      UPDATE users SET family_id = id, family_role = 'owner';
+      CREATE INDEX idx_users_family ON users(family_id);
+      CREATE UNIQUE INDEX idx_users_family_owner ON users(family_id) WHERE family_role = 'owner';
+
+      ALTER TABLE child_profiles ADD COLUMN family_id INTEGER REFERENCES families(id) ON DELETE CASCADE;
+      ALTER TABLE child_profiles ADD COLUMN username TEXT;
+      ALTER TABLE child_profiles ADD COLUMN username_normalized TEXT;
+      ALTER TABLE child_profiles ADD COLUMN password_hash TEXT;
+      ALTER TABLE child_profiles ADD COLUMN last_login_at INTEGER;
+      UPDATE child_profiles
+        SET family_id = (SELECT family_id FROM users WHERE users.id = child_profiles.user_id);
+      CREATE INDEX idx_profiles_family ON child_profiles(family_id);
+      CREATE UNIQUE INDEX idx_profiles_username ON child_profiles(username_normalized)
+        WHERE username_normalized IS NOT NULL;
+
+      CREATE TABLE family_invites (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        family_id        INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+        email_normalized TEXT NOT NULL,
+        token_hash       TEXT NOT NULL UNIQUE,
+        invited_by       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        expires_at       INTEGER NOT NULL,
+        accepted_at      INTEGER,
+        accepted_by      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        revoked_at       INTEGER,
+        created_at       INTEGER NOT NULL
+      );
+      CREATE INDEX idx_family_invites_family ON family_invites(family_id, accepted_at);
+      CREATE UNIQUE INDEX idx_family_invites_pending
+        ON family_invites(family_id, email_normalized)
+        WHERE accepted_at IS NULL AND revoked_at IS NULL;
+
+      CREATE TABLE sessions_v5 (
+        token_hash       TEXT PRIMARY KEY,
+        user_id          INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        child_profile_id INTEGER REFERENCES child_profiles(id) ON DELETE CASCADE,
+        expires_at       INTEGER NOT NULL,
+        created_at       INTEGER NOT NULL,
+        CHECK ((user_id IS NOT NULL) + (child_profile_id IS NOT NULL) = 1)
+      );
+      INSERT INTO sessions_v5 (token_hash, user_id, child_profile_id, expires_at, created_at)
+        SELECT token_hash, user_id, NULL, expires_at, created_at FROM sessions;
+      DROP TABLE sessions;
+      ALTER TABLE sessions_v5 RENAME TO sessions;
+      CREATE INDEX idx_sessions_user ON sessions(user_id);
+      CREATE INDEX idx_sessions_child ON sessions(child_profile_id);
+
+      CREATE TABLE entitlements_v5 (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        family_id   INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+        user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        feature_key TEXT NOT NULL,
+        source_type TEXT NOT NULL CHECK (source_type IN ('order','redeem','grant','promo')),
+        source_id   TEXT,
+        starts_at   INTEGER NOT NULL,
+        expires_at  INTEGER,
+        revoked_at  INTEGER
+      );
+      INSERT INTO entitlements_v5
+        (id, family_id, user_id, feature_key, source_type, source_id, starts_at, expires_at, revoked_at)
+        SELECT e.id, u.family_id, e.user_id, e.feature_key, e.source_type, e.source_id,
+               e.starts_at, e.expires_at, e.revoked_at
+        FROM entitlements e JOIN users u ON u.id = e.user_id;
+      DROP TABLE entitlements;
+      ALTER TABLE entitlements_v5 RENAME TO entitlements;
+      CREATE INDEX idx_entitlements_family_feature ON entitlements(family_id, feature_key);
+      -- 旧 CLI 允许重复授予；先去重再建幂等唯一索引
+      DELETE FROM entitlements
+        WHERE source_id IS NOT NULL AND revoked_at IS NULL
+          AND id NOT IN (
+            SELECT MIN(id) FROM entitlements
+            WHERE source_id IS NOT NULL AND revoked_at IS NULL
+            GROUP BY family_id, feature_key, source_type, source_id
+          );
+      CREATE UNIQUE INDEX idx_entitlements_source
+        ON entitlements(family_id, feature_key, source_type, source_id)
+        WHERE source_id IS NOT NULL AND revoked_at IS NULL;
+
+      -- 上线赠送：每个既有家庭 3 个月 Supporter
+      INSERT OR IGNORE INTO entitlements
+        (family_id, user_id, feature_key, source_type, source_id, starts_at, expires_at)
+        SELECT f.id,
+               (SELECT id FROM users WHERE users.family_id = f.id AND users.family_role = 'owner' LIMIT 1),
+               k.feature_key, 'promo', 'launch-2026',
+               CAST(strftime('%s','now') AS INTEGER) * 1000,
+               CAST(strftime('%s','now','+3 months') AS INTEGER) * 1000
+        FROM families f
+        CROSS JOIN (
+          SELECT 'pdf_worksheet' AS feature_key
+          UNION ALL SELECT 'celebration_image'
+          UNION ALL SELECT 'live_race'
+        ) k;
+    `
   }
 ];
 

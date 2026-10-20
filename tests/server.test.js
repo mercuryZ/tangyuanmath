@@ -188,7 +188,9 @@ test('CSRF：无令牌/错令牌拒绝；GET /api/csrf 签发后放行', async (
   assert.strictEqual(created.json.data.profile.nickname, 'Xiao Tang');
 
   const second = await req('POST', '/api/profiles', { nickname: 'Second' });
-  assert.strictEqual(second.status, 409); // 首发单档案
+  assert.strictEqual(second.status, 200); // 家庭最多 2 个子女
+  const third = await req('POST', '/api/profiles', { nickname: 'Third' });
+  assert.strictEqual(third.status, 409); // 超出家庭子女上限
 });
 
 test('记录上报：服务端判分（忽略客户端声明）+ 首次错误进错题本', async () => {

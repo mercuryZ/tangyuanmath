@@ -5,6 +5,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const config = require('./config');
 const db = require('./db'); // 仅类型引用，实际 db 实例经 req.app.locals
 const { hashToken } = require('./util');
 
@@ -81,38 +82,100 @@ function csrfProtect(req, res, next) {
   next();
 }
 
-/* ---------- 会话鉴权：Cookie tm_session → 哈希查表 ---------- */
+/* ---------- 会话鉴权：Cookie tm_session → 哈希查表 ----------
+ * 会话二选一：家长（user_id）或子女（child_profile_id）。
+ * 家长与子女共用同一个 HttpOnly Cookie；/api/race/ws 也复用 resolveSession。 */
 function sessionCookieName() { return 'tm_session'; }
 
 function createSession(db, userId) {
   const token = crypto.randomBytes(32).toString('base64url');
   const now = Date.now();
-  db.prepare('INSERT INTO sessions (token_hash, user_id, expires_at, created_at) VALUES (?,?,?,?)')
-    .run(hashToken(token), userId, now + 7 * 24 * 3600 * 1000, now);
+  db.prepare('INSERT INTO sessions (token_hash, user_id, child_profile_id, expires_at, created_at) VALUES (?,?,NULL,?,?)')
+    .run(hashToken(token), userId, now + config.sessionTtlMs, now);
   return token;
 }
 
-function attachUser(db) {
+function createChildSession(db, childProfileId) {
+  const token = crypto.randomBytes(32).toString('base64url');
+  const now = Date.now();
+  db.prepare('INSERT INTO sessions (token_hash, user_id, child_profile_id, expires_at, created_at) VALUES (?,NULL,?,?,?)')
+    .run(hashToken(token), childProfileId, now + config.sessionTtlMs, now);
+  return token;
+}
+
+/* 解析会话令牌，返回家长或子女身份；无效/过期返回 null。 */
+function resolveSession(db, token) {
+  if (!token || !/^[A-Za-z0-9_-]{20,}$/.test(token)) return null;
+  const row = db.prepare(
+    `SELECT s.token_hash, s.expires_at,
+            u.id AS user_id, u.email_normalized, u.email_verified_at,
+            u.locale, u.timezone, u.created_at, u.family_id AS user_family_id, u.family_role,
+            c.id AS child_id, c.family_id AS child_family_id, c.nickname, c.avatar_key, c.username
+     FROM sessions s
+     LEFT JOIN users u ON u.id = s.user_id
+     LEFT JOIN child_profiles c ON c.id = s.child_profile_id
+     WHERE s.token_hash = ?`
+  ).get(hashToken(token));
+  if (!row || row.expires_at <= Date.now()) return null;
+  if (row.user_id) {
+    return {
+      kind: 'parent',
+      tokenHash: row.token_hash,
+      familyId: row.user_family_id,
+      user: {
+        id: row.user_id,
+        email: row.email_normalized,
+        emailVerified: !!row.email_verified_at,
+        locale: row.locale,
+        timezone: row.timezone,
+        createdAt: row.created_at,
+        familyId: row.user_family_id,
+        familyRole: row.family_role
+      }
+    };
+  }
+  if (row.child_id) {
+    // 子女没有自己的时区，统计沿用家庭 owner（或第一位家长）的时区
+    const tzRow = db.prepare(
+      `SELECT timezone FROM users WHERE family_id = ?
+       ORDER BY CASE family_role WHEN 'owner' THEN 0 ELSE 1 END, id LIMIT 1`
+    ).get(row.child_family_id);
+    return {
+      kind: 'child',
+      tokenHash: row.token_hash,
+      familyId: row.child_family_id,
+      child: {
+        id: row.child_id,
+        nickname: row.nickname,
+        avatarKey: row.avatar_key,
+        username: row.username,
+        familyId: row.child_family_id,
+        timezone: tzRow ? tzRow.timezone : 'UTC'
+      }
+    };
+  }
+  return null;
+}
+
+function attachIdentity(db) {
   return function (req, res, next) {
     req.user = null;
+    req.child = null;
+    req.familyId = null;
+    req.sessionKind = null;
+    req.timezone = 'UTC';
     const token = req.cookies ? req.cookies[sessionCookieName()] : null;
-    if (token && /^[A-Za-z0-9_-]{20,}$/.test(token)) {
-      const row = db.prepare(
-        `SELECT s.token_hash, s.expires_at, u.id, u.email_normalized, u.email_verified_at,
-                u.locale, u.timezone, u.created_at
-         FROM sessions s JOIN users u ON u.id = s.user_id
-         WHERE s.token_hash = ?`
-      ).get(hashToken(token));
-      if (row && row.expires_at > Date.now()) {
-        req.user = {
-          id: row.id,
-          email: row.email_normalized,
-          emailVerified: !!row.email_verified_at,
-          locale: row.locale,
-          timezone: row.timezone,
-          createdAt: row.created_at
-        };
-        req.sessionTokenHash = row.token_hash;
+    const ident = resolveSession(db, token);
+    if (ident) {
+      req.sessionKind = ident.kind;
+      req.familyId = ident.familyId;
+      req.sessionTokenHash = ident.tokenHash;
+      if (ident.kind === 'parent') {
+        req.user = ident.user;
+        req.timezone = ident.user.timezone;
+      } else {
+        req.child = ident.child;
+        req.timezone = ident.child.timezone;
       }
     }
     next();
@@ -120,13 +183,45 @@ function attachUser(db) {
 }
 
 function requireAuth(req, res, next) {
+  if (req.user) return next();
+  if (req.child) return fail(res, 403, 'parent_only', 'This page is for parent accounts.');
+  return fail(res, 401, 'not_logged_in', 'Please sign in first.');
+}
+
+function requireParentOwner(req, res, next) {
   if (!req.user) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
+  if (req.user.familyRole !== 'owner') return fail(res, 403, 'owner_only', 'Only the family owner can do that.');
   next();
+}
+
+function requireChild(req, res, next) {
+  if (!req.child) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
+  next();
+}
+
+/* 游戏数据接口：家长或子女均可，具体档案归属由 loadOwnProfile 校验 */
+function requirePlayer(req, res, next) {
+  if (!req.user && !req.child) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
+  next();
+}
+
+function parseCookieHeader(header) {
+  const out = {};
+  String(header || '').split(';').forEach(part => {
+    const i = part.indexOf('=');
+    if (i === -1) return;
+    const k = part.slice(0, i).trim();
+    const v = part.slice(i + 1).trim();
+    if (k) out[k] = decodeURIComponent(v);
+  });
+  return out;
 }
 
 module.exports = {
   ok, fail,
   securityHeaders, rateLimit,
   issueCsrfCookie, csrfProtect,
-  sessionCookieName, createSession, attachUser, requireAuth
+  sessionCookieName, createSession, createChildSession, resolveSession,
+  attachIdentity, requireAuth, requireParentOwner, requireChild, requirePlayer,
+  parseCookieHeader
 };

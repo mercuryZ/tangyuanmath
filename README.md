@@ -33,9 +33,9 @@ npm start          # default 3000, override with PORT=3100; serves the static si
 
 - Home: `/` (English by default, switchable to 中文) · `/en/` · `/zh/`
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
-- Parent center: `/account/` (sign in, child profile, synced stats & data management)
+- Parent center: `/account/` (parent sign-in, family membership, co-parent invites, child accounts, synced stats & data management)
 
-Run the tests with `cd server && npm test` (45 tests: question generation, records, mistake book, and the full HTTP API including Google sign-in and the mail channel).
+Run the tests with `cd server && npm test` (98 tests: question generation, records, mistake book, family membership/invites, child logins, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
 
 ### Email delivery
 
@@ -99,7 +99,8 @@ Milestones are detailed in [docs/DESIGN.md](docs/DESIGN.md) (v3.0 merged edition
 
 - **M0 ✅ Free overseas trial**: full English UI + Chinese, untimed practice (choose range & count), 10-level challenge, mistake review, first/final answer tracking, per-question active time, accessibility, public pages (home/FAQ/about/privacy), local-only visitor data you can clear, zero ads and zero third-party scripts.
 - **M1 ✅ Parent accounts & cloud data**: Express + SQLite (versioned migrations), email register/verify/login/reset + session revocation (CSRF + rate limits + strict CSP), child profiles with ownership checks, server-authoritative grading with idempotent upload (first/final answers + per-question active time), cloud mistake review, idempotent guest import, timezone-aware streaks, export & account deletion.
-- **M1.5 ✅ Live Race (multiplayer)**: invite-code 2–4 player speed races over WebSocket. Server-authoritative grading (clients never receive answers), system-generated display names with no chat or free text, guests play without an account and leave no trace, 30-second reconnect window back to the same seat, and results saved only for signed-in child profiles. Not yet load-tested.
+- **M1.5 ✅ Live Race (multiplayer)**: invite-code 2–4 player speed races over WebSocket. Server-authoritative grading (clients never receive answers), system-generated display names with no chat or free text, 30-second reconnect window back to the same seat, and results saved only for signed-in child profiles. Live Race is now a family Supporter feature (Practice and Challenge stay free).
+- **M1.6 ✅ Family membership & child logins**: one Supporter membership covers up to 2 parents and 2 children. Parents sign in with email/password or Google; children use a parent-created username and password. A second parent joins by email invite. Every new family gets a 3-month launch trial granting Live Race and custom worksheets.
 - **M2 ⏳ Real payments & Supporter**: hosted checkout (pending), printable PDF worksheets (live — free samples for everyone, supporter-only custom generation with US Letter/A4 and optional answer pages), custom local celebration images.
 - **M3 ⏳ Content & growth**: English tutorials, SEO/GEO, community outreach.
 

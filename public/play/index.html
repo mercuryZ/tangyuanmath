@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tangyuan Math — Multiplication Practice &amp; Challenge</title>
-<meta name="description" content="Friendly multiplication practice: untimed Practice mode, a 10-level Challenge, and a mistake review mode. Free, no account needed, everything stays in your browser.">
+<meta name="description" content="Friendly multiplication practice: untimed Practice mode, a 10-level Challenge, and a mistake review mode — free, no account needed. Live Race multiplayer is part of a family Supporter membership; new families get 3 months free.">
 <link rel="icon" href="../img/tangyuan_small.png">
 <link rel="stylesheet" href="../css/play.css">
 </head>
@@ -45,7 +45,7 @@
   <!-- 首页：模式选择 -->
   <section class="view" id="view-home" aria-labelledby="homeTitle">
     <h2 class="page-title" id="homeTitle" data-i18n="home.title">Choose a mode</h2>
-    <p class="page-sub" data-i18n="home.subtitle">No account needed. Your answers stay in this browser.</p>
+    <p class="page-sub" data-i18n="home.subtitle">Practice and Challenge work without an account. Live Race is part of Supporter.</p>
     <div class="mode-grid">
       <button class="mode-card" id="cardPractice" type="button">
         <svg class="ico" aria-hidden="true"><use href="#ico-pencil"/></svg>
@@ -61,7 +61,8 @@
       </button>
       <button class="mode-card" id="cardVersus" type="button">
         <svg class="ico" aria-hidden="true"><use href="#ico-trophy"/></svg>
-        <h2 data-i18n="home.versus.title">Race a Friend</h2>
+        <h2><span data-i18n="home.versus.title">Race a Friend</span>
+          <span class="race-member-chip" id="raceMemberChip" data-i18n="race.gate.chip" hidden>Members</span></h2>
         <p data-i18n="home.versus.desc">Same questions, same clock. Share a room code and see who finishes first.</p>
         <span class="m-cta" data-i18n="home.versus.cta">Start a race →</span>
       </button>
@@ -164,6 +165,21 @@
 
     <div class="btn-row">
       <button class="btn ghost" id="versusBack" type="button" data-i18n="common.back">Back</button>
+    </div>
+  </section>
+
+  <!-- 对战会员门禁（登录 / 会员到期） -->
+  <section class="view" id="view-race-gate" aria-labelledby="raceGateTitle">
+    <h2 class="page-title" id="raceGateTitle" data-i18n="race.gate.title">Live Race is part of Supporter</h2>
+    <p class="page-sub" id="raceGateDesc" data-i18n="race.gate.desc">One membership covers up to 2 parents and 2 children.</p>
+    <div class="race-card race-gate-card">
+      <p class="race-gate-offer" data-i18n="race.gate.offer">Every new family gets 3 months of Supporter free — no card required.</p>
+      <div class="btn-row">
+        <a class="btn primary" id="raceGatePrimary" href="/account/?mode=register" data-i18n="race.gate.register">Create free account</a>
+        <a class="btn ghost" id="raceGateSecondary" href="/account/?mode=login" data-i18n="race.gate.signin">Sign in</a>
+        <button class="btn ghost" id="raceGateBack" type="button" data-i18n="common.back">Back</button>
+      </div>
+      <p class="race-hint" id="raceGateNote"></p>
     </div>
   </section>
 

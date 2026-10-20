@@ -27,7 +27,7 @@
 | 图片 | 继续只存当前浏览器，不上传 |
 | GEO | 增加直接可读取的公开 HTML 页面，不能只依赖 hash 路由 |
 | 免费历史限制 | 首发不采用“仅最近 30 天”；所有记录仍受公开的保留政策约束 |
-| 多人对战 | 房间码邀请制 Live Race（第 13 节）：服务端权威、游客可玩、零陌生人匹配 |
+| 多人对战 | 房间码邀请制 Live Race（第 13 节）：服务端权威、家庭会员专属、零陌生人匹配 |
 
 ### 0.2 上线前必须确定的事项
 
@@ -42,7 +42,7 @@
 ### 0.3 合并决策记录（2026-10-15，用户确认）
 
 1. 市场方向：**海外优先，保留中文版**（合并以 v2.0 为主干）。
-2. 账号模型：**家长账号 + 儿童档案**，游客免注册可玩。
+2. 账号模型：**家庭账号（最多 2 位家长）+ 子女账号（最多 2 名）**。家长用邮箱/Google 登录，子女用家长创建的用户名 + 密码登录；游客免注册可玩练习与挑战。
 3. 广告：**永不投放**——会员卖点仅保留 PDF 下载与自定义通关图片。
 4. 文档：合并为单一设计文档（本文件 v3.0），删除旧档。
 
@@ -218,6 +218,8 @@
     │  │  ├─ index.js
     │  │  ├─ db.js
     │  │  ├─ auth.js
+    │  │  ├─ family.js
+    │  │  ├─ family-routes.js
     │  │  ├─ profiles.js
     │  │  ├─ records.js
     │  │  ├─ orders.js
@@ -287,7 +289,7 @@
 ### 5.1 账号模型
 
 首发以游客练习为默认路径。
-云端保存和购买入口面向家长，儿童档案不提供独立公开账号。
+云端保存和购买入口面向家长。家庭可包含最多 2 位家长和 2 名子女；子女账号由家长创建，使用用户名 + 密码登录，不收集邮箱。
 
 家长账号：
 - 邮箱和密码；
@@ -297,12 +299,19 @@
 - 不将邮箱默认加入营销订阅；
 - 不收集不必要的家庭资料。
 
-儿童档案：
+儿童 / 子女账号：
 - 昵称和预设头像；
+- 可选用户名 + 密码（家长创建；不收集邮箱，不使用真实姓名）；
 - 不要求真实姓名、学校或精确生日；
-- 不公开展示资料或成绩；
-- 首发一个档案，界面明确说明；
-- 多档案权益在真正上线后另行确定。
+- 不公开展示资料或成绩；对战显示名仍由系统随机生成；
+- 每个家庭最多 2 名子女；新增子女席位需要有效会员；
+- 家长可重置密码或删除子女账号。
+
+家庭与共同家长：
+- 一位家长（owner）可通过邮箱邀请另一位家长加入家庭；
+- 加入后两位家长共享同一份会员与子女账号；
+- 每个家庭最多 2 位家长；邀请需要有效会员。
+- 新家庭注册即获赠 3 个月会员（每个家庭一次）。
 
 “家长入口”或成年确认本身不能替代适用法律要求的家长同意程序。
 儿童数据的云端保存须通过第 10 节的上线门禁。
@@ -332,16 +341,18 @@ SQLite 开启外键、WAL、合理的 busy timeout。
 
 | 表 | 关键字段与约束 |
 |---|---|
-| `users` | id、email_normalized UNIQUE、password_hash、email_verified_at、locale、timezone、created_at |
-| `sessions` | token_hash PRIMARY KEY、user_id FK、expires_at、created_at |
+| `users` | id、email_normalized UNIQUE、password_hash、email_verified_at、locale、timezone、created_at、google_id nullable、family_id FK、family_role('owner'/'coparent') |
+| `families` | id、created_at、is_personal（注册时自动创建，可被邀请合并） |
+| `family_invites` | id、family_id FK、email_normalized、token_hash UNIQUE、invited_by FK、expires_at、accepted_at nullable、accepted_by nullable、revoked_at nullable、created_at |
+| `sessions` | token_hash PRIMARY KEY、user_id FK nullable、child_profile_id FK nullable、expires_at、created_at；二者恰有一个非空 |
 | `auth_tokens` | token_hash、user_id、purpose、expires_at、used_at |
-| `child_profiles` | id、user_id FK、nickname、avatar_key、created_at |
+| `child_profiles` | id、user_id FK（创建者/审计）、family_id FK、nickname、avatar_key、username nullable、username_normalized UNIQUE nullable、password_hash nullable、last_login_at nullable、created_at |
 | `attempts` | id、profile_id FK、client_event_id、mode、difficulty、level nullable、passed、active_time_ms、created_at、received_at |
 | `attempt_questions` | id、attempt_id FK、position、a、b、first_answer nullable、final_answer nullable、first_correct nullable、final_correct、active_time_ms nullable |
 | `wrong_questions` | id、profile_id FK、a、b、user_answer nullable、wrong_count、last_wrong_at |
-| `orders` | id、order_no UNIQUE、user_id FK、sku、amount_minor、currency、status、provider、provider_checkout_id、provider_trade_no、expires_at、paid_at、created_at |
+| `orders` | id、order_no UNIQUE、family_id FK、purchased_by FK、sku、amount_minor、currency、status、provider、provider_checkout_id、provider_trade_no、expires_at、paid_at、created_at |
 | `payment_events` | provider、event_id、event_type、processing_status、processed_at |
-| `entitlements` | id、user_id FK、feature_key、source_type、source_id、starts_at、expires_at nullable、revoked_at nullable |
+| `entitlements` | id、family_id FK、user_id FK nullable（授予人/审计）、feature_key、source_type('order'/'redeem'/'grant'/'promo')、source_id、starts_at、expires_at nullable、revoked_at nullable |
 | `redeem_codes` | code_hash UNIQUE、sku、expires_at nullable、used_by nullable、used_at nullable |
 | `privacy_consents` | user_id、scope、policy_version、method、granted_at、withdrawn_at nullable |
 | `matches` | id、room_code、mode='versus'、difficulty、count、started_at、ended_at（Live Race 对局，仅登录档案落库，见第 13 节） |
@@ -446,16 +457,16 @@ Challenge 倒计时使用绝对截止时刻计算，不依赖每秒递减计数�
 
 | 版本 | 价格 |
 |---|---|
-| Free | 免费核心玩法、基础统计、错题重练 |
+| Free | 免费练习、挑战、错误重练与基础统计（不含联机对战/自定义练习卷） |
+| 上线赠送 | 每个新家庭注册即获 3 个自然月全部 Supporter 权益（每家庭一次，无需绑卡） |
 | Supporter 月付 | US$4.99/月，自动续费，可随时取消 |
 | Supporter 年付 | US$49.90/年（约 US$4.16/月），自动续费，可随时取消 |
 | Supporter 永久版 | US$149.99，一次性购买，不续费 |
 
+一份会员覆盖同一个家庭的最多 **2 位家长 + 2 名子女**；新增家长/子女席位需要有效会员。
 以上为当前定价，后续视转化与退款情况再评估。
 不使用虚假原价、循环倒计时或面向儿童的购买催促。
 月付与年付必须在购买页和 FAQ 中明确自动续费与取消方式。
-
-首发仅支持一个档案时，不宣传“全家多孩子使用”。
 
 ### 8.2 权益
 
@@ -464,7 +475,7 @@ Challenge 倒计时使用绝对截止时刻计算，不依赖每秒递减计数�
 | 核心练习与挑战 | 是 | 是 |
 | 基础统计与错题 | 是 | 是 |
 | 可公开阅读的数学技巧 | 是 | 是 |
-| 多人对战 Live Race（不限次数） | 是 | 是 |
+| 多人对战 Live Race（不限次数） | 否 | 是 |
 | 自定义 PDF 生成 | 否 | 是 |
 | 本地庆祝图片 | 否 | 是 |
 | 更丰富的历史分析 | 基础 | 实际上线后提供 |
@@ -473,7 +484,9 @@ Challenge 倒计时使用绝对截止时刻计算，不依赖每秒递减计数�
 不承诺一次购买自动包含未来所有独立产品、课程或服务。
 
 购买页明确：
-- 当前权益和账号范围；
+- 当前权益和账号范围（最多 2 位家长 + 2 名子女，一份会员全家共享）；
+- 上线赠送：每个新家庭 3 个自然月，每家庭一次，到期自动结束、不扣费；
+- 子女账号由家长创建、可重置密码或删除，不收集儿童邮箱；
 - 各方案的计费周期与自动续费规则（月付/年付可随时取消，永久版不续费）；
 - 下载限制或合理使用规则；
 - 税费和最终结账金额；
@@ -737,12 +750,12 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 ### 13.0 产品定位与儿童安全红线
 
-- 定位：好友间同题竞速的**增长型功能**——先于付费功能（M2）推出，靠对战拉回访。
-- **完全免费、不设次数上限**：对战不作为付费权益，当前不做每日局数或免费次数限制；待用户数达到一定数量后再评估是否调整。
+- 定位：好友间同题竞速的**家庭会员功能**——与自定义练习卷同属 Supporter；Practice 与 Challenge 仍免费。
+- **会员家庭专属、不限次数**：只有持有有效 `live_race` 家庭权益的家长或子女可以创建/加入房间；不设局数上限。
 - **只做房间码邀请制**（朋友/同学/家长安排），**不做陌生人随机匹配**、不做排行榜公开展示——儿童产品不创造与陌生人实时交互的可能。
 - **零自由文本输入**：房内显示名由系统随机生成（如 Mochi、Pudding、Sesame、Red Bean + 汤圆表情），不使用儿童档案昵称，杜绝人肉搜索与不当内容注入。
 - **无任何聊天/语音/表情发送**：玩家间仅传递系统生成的进度事件（答对数、完成状态）。
-- 游客可完整参与对战（与 M0「游客优先」一致）；对战房间状态**纯内存、不落库**。
+- 游客可以打开大厅并看到会员门禁，但不能创建/加入房间；对战房间状态**纯内存、不落库**。
 
 ### 13.1 玩法设计
 
@@ -786,7 +799,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 | S→C | `peer_progress` | `{seat, solved, finished?, finishAt?}`（广播） |
 | S→C | `game_over` | `{ranking[{seat, name, solved, usedMs, rank, disconnected}]}` |
 
-**鉴权**：WebSocket 升级握手复用 5.2 节会话 Cookie；游客允许匿名连接（限每 IP 并发房间数，防滥用）。有儿童档案会话时，对局结果归属该档案。
+**鉴权**：WebSocket 升级握手复用 5.2 节会话 Cookie，可识别家长或子女会话。握手与 create/join/rematch 时检查家庭的 `live_race` 权益；无会话返回 `login_required`，无权益返回 `membership_required`。续连（resumeToken）不重新检查，避免会员到期瞬间打断正在进行的对局。家长直接参赛不绑定档案、不落库；子女会话绑定本人档案，对局结果归属该子女。游客可匿名连接大厅但不能建房/加入；每 IP 并发与建/加入频率仍受限。
 
 **断线处理**：
 - 掉线保留房间 30 秒重连窗口（`sessionStorage` 记房间码，刷新/闪断可回归原座位）；
@@ -833,7 +846,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 ### 13.7 遗留决策点
 
-1. 对战是否限免费次数（如每日 3 局、Supporter 不限）以促转化，还是完全免费做增长功能——**完全免费、不设次数上限**（已按此实现，未加任何限制）；未来用户数达到一定数量后再做决定。
+1. 对战的付费方式——**已定为家庭会员专属**：月付/年付/永久版及 3 个月上线赠送都包含 `live_race`；不设局数上限。练习与挑战保持免费。
 2. 房间码字符集与闲置回收时长——**定为简单常见的水果/动物/数字单词，全大写、3–5 个字母、不超过 5 个字符**（如 `MANGO`、`TIGER`、`THREE`），大小写不敏感；词表约 80 个，随机起点线性扫描避免与在用房间碰撞。闲置 10 分钟回收、掉线座位保留 30 秒。
 3. 4 人房首发 or 等 2 人房稳定后放开——**上限 4 人已实现**，开局只需 ≥2 人：能力已就绪，实际人数由用户决定。
 4. 平局时的最终规则（当前：比最后一题答对时刻；备选：加赛一题 sudden death）——**按「最后一题更早答对者靠前」实现**，再以座位序兜底保证排名确定性。
@@ -882,10 +895,25 @@ PDF 服务端鉴权、限流、限制并发和超时。
 - [x] 断线重连、对局入库与删除级联
 - [x] 交卷流程：整卷一次性提交、服务端逐题判定、交卷后棋盘逐题 ✓/✗
 - [x] 答案事件限速验证（单测覆盖 4 次/秒阈值）
+- [x] 家庭会员门禁：游客/无会员返回 `login_required`/`membership_required`；子女会话绑定档案，家长直赛不落库
 - [ ] 2–4 人同区域真实压测
 
-验收：客户端拿不到答案；伪造 answer 消息无法改变进度；游客全程零落库；断网 30 秒内重连回归原座位；
+验收：客户端拿不到答案；伪造 answer 消息无法改变进度；游客与无会员家长无法建房/加入且零落库；
+子女对局落库、家长直赛不落库；断网 30 秒内重连回归原座位；
 交卷后成绩与逐题标记一致；全员交卷或超时均能正确结算；删除账号后对局记录级联清除。
+
+### M1.6：家庭会员、子女登录与共同家长
+
+- [x] 家庭 / 家庭成员模型（2 位家长 + 2 名子女）
+- [x] 每家庭注册赠送 3 个月 Supporter（幂等，每家庭一次）
+- [x] 子女用户名 + 密码登录（与家长共用会话 Cookie，路由按身份隔离）
+- [x] 共同家长邮箱邀请、令牌校验与空家庭合并
+- [x] 家长中心：会员状态、家庭席位、子女账号、密码重置
+- [x] 权益改为家庭维度（联机对战 + 自定义练习卷）
+- [ ] 真实家长试用与家庭邀请送达率验证
+
+验收：跨家庭不能读取子女数据；一份会员覆盖 2 位家长和 2 名子女；赠送到期后联机对战与 PDF 锁定、
+免费练习与数据保留；邀请重复/过期/邮箱不符均被拒；原家庭有子女或付费权益时不能被合并。
 
 ### M2：真实支付与 Supporter
 
@@ -930,7 +958,8 @@ PDF 服务端鉴权、限流、限制并发和超时。
 - 退款和赠送权益并存；
 - PDF 大请求及越权；
 - 图片格式与尺寸；
-- 对战（Live Race）：答案不下发客户端；伪造 answer 消息无效；断线 30 秒重连回归座位；游客对局零落库；
+- 对战（Live Race）：答案不下发客户端；伪造 answer 消息无效；断线 30 秒重连回归座位；
+  游客/无会员无法建房或加入；子女对局落库、家长直赛不落库；
 - 删除、备份恢复与对账；
 - 核心浏览器、移动端和键盘操作。
 
@@ -966,6 +995,6 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 1. 支付渠道在 Stripe / PayPal / Merchant of Record 中最终选择（取决于 0.2 节经营主体与税务安排）。
 2. 定价验证：月付 US$4.99 / 年付 US$49.90 / 永久版 US$149.99，视转化与退款情况再评估。
-3. 对战完全免费、不限次数（用户数达到一定数量后再评估）、房间码字符集与回收时长、4 人房开放时机、平局加赛规则（见 13.7）。
-4. 多儿童档案权益范围与上线时间（首发单档案）。
+3. 对战为家庭会员专属、不限次数；房间码字符集与回收时长、4 人房开放时机、平局加赛规则见 13.7。
+4. 家庭席位上限定为 2 位家长 + 2 名子女；是否需要更多席位、或按席位单独售卖，待真实使用后再评估。
 5. 对战排期确认：M1.5 建议排在 M1 后、M2 前后均可，视增长需求调整。

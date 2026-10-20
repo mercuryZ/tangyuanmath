@@ -246,6 +246,7 @@ body {
 .btn {
   border: none; cursor: pointer; font: 900 15px/1 inherit; letter-spacing: .4px;
   padding: 13px 30px; border-radius: 999px; color: #fff;
+  text-decoration: none;
   transition: transform .1s, box-shadow .15s;
 }
 .btn:active { transform: translateY(2px); }
@@ -379,7 +380,30 @@ body {
   100% { transform: translateY(108vh) rotate(360deg); opacity: .5; }
 }
 
+/* 门禁按钮/表单使用 hidden 属性时优先于组件的 display */
+[hidden] { display: none !important; }
+
 /* ---------- Live Race（DESIGN 13.4） ---------- */
+.race-member-chip {
+  display: inline-block; margin-left: 6px; padding: 3px 8px; border-radius: 8px;
+  background: var(--pink-light); color: var(--red-dark);
+  font-size: 10.5px; font-weight: 900; letter-spacing: .06em;
+  text-transform: uppercase; vertical-align: middle;
+}
+#view-race-gate { text-align: center; }
+.race-gate-card { max-width: 620px; margin: 0 auto; text-align: center; }
+/* 主 CTA 与定价页「订阅年付」按钮同款：12px 圆角、同色渐变、4px 硬阴影 */
+#raceGatePrimary {
+  border-radius: 12px;
+  padding: 14px 26px;
+  font-size: 15px;
+  box-shadow: 0 4px 0 var(--red-dark), 0 10px 24px rgba(242, 85, 90, .3);
+}
+#raceGatePrimary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--red-dark);
+}
+.race-gate-offer { font-size: 14.5px; font-weight: 800; color: var(--red-deep); line-height: 1.6; }
 .race-lobby { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 8px; }
 .race-card {
   background: var(--cream); border: 2px solid var(--red-light); border-radius: 20px;

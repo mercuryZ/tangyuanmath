@@ -33,8 +33,41 @@
   /* ---------- WebSocket ---------- */
   function wsUrl() {
     var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    var pid = global.TMAPI && global.TMAPI.state ? global.TMAPI.state.currentProfileId : null;
+    // 只有子女会话绑定档案；家长直接参赛，服务端不写儿童档案
+    var st = global.TMAPI && global.TMAPI.state;
+    var pid = st && st.child ? st.currentProfileId : null;
     return proto + '//' + location.host + '/api/race/ws' + (pid ? '?profileId=' + encodeURIComponent(pid) : '');
+  }
+
+  /* ---------- 会员门禁 ---------- */
+  function gateMode() {
+    var st = global.TMAPI && global.TMAPI.state;
+    if (!st) return 'login';
+    if (!st.user && !st.child) return 'login';
+    if ((st.entitlements || []).indexOf('live_race') === -1) return 'membership';
+    return null;
+  }
+
+  function updateRaceBadge() {
+    var chip = $('raceMemberChip');
+    if (chip) chip.hidden = !gateMode();
+  }
+
+  function showGate(mode) {
+    var zh = global.TMI18N.lang() === 'zh';
+    var next = location.pathname + location.search;
+    var nextParam = encodeURIComponent(next);
+    $('raceGateTitle').textContent = t(mode === 'login' ? 'race.gate.titleLogin' : 'race.gate.title');
+    $('raceGateDesc').textContent = t(mode === 'login' ? 'race.gate.descLogin' : 'race.gate.desc');
+    $('raceGateNote').textContent = t(mode === 'login' ? 'race.gate.noteLogin' : 'race.gate.noteMembership');
+    $('raceGatePrimary').textContent = t(mode === 'login' ? 'race.gate.register' : 'race.gate.pricing');
+    $('raceGatePrimary').href = mode === 'login'
+      ? '/account/?mode=register&next=' + nextParam
+      : (zh ? '/zh/pricing/' : '/en/pricing/');
+    var secondary = $('raceGateSecondary');
+    secondary.hidden = mode !== 'login';
+    secondary.href = '/account/?mode=login&next=' + nextParam;
+    global.TMUI.showView('race-gate');
   }
 
   function connect(onReady) {
@@ -88,7 +121,13 @@
   /* ---------- 消息分发 ---------- */
   function handle(msg) {
     switch (msg.type) {
-      case 'hello': break;
+      case 'hello':
+        if (msg.canRace === false) {
+          showGate(msg.loggedIn ? 'membership' : 'login');
+          if (state && state.ws) { state.closed = true; try { state.ws.close(); } catch (e) {} state = null; }
+        }
+        updateRaceBadge();
+        break;
       case 'joined': onJoined(msg); break;
       case 'room_state': onRoomState(msg.room); break;
       case 'countdown': showCountdown(msg.seconds); break;
@@ -113,6 +152,8 @@
       invalid_resume: 'race.err.resumeFailed',
       already_in_room: 'race.err.alreadyInRoom'
     };
+    if (code === 'login_required') { showGate('login'); return; }
+    if (code === 'membership_required') { showGate('membership'); return; }
     global.TMUI.toast(t(map[code] || 'race.err.generic'), true);
     if (code === 'room_not_found' || code === 'invalid_resume') {
       clearSeat();
@@ -563,31 +604,42 @@
   var TMRace = {
     enter: function (opts) {
       opts = opts || {};
-      // 已经连上就只切视图，避免重复开一条 WebSocket
-      if (state && state.ws && state.ws.readyState === 1) {
+      var proceed = function () {
+        // 已经连上就只切视图，避免重复开一条 WebSocket
+        if (state && state.ws && state.ws.readyState === 1) {
+          renderLobbyOptions();
+          global.TMUI.showView('versus');
+          return;
+        }
+        state = { reconnectAttempt: 0, closed: false };
         renderLobbyOptions();
         global.TMUI.showView('versus');
-        return true;
-      }
-      state = { reconnectAttempt: 0, closed: false };
-      renderLobbyOptions();
-      global.TMUI.showView('versus');
-      connect(function () {
-        // 邀请链接 ?room=CODE：连上后自动加入
-        var code = opts.code;
-        if (!code) {
-          var q = new URLSearchParams(location.search);
-          code = (q.get('room') || '').toUpperCase();
-        }
-        if (code) {
-          $('raceJoinCode').value = code;
-          send({ type: 'join_room', code: code });
-        } else {
-          // 刷新后仍在房间：尝试用记忆的座位令牌回归
-          var seat = readSeat();
-          if (seat && seat.token) send({ type: 'join_room', code: seat.code, resumeToken: seat.token });
-        }
-      });
+        connect(function () {
+          // 邀请链接 ?room=CODE：连上后自动加入
+          var code = opts.code;
+          if (!code) {
+            var q = new URLSearchParams(location.search);
+            code = (q.get('room') || '').toUpperCase();
+          }
+          if (code) {
+            $('raceJoinCode').value = code;
+            send({ type: 'join_room', code: code });
+          } else {
+            // 刷新后仍在房间：尝试用记忆的座位令牌回归
+            var seat = readSeat();
+            if (seat && seat.token) send({ type: 'join_room', code: seat.code, resumeToken: seat.token });
+          }
+        });
+      };
+      var decide = function () {
+        var mode = gateMode();
+        if (mode) { showGate(mode); return; }
+        proceed();
+      };
+      /* 先刷新会话：race.js 比 app.js 先注册 DOMContentLoaded，
+       * 直接读 state 会在登录用户身上误判为未登录。 */
+      if (global.TMAPI && global.TMAPI.refresh) global.TMAPI.refresh().then(decide);
+      else decide();
       return true;
     },
     create: function () {
@@ -654,6 +706,12 @@
     }
 
     $('cardVersus').addEventListener('click', function () { TMRace.enter(); });
+    $('raceGateBack').addEventListener('click', function () {
+      global.TMUI.showView('home');
+      global.TMUI.refreshHome();
+    });
+    /* 首页卡片上的「Members」标记随会话/会员状态更新 */
+    if (global.TMAPI && global.TMAPI.refresh) global.TMAPI.refresh().then(updateRaceBadge);
     $('versusBack').addEventListener('click', function () {
       if (state && state.ws) { send({ type: 'leave' }); clearSeat(); state.closed = true; try { state.ws.close(); } catch (e) {} state = null; }
       global.TMUI.showView('home');

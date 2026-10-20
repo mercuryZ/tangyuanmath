@@ -54,8 +54,11 @@
     <div class="tab-row" role="tablist">
       <button class="chip-btn tab" id="tabLogin" role="tab" type="button" aria-selected="true" data-i18n="acct.tabLogin">Sign in</button>
       <button class="chip-btn tab" id="tabRegister" role="tab" type="button" aria-selected="false" data-i18n="acct.tabRegister">Create account</button>
+      <button class="chip-btn tab" id="tabStudent" role="tab" type="button" aria-selected="false" data-i18n="acct.tabStudent">Student sign-in</button>
       <button class="chip-btn tab" id="tabForgot" role="tab" type="button" aria-selected="false" data-i18n="acct.tabForgot">Forgot password</button>
     </div>
+
+    <p class="hint" id="registerOffer" data-i18n="acct.registerOffer" hidden></p>
 
     <form id="authForm" class="setup-form acct-form" novalidate>
       <div class="field">
@@ -70,6 +73,23 @@
       <p class="hint" id="formMsg" role="status" aria-live="polite"></p>
       <div class="btn-row acct-btn-row">
         <button class="btn primary" type="submit" id="authSubmit">Sign in</button>
+      </div>
+    </form>
+
+    <!-- 学生登录：家长在家庭里创建的用户名 + 密码 -->
+    <form id="studentForm" class="setup-form acct-form" novalidate hidden>
+      <p class="hint" data-i18n="acct.studentHint">Use the username and password a parent created for you.</p>
+      <div class="field">
+        <label class="f-label" for="studentUsername" data-i18n="acct.username">Username</label>
+        <input class="acct-input" type="text" id="studentUsername" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label class="f-label" for="studentPassword" data-i18n="acct.password">Password</label>
+        <input class="acct-input" type="password" id="studentPassword" autocomplete="current-password" required>
+      </div>
+      <p class="hint" id="studentMsg" role="status" aria-live="polite"></p>
+      <div class="btn-row acct-btn-row">
+        <button class="btn primary" type="submit" id="studentSubmit" data-i18n="acct.loginStudentBtn">Sign in as student</button>
       </div>
     </form>
 
@@ -101,29 +121,77 @@
       </div>
     </div>
 
-    <div class="s-group" id="profileGroup">
-      <h3 data-i18n="acct.profileTitle">Child profile</h3>
-      <p class="hint" data-i18n="acct.profileLimitNote"></p>
-      <div id="profileFormWrap">
-        <form id="profileForm" class="setup-form acct-form" novalidate>
+    <div class="s-group" id="membershipGroup">
+      <h3 data-i18n="acct.membershipTitle">Membership</h3>
+      <p class="stats-line" id="membershipStatus"></p>
+      <p class="hint" id="membershipHint"></p>
+      <p><a id="membershipLink" href="/en/pricing/" data-i18n="acct.seePricing">See membership options →</a></p>
+    </div>
+
+    <div class="s-group" id="familyGroup">
+      <h3 data-i18n="acct.familyTitle">Family</h3>
+      <p class="hint" id="familySeats"></p>
+      <div id="familyParents"></div>
+
+      <div id="inviteWrap">
+        <h4 data-i18n="acct.inviteTitle">Invite another parent</h4>
+        <p class="hint" data-i18n="acct.inviteHint"></p>
+        <form id="inviteForm" class="setup-form acct-form" novalidate>
           <div class="field">
-            <label class="f-label" for="profileNickname" data-i18n="acct.nickname">Nickname</label>
-            <input class="acct-input" type="text" id="profileNickname" maxlength="20" required>
+            <label class="f-label" for="inviteEmail" data-i18n="acct.inviteEmail">Their email</label>
+            <input class="acct-input" type="email" id="inviteEmail" autocomplete="off" required>
           </div>
-          <div class="field">
-            <span class="f-label" data-i18n="acct.avatar">Avatar</span>
-            <div class="opt-row" id="avatarOptions" role="radiogroup"></div>
-          </div>
+          <p class="hint" id="inviteMsg" role="status" aria-live="polite"></p>
           <div class="btn-row acct-btn-row">
-            <button class="btn primary" type="submit" id="profileSubmit" data-i18n="acct.createProfile">Create profile</button>
-            <button class="s-btn danger" type="button" id="deleteProfileBtn" hidden data-i18n="acct.deleteProfile">Delete profile</button>
+            <button class="btn primary" type="submit" id="inviteSubmit" data-i18n="acct.inviteBtn">Send invite</button>
           </div>
         </form>
       </div>
+
+      <div id="invitesWrap" hidden>
+        <h4 data-i18n="acct.invitesTitle">Pending invitations</h4>
+        <div id="inviteList"></div>
+      </div>
+    </div>
+
+    <div class="s-group" id="childrenGroup">
+      <h3 data-i18n="acct.childrenTitle">Child accounts</h3>
+      <p class="hint" data-i18n="acct.childrenHint"></p>
+      <div id="childrenList"></div>
+      <div class="btn-row acct-btn-row">
+        <button class="btn ghost" id="addChildBtn" type="button" data-i18n="acct.childAdd">Add child</button>
+      </div>
+
+      <form id="childForm" class="setup-form acct-form" novalidate hidden>
+        <input type="hidden" id="childId">
+        <div class="field">
+          <label class="f-label" for="childNickname" data-i18n="acct.nickname">Nickname</label>
+          <input class="acct-input" type="text" id="childNickname" maxlength="20" required>
+        </div>
+        <div class="field">
+          <span class="f-label" data-i18n="acct.avatar">Avatar</span>
+          <div class="opt-row" id="childAvatarOptions" role="radiogroup"></div>
+        </div>
+        <div class="field">
+          <label class="f-label" for="childUsername" data-i18n="acct.childUsername">Username (for student sign-in)</label>
+          <input class="acct-input" type="text" id="childUsername" autocomplete="off" maxlength="20">
+        </div>
+        <div class="field">
+          <label class="f-label" for="childPassword" data-i18n="acct.childPassword">Password</label>
+          <input class="acct-input" type="password" id="childPassword" autocomplete="new-password" minlength="8">
+          <p class="hint" data-i18n="acct.childPasswordHint"></p>
+        </div>
+        <p class="hint" id="childMsg" role="status" aria-live="polite"></p>
+        <div class="btn-row acct-btn-row">
+          <button class="btn primary" type="submit" id="childSubmit" data-i18n="acct.childSave">Save child</button>
+          <button class="s-btn" type="button" id="childCancel" data-i18n="common.cancel">Cancel</button>
+        </div>
+      </form>
     </div>
 
     <div class="s-group" id="statsGroup">
       <h3 data-i18n="acct.statsTitle">Synced stats</h3>
+      <p class="hint" id="statsChild"></p>
       <div id="statsBody"><p class="hint" data-i18n="acct.loading">Loading…</p></div>
     </div>
 
@@ -147,6 +215,34 @@
         <a class="s-btn" id="exportLink" href="/api/account/export" download data-i18n="acct.exportBtn">Export (JSON)</a>
         <button class="s-btn danger" id="deleteAccountBtn" type="button" data-i18n="acct.deleteAccount">Delete account</button>
       </div>
+    </div>
+  </section>
+
+  <!-- 子女登录后的简化视图 -->
+  <section class="view" id="view-child">
+    <h2 class="page-title" id="childTitle"></h2>
+    <p class="page-sub" id="childSub"></p>
+    <div class="btn-row acct-btn-row">
+      <a class="btn primary" href="/play/" data-i18n="acct.childContinue">Continue playing</a>
+      <button class="btn ghost" id="childLogoutBtn" type="button" data-i18n="acct.childSignout">Sign out</button>
+    </div>
+    <div class="s-group">
+      <h3 data-i18n="acct.changeOwnPassword">Change my password</h3>
+      <form id="childPasswordForm" class="setup-form acct-form" novalidate>
+        <div class="field">
+          <label class="f-label" for="childCurrentPw" data-i18n="acct.currentPassword">Current password</label>
+          <input class="acct-input" type="password" id="childCurrentPw" autocomplete="current-password" required>
+        </div>
+        <div class="field">
+          <label class="f-label" for="childNewPw" data-i18n="acct.newPassword">New password</label>
+          <input class="acct-input" type="password" id="childNewPw" autocomplete="new-password" required minlength="8">
+          <p class="hint" data-i18n="acct.pwdHint">At least 8 characters.</p>
+        </div>
+        <p class="hint" id="childPwMsg" role="status" aria-live="polite"></p>
+        <div class="btn-row acct-btn-row">
+          <button class="btn primary" type="submit" data-i18n="acct.changeOwnPassword">Change my password</button>
+        </div>
+      </form>
     </div>
   </section>
 

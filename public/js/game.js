@@ -62,7 +62,9 @@
    * - 重练对账：POST /wrongbook/review；
    * - 游客：完全本地。 */
   function cloudActive() {
-    return !!(global.TMAPI && global.TMAPI.state && global.TMAPI.state.user && global.TMAPI.state.currentProfileId);
+    return !!(global.TMAPI && global.TMAPI.state &&
+      (global.TMAPI.state.user || global.TMAPI.state.child) &&
+      global.TMAPI.state.currentProfileId);
   }
 
   /* ---------- 回合构建 ---------- */

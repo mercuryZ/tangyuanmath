@@ -248,12 +248,12 @@ function buildRecordsRouter(db) {
     }));
 
     const dates = new Set(db.prepare('SELECT created_at FROM attempts WHERE profile_id = ?')
-      .all(req.profile.id).map(x => dateInTz(x.created_at, req.user.timezone)));
+      .all(req.profile.id).map(x => dateInTz(x.created_at, req.timezone)));
     ok(res, {
       groups,
-      streakDays: computeStreak(dates, req.user.timezone),
+      streakDays: computeStreak(dates, req.timezone),
       activeDays: dates.size,
-      timezone: req.user.timezone
+      timezone: req.timezone
     });
   });
 

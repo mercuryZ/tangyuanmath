@@ -185,7 +185,7 @@
 
     // 云端模式：错题本以服务端为准，异步覆盖显示（DESIGN M1）
     var api = global.TMAPI;
-    if (api && api.state.user && api.state.currentProfileId) {
+    if (api && api.isPlayer() && api.state.currentProfileId) {
       api.getWrongbook().then(function (r) {
         if (!r.ok) return;
         var n = r.data.items.length;
@@ -494,11 +494,14 @@
         refreshHome();
         var btn = $('btnAccount');
         var st = global.TMAPI.state;
-        if (st.user && st.profiles.length) {
-          btn.textContent = st.profiles[0].nickname; // 已登录且有档案：显示孩子昵称
+        if (st.child) {
+          // 子女会话：按钮显示本人昵称
+          btn.textContent = st.child.nickname;
           btn.setAttribute('aria-pressed', 'true');
         } else if (st.user) {
+          // 家长会话：显示“账号”，避免与孩子的身份混淆
           btn.textContent = t('nav.account');
+          btn.setAttribute('aria-pressed', 'true');
         }
       });
     }

@@ -14,7 +14,7 @@ const fs = require('node:fs');
 const { initDb } = require('../server/src/db');
 const { createApp } = require('../server/src/index');
 const { renderWorksheetPdf, generateQuestions, normalizeParams, DIFFICULTY_KEYS, ZH_STRINGS } = require('../server/src/pdf');
-const { grantEntitlement, revokeBySource, activeFeatureKeys } = require('../server/src/entitlements');
+const { grantFamilyEntitlement, revokeFamilySource, activeFamilyFeatureKeys } = require('../server/src/entitlements');
 
 let base, jar, csrfToken, mailCapture, serverRef, dbRef;
 
@@ -68,6 +68,10 @@ function userId(email) {
   return dbRef.prepare('SELECT id FROM users WHERE email_normalized = ?').get(email).id;
 }
 
+function familyId(email) {
+  return dbRef.prepare('SELECT family_id FROM users WHERE email_normalized = ?').get(email).family_id;
+}
+
 test.before(async () => {
   const dbFile = path.join(os.tmpdir(), `tm-pdf-test-${Date.now()}.db`);
   dbRef = initDb(dbFile);
@@ -81,8 +85,16 @@ test.before(async () => {
   /* 建两个账号：supporter@example.com（有权益）、plain@example.com（无权益） */
   await createUser('supporter@example.com', 'supporter-pass-1');
   await createUser('plain@example.com', 'plain-pass-123');
-  grantEntitlement(dbRef, { userId: userId('supporter@example.com'), featureKey: 'pdf_worksheet', sourceType: 'grant' });
-  grantEntitlement(dbRef, { userId: userId('supporter@example.com'), featureKey: 'celebration_image', sourceType: 'grant' });
+  // 新注册会获得 3 个月上线赠送；plain 账号需要先撤销，才能测试「无权益」
+  revokeFamilySource(dbRef, familyId('plain@example.com'), 'promo');
+  grantFamilyEntitlement(dbRef, {
+    familyId: familyId('supporter@example.com'), userId: userId('supporter@example.com'),
+    featureKey: 'pdf_worksheet', sourceType: 'grant'
+  });
+  grantFamilyEntitlement(dbRef, {
+    familyId: familyId('supporter@example.com'), userId: userId('supporter@example.com'),
+    featureKey: 'celebration_image', sourceType: 'grant'
+  });
 });
 
 test.after(async () => {
@@ -220,13 +232,15 @@ test('参数越界：count=101 / 非法枚举 → 400', async () => {
 
 test('/api/me 返回去重后的有效权益键', async () => {
   const me = await req('GET', '/api/me');
-  assert.deepStrictEqual(me.json.data.entitlements, ['celebration_image', 'pdf_worksheet']);
+  assert.deepStrictEqual(me.json.data.entitlements, ['celebration_image', 'live_race', 'pdf_worksheet']);
 });
 
 test('过期权益与已撤销权益都不能生成', async () => {
   await createUser('expired@example.com', 'expired-pass-12');
-  grantEntitlement(dbRef, {
-    userId: userId('expired@example.com'), featureKey: 'pdf_worksheet',
+  revokeFamilySource(dbRef, familyId('expired@example.com'), 'promo');
+  grantFamilyEntitlement(dbRef, {
+    familyId: familyId('expired@example.com'), userId: userId('expired@example.com'),
+    featureKey: 'pdf_worksheet',
     sourceType: 'grant', startsAt: Date.now() - 7200 * 1000, ttlMs: 3600 * 1000
   });
   await loginAs('expired@example.com', 'expired-pass-12');
@@ -234,18 +248,21 @@ test('过期权益与已撤销权益都不能生成', async () => {
   assert.strictEqual(r.status, 403);
 
   await createUser('revoked@example.com', 'revoked-pass-1');
-  grantEntitlement(dbRef, { userId: userId('revoked@example.com'), featureKey: 'pdf_worksheet', sourceType: 'grant' });
-  revokeBySource(dbRef, userId('revoked@example.com'), 'grant');
+  revokeFamilySource(dbRef, familyId('revoked@example.com'), 'promo');
+  grantFamilyEntitlement(dbRef, {
+    familyId: familyId('revoked@example.com'), userId: userId('revoked@example.com'),
+    featureKey: 'pdf_worksheet', sourceType: 'grant'
+  });
+  revokeFamilySource(dbRef, familyId('revoked@example.com'), 'grant');
   await loginAs('revoked@example.com', 'revoked-pass-1');
   r = await req('GET', '/api/pdf/worksheet?locale=en');
   assert.strictEqual(r.status, 403);
-  assert.deepStrictEqual(activeFeatureKeys(dbRef, userId('revoked@example.com')), []);
+  assert.deepStrictEqual(activeFamilyFeatureKeys(dbRef, familyId('revoked@example.com')), []);
 });
 
 test('限流：同一账号 10 分钟内第 21 次 → 429（独立用户桶不受影响）', async () => {
   /* 前面用例已为 supporter 消耗少量配额；先切到全新账号精确计数 */
   await createUser('burst@example.com', 'burst-pass-123');
-  grantEntitlement(dbRef, { userId: userId('burst@example.com'), featureKey: 'pdf_worksheet', sourceType: 'grant' });
   await loginAs('burst@example.com', 'burst-pass-123');
   let last;
   for (let i = 0; i < 21; i++) {

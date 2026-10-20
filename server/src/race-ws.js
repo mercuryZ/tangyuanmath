@@ -1,9 +1,9 @@
 /* Live Race WebSocket 接入（M1.5，DESIGN §13.2）
  * - 与主服务同一个 Express/HTTP 服务，只处理 /api/race/ws 的升级请求；
- * - 握手鉴权：复用会话 Cookie（5.2）识别已登录家长；游客允许匿名连接；
- *   若带 profileId，必须在握手时校验该档案归属当前会话用户，否则一律当游客；
- * - Origin 同源校验：WebSocket 不受 CORS 限制，必须显式拒绝跨站握手；
- * - 游客限流：每 IP 并发座位数与建/加入房间频率都受限，防止刷房间；
+ * - 握手鉴权：复用会话 Cookie（5.2）识别家长或子女会话；
+ * - 对战是会员功能：家长/子女必须有有效的 live_race 家庭权益；游客只能围观大厅；
+ * - 仅子女会话绑定档案（对局落库）；家长直接参赛，不写儿童档案；
+ * - Origin 同源校验；每 IP 并发座位与建/加入频率限制；
  * - 消息层：单条 ≤ 4KB、非法 JSON 直接断开、answer 事件由房间引擎限速。
  */
 'use strict';
@@ -11,39 +11,14 @@
 const { WebSocketServer } = require('ws');
 const { RoomManager } = require('./live-race');
 const { persistMatch } = require('./match-store');
-const { hashToken } = require('./util');
+const { resolveSession, parseCookieHeader } = require('./middleware');
+const { hasFamilyEntitlement } = require('./entitlements');
 
 const WS_PATH = '/api/race/ws';
 const MAX_MESSAGE_BYTES = 4 * 1024;
 const HEARTBEAT_MS = 30 * 1000;
 const MAX_SEATS_PER_IP = 4;
 const JOIN_ATTEMPTS_PER_MIN = 20;
-
-function readSession(db, cookieHeader) {
-  if (!cookieHeader) return null;
-  const jar = parseCookieHeader(cookieHeader);
-  const token = jar.tm_session;
-  if (!token || !/^[A-Za-z0-9_-]{20,}$/.test(token)) return null;
-  const row = db.prepare(
-    `SELECT s.token_hash, s.expires_at, u.id AS user_id
-     FROM sessions s JOIN users u ON u.id = s.user_id
-     WHERE s.token_hash = ?`
-  ).get(hashToken(token));
-  if (!row || row.expires_at <= Date.now()) return null;
-  return { userId: row.user_id, sessionTokenHash: row.token_hash };
-}
-
-function parseCookieHeader(header) {
-  const out = {};
-  String(header).split(';').forEach(part => {
-    const i = part.indexOf('=');
-    if (i === -1) return;
-    const k = part.slice(0, i).trim();
-    const v = part.slice(i + 1).trim();
-    if (k) out[k] = decodeURIComponent(v);
-  });
-  return out;
-}
 
 function sameOrigin(req) {
   const origin = req.headers.origin;
@@ -124,17 +99,20 @@ function attachLiveRace(server, db, opts) {
     ws._tmAlive = true;
     sockets.set(connId, ws);
 
-    // 会话与档案归属校验
-    let ctx = { ip, userId: null, profileId: null };
+    // 会话与档案归属校验：家长直接参赛（不落档）；子女会话强制绑定本人档案
+    let ctx = { ip, kind: 'guest', userId: null, childId: null, familyId: null, profileId: null };
     try {
-      const sess = readSession(db, req.headers.cookie);
-      if (sess) {
-        ctx.userId = sess.userId;
-        const q = new URL(req.url, 'http://placeholder').searchParams;
-        const pid = Number(q.get('profileId'));
-        if (Number.isInteger(pid) && pid > 0) {
-          const p = db.prepare('SELECT id, user_id FROM child_profiles WHERE id = ?').get(pid);
-          if (p && p.user_id === sess.userId) ctx.profileId = pid; // 否则当游客
+      const jar = parseCookieHeader(req.headers.cookie);
+      const ident = resolveSession(db, jar.tm_session);
+      if (ident) {
+        ctx.kind = ident.kind;
+        ctx.familyId = ident.familyId;
+        if (ident.kind === 'parent') {
+          ctx.userId = ident.user.id;
+          ctx.profileId = null;
+        } else {
+          ctx.childId = ident.child.id;
+          ctx.profileId = ident.child.id;
         }
       }
     } catch (e) {
@@ -157,6 +135,19 @@ function attachLiveRace(server, db, opts) {
         }
       }
 
+      /* 会员门禁：create / 非续连 join / rematch 需要登录 + live_race 权益。
+       * 续连（resumeToken）不重新检查，避免会员到期瞬间把正在比赛的孩子踢出；
+       * 座位令牌本身只能恢复已有座位，不构成新的入场。 */
+      const needsMembership = msg.type === 'create_room' || msg.type === 'rematch' ||
+        (msg.type === 'join_room' && !msg.resumeToken);
+      if (needsMembership) {
+        if (!ctx.familyId) { send(ws, { type: 'error', code: 'login_required' }); return; }
+        if (!hasFamilyEntitlement(db, ctx.familyId, 'live_race')) {
+          send(ws, { type: 'error', code: 'membership_required' });
+          return;
+        }
+      }
+
       const result = manager.handle(connId, msg);
       if (result && result.error) send(ws, { type: 'error', code: result.error });
     });
@@ -167,7 +158,16 @@ function attachLiveRace(server, db, opts) {
     });
     ws.on('error', () => { /* 由 close 统一清理 */ });
 
-    send(ws, { type: 'hello', seatLimit: maxSeatsPerIp, loggedIn: !!ctx.userId, profileId: ctx.profileId });
+    const canRace = !!ctx.familyId && hasFamilyEntitlement(db, ctx.familyId, 'live_race');
+    send(ws, {
+      type: 'hello',
+      seatLimit: maxSeatsPerIp,
+      loggedIn: !!ctx.userId || !!ctx.childId,
+      role: ctx.kind,
+      profileId: ctx.profileId,
+      canRace,
+      membershipRequired: !canRace
+    });
   }
 
   function allowJoinAttempt(ip) {

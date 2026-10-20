@@ -1,7 +1,8 @@
 /* 账号数据：导出 / 删除（DESIGN §7.1、§6）
- * - 导出：JSON 附件，包含账号、档案、练习记录（含逐题）、错题本；
- * - 删除：事务内级联清除（sessions/auth_tokens → profiles → attempts/questions/wrongbook → users），
- *   M1 无订单数据；日志只记脱敏摘要（DESIGN 10.2）。
+ * - 导出：JSON 附件，包含账号、家庭、家庭内子女档案、练习记录（含逐题）、错题本；
+ * - 删除：家长账号删除只影响本人；若还有其他家长，家庭、子女与会员权益保留；
+ *   最后一位家长删除时整个家庭一起删除（级联子女数据与家庭权益）。
+ * - 日志只记脱敏摘要（DESIGN 10.2）。
  */
 'use strict';
 
@@ -12,10 +13,12 @@ const { clearSessionCookie } = require('./auth');
 function buildAccountRouter(db) {
   const r = express.Router();
 
-  /* 导出学习数据 */
+  /* 导出学习数据（家庭维度；不含密码哈希） */
   r.get('/export', (req, res) => {
-    const uid = req.user.id;
-    const profiles = db.prepare('SELECT id, nickname, avatar_key, created_at FROM child_profiles WHERE user_id = ?').all(uid);
+    const familyId = req.user.familyId;
+    const profiles = db.prepare(
+      'SELECT id, nickname, avatar_key, username, created_at FROM child_profiles WHERE family_id = ? ORDER BY id'
+    ).all(familyId);
     const out = {
       exportedAt: new Date().toISOString(),
       user: {
@@ -23,7 +26,14 @@ function buildAccountRouter(db) {
         emailVerified: req.user.emailVerified,
         locale: req.user.locale,
         timezone: req.user.timezone,
-        createdAt: req.user.createdAt
+        createdAt: req.user.createdAt,
+        familyRole: req.user.familyRole
+      },
+      family: {
+        id: familyId,
+        parents: db.prepare(
+          'SELECT email_normalized AS email, family_role AS role FROM users WHERE family_id = ? ORDER BY id'
+        ).all(familyId)
       },
       profiles: [],
       wrongbook: []
@@ -47,9 +57,10 @@ function buildAccountRouter(db) {
         }))
       }));
       out.profiles.push({
-        id: p.id, nickname: p.nickname, avatarKey: p.avatar_key, createdAt: p.created_at,
+        id: p.id, nickname: p.nickname, avatarKey: p.avatar_key,
+        username: p.username || null, createdAt: p.created_at,
         attempts,
-        // 对战记录（DESIGN 13.3）：家长导出时也应能看到自己的对局成绩
+        // 对战记录（DESIGN 13.3）：家长导出时也应能看到子女的对局成绩
         versus: db.prepare(
           `SELECT mp.seat, mp.display_name, mp.solved, mp.used_ms, mp.rank, mp.disconnected,
                   m.room_code, m.difficulty, m.count, m.started_at, m.ended_at
@@ -71,28 +82,51 @@ function buildAccountRouter(db) {
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="tangyuan-math-data.json"');
-    // 导出响应不进入公共缓存（DESIGN 9）
     res.setHeader('Cache-Control', 'no-store');
     res.json({ ok: true, data: out });
   });
 
-  /* 删除账号（全部学习数据级联清除） */
+  /* 删除账号：有其他家长时只移除本人，最后一位家长删除整个家庭 */
   r.delete('/', csrfProtect, (req, res) => {
+    const familyId = req.user.familyId;
     const tx = db.transaction(() => {
-      db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
-      db.prepare('DELETE FROM auth_tokens WHERE user_id = ?').run(req.user.id);
-      db.prepare('DELETE FROM child_profiles WHERE user_id = ?').run(req.user.id); // 级联 attempts / wrong_questions / match_players
-      /* match_players 随档案级联删除后，matches 主体会变成没有参与者的空对局；
-       * 它不属于任何账号（DESIGN 6：对局数据仅归属儿童档案），这里一并清掉，
-       * 避免删除账号后仍留下可反推「某场对战存在过」的残行。 */
-      db.prepare(
-        'DELETE FROM matches WHERE id NOT IN (SELECT match_id FROM match_players)'
-      ).run();
-      db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+      const otherParents = familyId
+        ? db.prepare('SELECT id FROM users WHERE family_id = ? AND id <> ? ORDER BY id').all(familyId, req.user.id)
+        : [];
+
+      if (otherParents.length) {
+        const heirId = otherParents[0].id;
+        // 转交 owner（如果离开的是 owner），并把其创建的子女交给留任家长，
+        // 否则 child_profiles.user_id 的级联删除会带走家庭共有子女。
+        if (req.user.familyRole === 'owner') {
+          // 先降级即将删除的 owner，再提升继承人：部分唯一索引不允许同一家庭同时有两个 owner
+          db.prepare("UPDATE users SET family_role = 'coparent' WHERE id = ?").run(req.user.id);
+          db.prepare("UPDATE users SET family_role = 'owner' WHERE id = ?").run(heirId);
+        }
+        db.prepare('UPDATE child_profiles SET user_id = ? WHERE user_id = ?').run(heirId, req.user.id);
+        db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
+        db.prepare('DELETE FROM auth_tokens WHERE user_id = ?').run(req.user.id);
+        db.prepare('DELETE FROM family_invites WHERE invited_by = ? AND accepted_at IS NULL').run(req.user.id);
+        db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+      } else {
+        // 最后一位家长：整个家庭一起删除；权益/邀请随 families 级联
+        db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
+        db.prepare('DELETE FROM auth_tokens WHERE user_id = ?').run(req.user.id);
+        if (familyId) {
+          db.prepare('DELETE FROM child_profiles WHERE family_id = ?').run(familyId); // 级联练习/错题/对战/子会话
+          db.prepare('DELETE FROM families WHERE id = ?').run(familyId);
+        } else {
+          db.prepare('DELETE FROM child_profiles WHERE user_id = ?').run(req.user.id);
+        }
+        db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+      }
+
+      /* 删除子女后，matches 主体可能变成没有参与者的空对局；
+       * 它不属于任何账号（DESIGN 6），一并清掉。 */
+      db.prepare('DELETE FROM matches WHERE id NOT IN (SELECT match_id FROM match_players)').run();
     });
     tx();
     clearSessionCookie(res);
-    // 日志脱敏：不记邮箱，只记内部 ID（DESIGN 10.2）
     console.log(`[account] deleted user id=${req.user.id}`);
     ok(res, { deleted: true });
   });

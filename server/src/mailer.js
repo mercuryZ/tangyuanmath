@@ -111,4 +111,23 @@ function sendResetEmail(email, url, capture, fetchImpl) {
   }, capture, fetchImpl);
 }
 
-module.exports = { sendMail, sendVerificationEmail, sendResetEmail, buildCloudflareRequest, bareAddress };
+function sendFamilyInviteEmail(email, url, inviterEmail, capture, fetchImpl) {
+  return sendMail({
+    to: email,
+    subject: 'Tangyuan Math — join my family account / 加入家庭账号',
+    text:
+      'A parent (' + inviterEmail + ') invited you to join their Tangyuan Math family account.\n\n' +
+      'Open this link within 7 days to sign in or create your account. You will share one Supporter membership ' +
+      '(Live Race and printable worksheets) with up to 2 parents and 2 children.\n' + url + '\n\n' +
+      'If you were not expecting this invitation, you can ignore this message.\n' +
+      '——\n一位家长（' + inviterEmail + '）邀请你加入汤圆数学的家庭账号。\n' +
+      '请在 7 天内打开以下链接登录或注册。加入后，你们将共用一份支持者会员（联机对战与可打印练习卷），' +
+      '每个家庭最多 2 位家长和 2 名子女：\n' + url +
+      '\n如非本人预期，请忽略本邮件。'
+  }, capture, fetchImpl);
+}
+
+module.exports = {
+  sendMail, sendVerificationEmail, sendResetEmail, sendFamilyInviteEmail,
+  buildCloudflareRequest, bareAddress
+};

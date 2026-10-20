@@ -1,5 +1,13 @@
 /* 家长中心附加样式（复用 play.css 主题变量与基础组件） */
 .acct-form { max-width: 420px; }
+/* 表单/按钮自带 display，必须让 hidden 属性优先 */
+[hidden] { display: none !important; }
+/* 家长中心使用 play.css，没有站点级链接样式：在这里补齐品牌色链接 */
+a { color: var(--red-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--red-dark); }
+a.btn, a.s-btn { text-decoration: none; }
+#inviteForm .hint:empty, #childForm .hint:empty { display: none; }
+
 .acct-input {
   width: 100%; padding: 11px 14px; font: 700 15px inherit;
   border: 2px solid var(--pink-light); border-radius: 14px;
@@ -26,6 +34,14 @@
 }
 .avatar-opt[aria-checked="true"] { border-color: var(--red); background: var(--red-light); }
 #view-main .s-group { margin-bottom: 14px; }
+#membershipLink { font-weight: 800; text-decoration: none; }
+#membershipLink:hover { text-decoration: none; color: var(--red-dark); }
+#familyGroup h4 { margin: 18px 0 6px; font-size: 14px; font-weight: 800; color: var(--red-deep); }
+#invitesWrap { margin-top: 8px; }
+#inviteList .s-row { padding: 4px 0; }
+#childrenList .child-row { align-items: flex-start; }
+#childrenList .child-row + .child-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--pink-light); }
+.child-row small { display: block; margin-top: 3px; }
 .wb-remove {
   border: none; background: none; color: var(--red); font-weight: 800;
   cursor: pointer; font-size: 12px; padding: 2px 4px;

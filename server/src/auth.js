@@ -13,10 +13,14 @@ const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 
 const config = require('./config');
-const { ok, fail, rateLimit, sessionCookieName, createSession, issueCsrfCookie, csrfProtect } = require('./middleware');
+const {
+  ok, fail, rateLimit, sessionCookieName, createSession, createChildSession,
+  issueCsrfCookie, csrfProtect, requireChild
+} = require('./middleware');
 const U = require('./util');
 const mailer = require('./mailer');
-const { activeFeatureKeys } = require('./entitlements');
+const { activeFamilyFeatureKeys } = require('./entitlements');
+const family = require('./family');
 
 function setSessionCookie(req, res, token) {
   res.cookie(sessionCookieName(), token, {
@@ -39,7 +43,19 @@ function publicUser(u) {
     emailVerified: !!u.emailVerified,
     locale: u.locale,
     timezone: u.timezone,
-    createdAt: u.createdAt
+    createdAt: u.createdAt,
+    familyId: u.familyId,
+    familyRole: u.familyRole
+  };
+}
+
+function childPrivate(row) {
+  return {
+    id: row.id,
+    nickname: row.nickname,
+    avatarKey: row.avatar_key,
+    username: row.username || null,
+    createdAt: row.created_at
   };
 }
 
@@ -74,19 +90,28 @@ function resolveGoogleUser(db, profile, now) {
   now = now || Date.now();
   const email = U.normalizeEmail(profile.email);
   const byGoogle = db.prepare('SELECT * FROM users WHERE google_id = ?').get(profile.sub);
-  if (byGoogle) return { user: byGoogle };
+  if (byGoogle) {
+    if (!byGoogle.family_id) family.ensureFamilyForUser(db, byGoogle.id, now);
+    return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(byGoogle.id) };
+  }
 
   const byEmail = db.prepare('SELECT * FROM users WHERE email_normalized = ?').get(email);
   if (byEmail) {
     if (!byEmail.email_verified_at) return { error: 'email_unverified_exists' };
     db.prepare('UPDATE users SET google_id = ? WHERE id = ?').run(profile.sub, byEmail.id);
+    if (!byEmail.family_id) family.ensureFamilyForUser(db, byEmail.id, now);
     return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(byEmail.id) };
   }
-  const info = db.prepare(
-    `INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at, google_id)
-     VALUES (?,?,?,?,?,?,?)`
-  ).run(email, '', now, profile.locale === 'zh' ? 'zh' : 'en', 'UTC', now, profile.sub);
-  return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid) };
+  const tx = db.transaction(() => {
+    const info = db.prepare(
+      `INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at, google_id)
+       VALUES (?,?,?,?,?,?,?)`
+    ).run(email, '', now, profile.locale === 'zh' ? 'zh' : 'en', 'UTC', now, profile.sub);
+    family.initFamilyForNewUser(db, info.lastInsertRowid, now);
+    return info.lastInsertRowid;
+  });
+  const userId = tx();
+  return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(userId) };
 }
 
 function oauthRedirectUri(req) {
@@ -117,11 +142,16 @@ function buildAuthRouter(db) {
 
       const hash = bcrypt.hashSync(password, config.bcryptRounds);
       const now = Date.now();
-      const info = db.prepare(
-        'INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at) VALUES (?,?,NULL,?,?,?)'
-      ).run(U.normalizeEmail(email), hash, loc, tz, now);
+      // 用户 + 家庭 + 上线赠送在同一事务内完成，避免出现「有账号但无家庭/权益」的中间态
+      const userId = db.transaction(() => {
+        const info = db.prepare(
+          'INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at) VALUES (?,?,NULL,?,?,?)'
+        ).run(U.normalizeEmail(email), hash, loc, tz, now);
+        family.initFamilyForNewUser(db, info.lastInsertRowid, now);
+        return info.lastInsertRowid;
+      })();
 
-      issueOneTimeToken(db, info.lastInsertRowid, 'verify_email', U.normalizeEmail(email), req.app.locals.mailCapture);
+      issueOneTimeToken(db, userId, 'verify_email', U.normalizeEmail(email), req.app.locals.mailCapture);
       ok(res, { sent: true });
     });
 
@@ -153,13 +183,65 @@ function buildAuthRouter(db) {
       const row = db.prepare('SELECT * FROM users WHERE email_normalized = ?').get(U.normalizeEmail(email));
       const okPass = row && bcrypt.compareSync(password, row.password_hash);
       if (!row || !okPass) return fail(res, 401, 'login_failed', 'Email or password is incorrect.');
-      const token = createSession(db, row.id);
+      // 迁移前遗留账号兜底：确保每个家长都有家庭（幂等，不补发已结束的活动）
+      if (!row.family_id) family.ensureFamilyForUser(db, row.id);
+      const fresh = db.prepare('SELECT * FROM users WHERE id = ?').get(row.id);
+      const token = createSession(db, fresh.id);
       setSessionCookie(req, res, token);
       ok(res, { user: publicUser({
-        id: row.id, email: row.email_normalized, emailVerified: !!row.email_verified_at,
-        locale: row.locale, timezone: row.timezone, createdAt: row.created_at
+        id: fresh.id, email: fresh.email_normalized, emailVerified: !!fresh.email_verified_at,
+        locale: fresh.locale, timezone: fresh.timezone, createdAt: fresh.created_at,
+        familyId: fresh.family_id, familyRole: fresh.family_role
       }) });
     });
+
+  /* 子女登录：用户名 + 密码（与家长共用一个会话 Cookie） */
+  r.post('/child-login',
+    rateLimit({ windowMs: 60000, max: 20, name: 'child-login-ip' }),
+    rateLimit({
+      windowMs: 60000, max: 10, name: 'child-login-user',
+      keyFn: req => 'u:' + family.normalizeUsername(req.body && req.body.username)
+    }),
+    (req, res) => {
+      const username = family.normalizeUsername(req.body && req.body.username);
+      const password = req.body && req.body.password;
+      if (!family.isValidUsername(username) || typeof password !== 'string') {
+        return fail(res, 401, 'child_login_failed', 'Username or password is incorrect.');
+      }
+      const row = family.findChildByUsername(db, username);
+      const okPass = row && row.password_hash && bcrypt.compareSync(password, row.password_hash);
+      if (!row || !okPass) return fail(res, 401, 'child_login_failed', 'Username or password is incorrect.');
+      const token = createChildSession(db, row.id);
+      setSessionCookie(req, res, token);
+      db.prepare('UPDATE child_profiles SET last_login_at = ? WHERE id = ?').run(Date.now(), row.id);
+      ok(res, {
+        child: childPrivate(row),
+        family: { id: row.family_id, role: 'child' },
+        entitlements: activeFamilyFeatureKeys(db, row.family_id),
+        membership: family.membershipSummary(db, row.family_id)
+      });
+    });
+
+  /* 子女修改自己的密码：需要当前密码；撤销其他设备的会话 */
+  r.post('/child-password', csrfProtect, requireChild, (req, res) => {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!U.isValidPassword(newPassword)) {
+      return fail(res, 400, 'weak_password', 'Password must be at least 8 characters.');
+    }
+    const row = db.prepare('SELECT password_hash FROM child_profiles WHERE id = ?').get(req.child.id);
+    if (!row || !row.password_hash || typeof currentPassword !== 'string' ||
+        !bcrypt.compareSync(currentPassword, row.password_hash)) {
+      return fail(res, 401, 'login_failed', 'Current password is incorrect.');
+    }
+    const hash = bcrypt.hashSync(newPassword, config.bcryptRounds);
+    const tx = db.transaction(() => {
+      db.prepare('UPDATE child_profiles SET password_hash = ? WHERE id = ?').run(hash, req.child.id);
+      db.prepare('DELETE FROM sessions WHERE child_profile_id = ? AND token_hash <> ?')
+        .run(req.child.id, req.sessionTokenHash);
+    });
+    tx();
+    ok(res, { updated: true });
+  });
 
   /* 登出（当前设备） */
   r.post('/logout', csrfProtect, (req, res) => {
@@ -171,7 +253,16 @@ function buildAuthRouter(db) {
   /* 全部会话撤销 */
   r.post('/logout-all', csrfProtect, (req, res) => {
     if (!req.user) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
-    db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
+    const tx = db.transaction(() => {
+      db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id);
+      // 「在所有设备退出」也覆盖家庭里子女的会话
+      if (req.user.familyId) {
+        db.prepare(
+          'DELETE FROM sessions WHERE child_profile_id IN (SELECT id FROM child_profiles WHERE family_id = ?)'
+        ).run(req.user.familyId);
+      }
+    });
+    tx();
     clearSessionCookie(res);
     ok(res, { revokedAll: true });
   });
@@ -293,24 +384,56 @@ function buildAuthRouter(db) {
       const token = createSession(db, resolved.user.id);
       setSessionCookie(req, res, token);
       issueCsrfCookie(req, res); // 回到 /account/ 后立即可调用修改类接口
-      res.redirect('/account/');
+      // 邀请落地页设置的 Cookie 必须带回参数，否则 Google 回跳后会丢失邀请
+      res.redirect('/account/' + (req.cookies && req.cookies.tm_invite ? '?invite=1' : ''));
     });
 
   return r;
 }
 
-/* GET /api/me：语言、时区、档案与权益（权益自 M2 起由 entitlements 表提供） */
+/* GET /api/me：语言、时区、家庭、档案与权益（权益按家庭提供） */
 function meHandler(db) {
   return (req, res) => {
-    if (!req.user) return ok(res, { user: null, authMethods: { google: googleEnabled() } });
-    const profiles = db.prepare(
-      'SELECT id, nickname, avatar_key AS avatarKey, created_at AS createdAt FROM child_profiles WHERE user_id = ? ORDER BY id'
-    ).all(req.user.id);
+    const authMethods = { google: googleEnabled() };
+
+    if (req.child) {
+      const row = db.prepare(
+        'SELECT id, nickname, avatar_key, username, created_at FROM child_profiles WHERE id = ?'
+      ).get(req.child.id);
+      const seats = {
+        parents: family.familyParentCount(db, req.familyId),
+        maxParents: family.MAX_PARENTS,
+        children: family.familyChildCount(db, req.familyId),
+        maxChildren: family.MAX_CHILDREN
+      };
+      return ok(res, {
+        user: null,
+        child: childPrivate(row),
+        profiles: [{
+          id: row.id, nickname: row.nickname, avatarKey: row.avatar_key,
+          username: row.username, hasLogin: true, createdAt: row.created_at
+        }],
+        family: { id: req.familyId, role: 'child', seats },
+        entitlements: activeFamilyFeatureKeys(db, req.familyId),
+        membership: family.membershipSummary(db, req.familyId),
+        authMethods
+      });
+    }
+
+    if (!req.user) return ok(res, { user: null, authMethods });
+
+    const familyId = req.user.familyId || family.ensureFamilyForUser(db, req.user.id);
+    const fam = family.familySummary(db, familyId);
     ok(res, {
       user: publicUser(req.user),
-      profiles,
-      entitlements: activeFeatureKeys(db, req.user.id),
-      authMethods: { google: googleEnabled() }
+      profiles: fam.children.map(c => ({
+        id: c.id, nickname: c.nickname, avatarKey: c.avatarKey,
+        username: c.username, hasLogin: c.hasLogin, createdAt: c.createdAt
+      })),
+      family: fam,
+      entitlements: activeFamilyFeatureKeys(db, familyId),
+      membership: family.membershipSummary(db, familyId),
+      authMethods
     });
   };
 }
@@ -318,6 +441,7 @@ function meHandler(db) {
 /* PATCH /api/me：locale / timezone（家长可改，DESIGN 4.2） */
 function updateMeHandler(db) {
   return [csrfProtect, (req, res) => {
+    if (!req.user) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
     const { locale, timezone } = req.body || {};
     const sets = [];
     const args = [];
@@ -335,7 +459,8 @@ function updateMeHandler(db) {
     const row = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
     ok(res, { user: publicUser({
       id: row.id, email: row.email_normalized, emailVerified: !!row.email_verified_at,
-      locale: row.locale, timezone: row.timezone, createdAt: row.created_at
+      locale: row.locale, timezone: row.timezone, createdAt: row.created_at,
+      familyId: row.family_id, familyRole: row.family_role
     }) });
   }];
 }

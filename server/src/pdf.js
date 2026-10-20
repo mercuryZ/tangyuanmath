@@ -15,7 +15,7 @@ const fontkit = require('@pdf-lib/fontkit');
 
 const config = require('./config');
 const mw = require('./middleware');
-const { hasEntitlement } = require('./entitlements');
+const { hasFamilyEntitlement } = require('./entitlements');
 
 const TMQuestions = require(path.resolve(__dirname, '..', config.publicDir, 'js', 'questions.js'));
 const DIFFICULTIES = TMQuestions.DIFFICULTIES; // 与游戏端同一份因子范围（DESIGN 2.2）
@@ -283,7 +283,7 @@ function buildPdfRouter(db) {
   /* GET /api/pdf/worksheet?count=20&difficulty=two_by_two&paper=letter&answers=1&locale=en
    * PDF 响应不套 {ok,...} 信封（DESIGN 7.1 例外条款） */
   r.get('/worksheet',
-    mw.rateLimit({ windowMs: 10 * 60 * 1000, max: 20, keyFn: q => q.user && q.user.id, name: 'pdf' }),
+    mw.rateLimit({ windowMs: 10 * 60 * 1000, max: 20, keyFn: q => q.user && q.user.familyId, name: 'pdf' }),
     concurrencyGuard,
     async (req, res) => {
       let params;
@@ -292,7 +292,7 @@ function buildPdfRouter(db) {
       } catch (e) {
         return mw.fail(res, 400, e.code, e.msg);
       }
-      if (!hasEntitlement(db, req.user.id, 'pdf_worksheet')) {
+      if (!hasFamilyEntitlement(db, req.user.familyId, 'pdf_worksheet')) {
         return mw.fail(res, 403, 'supporter_required', 'Custom worksheet PDF is a Supporter feature.');
       }
       let out;

@@ -17,6 +17,9 @@ const { buildRecordsRouter, buildWrongbookRouter } = require('./records');
 const { buildAccountRouter } = require('./account');
 const { buildVersusRouter } = require('./match-store');
 const { buildPdfRouter } = require('./pdf');
+const {
+  buildFamilyRouter, familyInviteLandingHandler, familyInvitePendingHandler
+} = require('./family-routes');
 const { attachLiveRace } = require('./race-ws');
 
 function createApp(db, opts) {
@@ -31,7 +34,7 @@ function createApp(db, opts) {
   app.use(mw.securityHeaders);
   app.use(express.json({ limit: '128kb' }));
   app.use(cookieParser());
-  app.use(mw.attachUser(db));
+  app.use(mw.attachIdentity(db));
 
   /* ---------- API ---------- */
   const api = express.Router();
@@ -40,14 +43,20 @@ function createApp(db, opts) {
   api.use('/auth', buildAuthRouter(db));
   api.get('/me', meHandler(db));
   api.patch('/me', ...updateMeHandler(db).map(h => h)); // [csrfProtect, handler]
+  /* 档案子资源必须挂在 /profiles 之前：/profiles 上的 requireAuth 会拦截
+   * 所有以 /profiles 开头的路径，包括子女会话允许访问的记录/错题/对战。 */
+  api.use('/profiles/:id/records', mw.requirePlayer, buildRecordsRouter(db));
+  api.use('/profiles/:id/wrongbook', mw.requirePlayer, buildWrongbookRouter(db));
+  api.use('/profiles/:id/versus', mw.requirePlayer, buildVersusRouter(db));
+
   api.use('/profiles', mw.requireAuth, buildProfilesRouter(db));
   api.use('/account', mw.requireAuth, buildAccountRouter(db));
   api.use('/pdf', mw.requireAuth, buildPdfRouter(db));
 
-  /* 档案子资源：先挂 profiles 归属中间件再挂子路由 */
-  api.use('/profiles/:id/records', mw.requireAuth, buildRecordsRouter(db));
-  api.use('/profiles/:id/wrongbook', mw.requireAuth, buildWrongbookRouter(db));
-  api.use('/profiles/:id/versus', mw.requireAuth, buildVersusRouter(db));
+  /* 家庭邀请的落地页必须允许未登录访问（Google OAuth 回跳前） */
+  api.get('/family/invite/landing', familyInviteLandingHandler(db));
+  api.get('/family/invite/pending', familyInvitePendingHandler);
+  api.use('/family', mw.requireAuth, buildFamilyRouter(db));
 
   /* /api 内的 404 与错误处理：统一 JSON，不外露堆栈（DESIGN 10.2） */
   api.use((req, res) => mw.fail(res, 404, 'not_found', 'No such API endpoint.'));
