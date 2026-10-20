@@ -247,3 +247,12 @@ section.block > h1, section.block > h2 {
 .ws-check input { width: 18px; height: 18px; accent-color: var(--red); }
 .ws-error { color: var(--red-deep); font-weight: 700; margin: 12px 0 0; }
 .ws-fine { color: var(--ink-soft); font-size: 12.5px; font-weight: 600; margin: 12px 0 0; }
+
+/* ---------- 定价页 ---------- */
+.price-tag { font-size: 26px; font-weight: 900; color: var(--red-deep); margin: 4px 0 10px; }
+.price-tag small { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.price-card { border: 2px solid var(--pink); }
+.price-card ul { padding-left: 18px; margin: 0 0 12px; }
+.price-card li { font-size: 14px; color: var(--ink); margin-bottom: 6px; line-height: 1.6; }
+.info-card ul { padding-left: 18px; margin: 0 0 12px; }
+.info-card li { font-size: 14px; color: var(--ink); margin-bottom: 6px; line-height: 1.6; }
