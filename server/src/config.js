@@ -3,6 +3,12 @@
 
 const path = require('node:path');
 
+/* Waffo 私钥支持三种写法：PEM（含真实换行）、环境变量里的字面量 \n、以及 base64。
+ * 私钥只保存在服务端环境变量里，绝不写日志或返回给前端。 */
+const waffoPrivateKey = process.env.WAFFO_PRIVATE_KEY_BASE64
+  ? Buffer.from(process.env.WAFFO_PRIVATE_KEY_BASE64, 'base64').toString('utf8')
+  : (process.env.WAFFO_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+
 module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 3000),
@@ -33,7 +39,17 @@ module.exports = {
   backupDir: process.env.TM_BACKUP_DIR || '',
   backupKey: process.env.TM_BACKUP_KEY || '',
   backupRetentionDays: intEnv('TM_BACKUP_RETENTION_DAYS', 30),
-  backupIntervalHours: intEnv('TM_BACKUP_INTERVAL_HOURS', 24)
+  backupIntervalHours: intEnv('TM_BACKUP_INTERVAL_HOURS', 24),
+  /* Waffo Pancake 支付（托管结账）。Merchant/Store ID 是公开标识，允许用 env 覆盖；
+   * 私钥必须来自环境变量。默认 test 环境，上线时改 WAFFO_ENVIRONMENT=prod。 */
+  waffoMerchantId: process.env.WAFFO_MERCHANT_ID || 'MER_47pr6GX7NZmc45XV3Yatqs',
+  waffoStoreId: process.env.WAFFO_STORE_ID || 'STO_0XhVdBglSpSA3dEQi6gfwt',
+  waffoPrivateKey,
+  waffoEnvironment: process.env.WAFFO_ENVIRONMENT === 'prod' ? 'prod' : 'test',
+  waffoWebhookPublicKey: process.env.WAFFO_WEBHOOK_PUBLIC_KEY || '',
+  waffoProductMonthly: process.env.WAFFO_PRODUCT_MONTHLY || '',
+  waffoProductYearly: process.env.WAFFO_PRODUCT_YEARLY || '',
+  waffoProductLifetime: process.env.WAFFO_PRODUCT_LIFETIME || ''
 };
 
 function intEnv(name, fallback) {

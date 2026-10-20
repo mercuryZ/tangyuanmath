@@ -99,8 +99,24 @@ function hasActiveMembership(db, familyId, now) {
 /* 会员摘要：用于家长中心与 /api/me。
  * 取剩余时间最长的一条有效权益作为展示来源（永久 > 到期晚的）。 */
 function membershipSummary(db, familyId, now) {
+  const t = now === undefined ? Date.now() : now;
+  /* 只展示仍然有效的订阅；已过期但尚未收到 canceled 事件的订单不再显示续费入口。 */
+  const subscription = db.prepare(
+    `SELECT order_no AS orderNo, sku, status,
+            current_period_end AS currentPeriodEnd
+     FROM orders
+     WHERE family_id = ? AND sku <> 'supporter_lifetime'
+       AND status IN ('paid','canceling','past_due')
+       AND (current_period_end IS NULL OR current_period_end > ?)
+     ORDER BY CASE status
+                WHEN 'paid' THEN 0 WHEN 'canceling' THEN 1 WHEN 'past_due' THEN 2 ELSE 3 END,
+              created_at DESC
+     LIMIT 1`
+  ).get(familyId, t) || null;
   const rows = listActiveEntitlements(db, familyId, now);
-  if (!rows.length) return { active: false, plan: null, sourceType: null, expiresAt: null };
+  if (!rows.length) {
+    return { active: false, plan: null, sourceType: null, expiresAt: null, subscription };
+  }
   const priority = { order: 4, redeem: 3, grant: 2, promo: 1 };
   rows.sort((a, b) => {
     const ae = a.expires_at === null ? Infinity : a.expires_at;
@@ -113,7 +129,8 @@ function membershipSummary(db, familyId, now) {
     active: true,
     plan: best.source_type === 'promo' ? 'launch_trial' : best.source_type,
     sourceType: best.source_type,
-    expiresAt: best.expires_at
+    expiresAt: best.expires_at,
+    subscription
   };
 }
 

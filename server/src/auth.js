@@ -406,6 +406,9 @@ function meHandler(db) {
         children: family.familyChildCount(db, req.familyId),
         maxChildren: family.MAX_CHILDREN
       };
+      /* 子女只需要知道会员是否有效；订单号与续费状态属于家长信息，不下发。 */
+      const childMembership = family.membershipSummary(db, req.familyId);
+      delete childMembership.subscription;
       return ok(res, {
         user: null,
         child: childPrivate(row),
@@ -415,7 +418,7 @@ function meHandler(db) {
         }],
         family: { id: req.familyId, role: 'child', seats },
         entitlements: activeFamilyFeatureKeys(db, req.familyId),
-        membership: family.membershipSummary(db, req.familyId),
+        membership: childMembership,
         authMethods
       });
     }

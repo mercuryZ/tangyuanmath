@@ -45,6 +45,7 @@ python -m http.server 8000   # 或 npx serve .
 |---|---|---|
 | 前端 | 原生 HTML / CSS / JavaScript | 零依赖、无构建工具、零第三方请求 |
 | 后端 | Express + SQLite（better-sqlite3）+ `ws` | 版本化迁移；对战房间只在内存，仅登录档案的结果落库 |
+| 支付 | `@waffo/pancake-ts`（Waffo Pancake） | 托管结账 + RSA-SHA256 webhook 验签；权益只由验签通过的 webhook 写入 |
 | 主题 | 红白可爱风 + 吉祥物汤圆 | CSS 变量统一配色 |
 | 字体 | 系统字体栈 | 不加载外部字体，数学数字用可读系统字体 |
 | 测试 | node:test | 核心逻辑单元测试 + 完整的 HTTP 与 WebSocket 集成测试 |
@@ -76,7 +77,7 @@ cd server
 npm install
 npm start          # 默认 3000，可用 PORT=3100 覆盖；静态站与 API 同源
 # 打开 http://127.0.0.1:3000（邮箱验证/重置链接打印在服务器控制台）
-npm test           # 105 项测试：题目生成、记录、错题本、家庭会员/邀请/子女登录、加密备份，以及完整 HTTP/WebSocket API（含 Google 登录与邮件通道）
+npm test           # 118 项测试：题目生成、记录、错题本、家庭会员/邀请/子女登录、加密备份、Waffo 支付/订单/webhook，以及完整 HTTP/WebSocket API（含 Google 登录与邮件通道）
 ```
 
 ### 邮件发送
@@ -93,6 +94,42 @@ npm test           # 105 项测试：题目生成、记录、错题本、家庭�
 本项目没有 dotenv 之类的自动加载器——`server/src/config.js` 只读 `process.env`——因此本地要测真实发信，需用 `node --env-file=../.env.development src/index.js` 启动，并在该文件里把 `TM_MAIL_TRANSPORT` 改成 `cloudflare` 并填入两个 Cloudflare 值。
 
 邮件发送失败不会影响接口：即使服务商故障或配置有误，注册与找回密码仍返回正常响应，失败会以 `[mailer:cloudflare]` 记入日志。
+
+### 支付（Waffo Pancake）
+
+支持者会员通过 **Waffo Pancake** 的托管结账（Merchant of Record）售卖。服务端用 SDK 的 `checkout.authenticated.create()` 创建会话，浏览器只拿到 `checkoutUrl`。**权益只由验签通过的 webhook 写入**——打开 success URL 本身不会开通任何权益。
+
+| 环境变量 | 说明 |
+|---|---|
+| `WAFFO_PRIVATE_KEY` | API 私钥（PEM、字面量 `\n`，或改用 `WAFFO_PRIVATE_KEY_BASE64`） |
+| `WAFFO_MERCHANT_ID` / `WAFFO_STORE_ID` | 商户与店铺 ID（默认值即当前店铺） |
+| `WAFFO_ENVIRONMENT` | `test`（默认）或 `prod` |
+| `WAFFO_PRODUCT_MONTHLY` / `..._YEARLY` / `..._LIFETIME` | 配置脚本打印的三个商品 ID |
+| `WAFFO_WEBHOOK_PUBLIC_KEY` | 可选覆盖；SDK 内置 Waffo 公钥 |
+
+一次性配置：
+
+```bash
+cd server
+export WAFFO_PRIVATE_KEY="$(cat private.pem)"      # 不要提交到仓库
+npm run waffo:products       # 创建缺失商品并打印三个商品 ID
+# 把 WAFFO_PRODUCT_* 写入服务端环境变量并重启
+
+# 本地联调 webhook（ngrok 会保留 x-waffo-signature，localtunnel 会丢掉）
+ngrok http 3000
+npm run waffo:webhook -- https://<ngrok-host>/api/payments/waffo/webhook
+
+npm run waffo:list           # 查看店铺商品
+npm run waffo:publish        # 把测试环境商品发布到生产（上线时）
+```
+
+上线切换：换生产 API Key，设 `WAFFO_ENVIRONMENT=prod`，创建/发布生产商品，并重新注册 webhook（脚本按 `WAFFO_ENVIRONMENT` 决定 `testMode`）。测试与生产的 webhook 是两套独立登记。
+
+商品税务分类默认：订阅用 `saas`，永久版用 `digital_goods`；如税务顾问有不同要求，请在 Waffo 控制台调整。
+
+测试卡（任意未来有效期/CVC）：成功 `4576 7500 0000 0110`，拒付 `4576 7500 0000 0220`。webhook 事件带 `mode: "test" | "prod"`，服务端会忽略另一环境的事件。`payment_events` 按 `(provider, event_id)` 去重；事件通过 `metadata.orderNo` / `orderMerchantExternalId` 找回订单，并核对店铺、环境、币种与 SKU 后才改动权益。
+
+订阅开通/续费会把同一订单来源的权益延长到 `currentPeriodEnd`；`subscription.canceling` 保留访问权，`subscription.canceled` 与 `refund.succeeded` 只撤销该订单来源。家长中心的“取消续费”会调用 `orders.cancelSubscription()`。
 
 ### 数据库备份
 

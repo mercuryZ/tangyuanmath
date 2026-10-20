@@ -396,3 +396,13 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
   .section-head h2 { font-size: 22px; }
   .faq-row { padding: 16px 18px; }
 }
+
+/* 定价页托管结账状态提示（checkout.js） */
+.checkout-msg {
+  max-width: 680px; margin: 18px auto 0; padding: 12px 18px;
+  border: 2px solid #f3c9bb; border-radius: 14px;
+  background: #fff6f2; color: #7a2e1d;
+  font-size: 14.5px; line-height: 1.55; text-align: center;
+}
+.checkout-msg a { color: var(--red-deep); font-weight: 800; }
+.plan-cta[aria-busy="true"] { opacity: .65; pointer-events: none; }

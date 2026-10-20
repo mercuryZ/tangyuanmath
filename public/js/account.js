@@ -253,7 +253,60 @@
       status.textContent = t(key, { date: fmtDate(m.expiresAt) });
       hint.textContent = t('acct.membershipHintActive');
     }
+    renderSubscription(m.subscription);
     $('membershipLink').href = pricingUrl();
+  }
+
+  /* 订阅续费状态与取消入口（Waffo Pancake；取消后本周期仍可用） */
+  function renderSubscription(sub) {
+    var line = $('subscriptionStatus');
+    var btn = $('cancelRenewalBtn');
+    line.hidden = true;
+    btn.hidden = true;
+    btn.onclick = null;
+    if (!sub) return;
+
+    if (sub.status === 'canceling') {
+      line.textContent = sub.currentPeriodEnd
+        ? t('acct.subscriptionCanceling', { date: fmtDate(sub.currentPeriodEnd) })
+        : t('acct.subscriptionCancelingNoDate');
+      line.hidden = false;
+      return;
+    }
+    if (sub.status === 'past_due') {
+      line.textContent = t('acct.subscriptionPastDue');
+      line.hidden = false;
+    } else if (sub.currentPeriodEnd) {
+      line.textContent = t('acct.subscriptionRenews', { date: fmtDate(sub.currentPeriodEnd) });
+      line.hidden = false;
+    }
+    if ((sub.status === 'paid' || sub.status === 'past_due') && sub.orderNo) {
+      btn.hidden = false;
+      btn.onclick = async function () {
+        if (!confirm(t('acct.cancelRenewalConfirm'))) return;
+        btn.disabled = true;
+        var r = await global.TMAPI.call('POST', '/api/orders/' + encodeURIComponent(sub.orderNo) + '/cancel');
+        btn.disabled = false;
+        if (!r.ok) { toast(errMsg(r), true); return; }
+        toast(t('acct.cancelRenewalDone'), false);
+        await renderMain();
+      };
+    }
+  }
+
+  /* 支付成功返回页：只轮询本店订单状态，不依据 URL 直接开通权益 */
+  function watchCheckoutOrder(orderNo) {
+    var started = Date.now();
+    var timer = setInterval(async function () {
+      if (Date.now() - started > 10 * 60 * 1000) { clearInterval(timer); return; }
+      var r = await global.TMAPI.call('GET', '/api/orders/' + encodeURIComponent(orderNo));
+      if (r.ok && r.data && ['paid', 'canceling', 'past_due'].indexOf(r.data.status) !== -1) {
+        clearInterval(timer);
+        toast(t('acct.checkoutSuccess'), false);
+        await global.TMAPI.refresh();
+        if (!global.TMAPI.state.child) renderMain();
+      }
+    }, 3000);
   }
 
   function parentRow(p) {
@@ -628,6 +681,11 @@
     var next = q.get('next');
     if (next && next.charAt(0) === '/' && next.indexOf('/account') !== 0) {
       try { localStorage.setItem('tm_next', next); } catch (e) { /* 忽略 */ }
+    }
+
+    /* Waffo 结账成功返回页：等待 webhook 确认后刷新会员状态 */
+    if (q.get('checkout') === 'success' && q.get('order')) {
+      watchCheckoutOrder(q.get('order'));
     }
 
     global.TMAPI.call('GET', '/api/me').then(function (r) {

@@ -70,7 +70,7 @@
         <p class="plan-price">$4.99 <small>/月</small></p>
         <p class="plan-note">按月自动续费<br>可随时取消</p>
       </div>
-      <a class="btn plan-cta btn-ghost" href="mailto:hi@tangyuanmath.com?subject=Supporter%20Monthly">订阅月付</a>
+      <a class="btn plan-cta btn-ghost" href="mailto:hi@tangyuanmath.com?subject=Supporter%20Monthly" data-checkout-sku="supporter_monthly">订阅月付</a>
       <p class="plan-inherit"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-gift"/></svg>免费版全部内容，另加：</p>
       <ul class="plan-features">
         <li><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-check"/></svg>联机对战 Live Race</li>
@@ -91,7 +91,7 @@
         <p class="plan-price">$49.90 <small>/年</small></p>
         <p class="plan-note">按年自动续费<br>比月付省 $9.98</p>
       </div>
-      <a class="btn plan-cta btn-primary" href="mailto:hi@tangyuanmath.com?subject=Supporter%20Yearly">订阅年付</a>
+      <a class="btn plan-cta btn-primary" href="mailto:hi@tangyuanmath.com?subject=Supporter%20Yearly" data-checkout-sku="supporter_yearly">订阅年付</a>
       <p class="plan-inherit"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-gift"/></svg>免费版全部内容，另加：</p>
       <ul class="plan-features">
         <li><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-check"/></svg>联机对战 Live Race</li>
@@ -112,7 +112,7 @@
         <p class="plan-price">$149.99 <small>一次</small></p>
         <p class="plan-note">一次付款<br>不会续费</p>
       </div>
-      <a class="btn plan-cta btn-ghost" href="mailto:hi@tangyuanmath.com?subject=Supporter%20Lifetime">一次买断</a>
+      <a class="btn plan-cta btn-ghost" href="mailto:hi@tangyuanmath.com?subject=Supporter%20Lifetime" data-checkout-sku="supporter_lifetime">一次买断</a>
       <p class="plan-inherit"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-gift"/></svg>免费版全部内容，另加：</p>
       <ul class="plan-features">
         <li><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-check"/></svg>联机对战 Live Race</li>
@@ -196,7 +196,7 @@
 
       <article class="faq-row">
         <div class="faq-q"><span>Q</span><h3>怎么购买？由谁收款？</h3></div>
-        <div class="faq-a"><span>A</span><p>在线支付正在开通中。开通前，请写信到 <a href="mailto:hi@tangyuanmath.com?subject=Supporter%20Edition">hi@tangyuanmath.com</a> 并告诉我们你想订阅的套餐，我们会立即为你的家庭开通。付款由第三方支付服务商处理——我们看不到也不保存你的银行卡信息，只接收订单结果。</p></div>
+        <div class="faq-a"><span>A</span><p>在上方选择方案后，会打开 <b>Waffo Pancake</b> 的安全托管支付页。Waffo 作为记录商户（Merchant of Record）处理卡号与销售税；我们只接收订单结果，看不到也不保存你的银行卡号。月付/年付可随时在<a href="/account/">家长中心</a>取消自动续费，永久版不会续费。</p></div>
       </article>
 
       <article class="faq-row">
@@ -239,5 +239,6 @@
   </div>
 </footer>
 
+<script src="/js/checkout.js" defer></script>
 </body>
 </html>

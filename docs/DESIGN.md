@@ -403,8 +403,9 @@ SQLite 开启外键、WAL、合理的 busy timeout。
 | POST | `/api/profiles/:id/wrongbook/review` | 上报重练答案 |
 | DELETE | `/api/profiles/:id/wrongbook/:qid` | 手动移除 |
 | POST | `/api/orders` | 根据服务端 SKU 创建结账 |
-| GET | `/api/orders/:order_no` | 仅订单所属账号可查 |
-| POST | `/api/payment/webhooks/:provider` | 平台验签回调 |
+| GET | `/api/orders` / `/api/orders/:orderNo` | 仅订单所属家庭可查 |
+| POST | `/api/orders/:orderNo/cancel` | 取消订阅续费（家长） |
+| POST | `/api/payments/waffo/webhook` | Waffo RSA-SHA256 验签回调（原始 body） |
 | POST | `/api/redeem` | 兑换，限流并事务处理 |
 | GET | `/api/pdf/worksheet` | 服务端检查权益后生成 |
 | GET | `/api/account/export` | 导出学习数据 |
@@ -496,12 +497,10 @@ Challenge 倒计时使用绝对截止时刻计算，不依赖每秒递减计数�
 
 ### 8.3 支付渠道
 
-候选：
-- Stripe；
-- PayPal；
-- 经审核适用的 Merchant of Record 平台。
+**已选定 Waffo Pancake（Merchant of Record）**，当前使用 test 环境接入。
+候选曾包括 Stripe、PayPal、经审核适用的 Merchant of Record 平台。
 
-最终选择取决于经营主体、目标市场、平台政策和总成本。
+Waffo 作为记录商户处理支付与销售税；我们只保存订单结果，不接触卡号。
 Merchant of Record 可能处理部分销售税务事务，但不代表运营者没有其他税务或法律义务。
 
 不通过借用身份或不合规方式绕过平台申请限制。
@@ -857,8 +856,8 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 ## 14. 里程碑与验收
 
-> 状态快照（2026-10-19）：M0、M1 的代码与自动化测试部分已完成，剩余事项均为外部核查/运营；
-> M1.5 功能完成，待真实多人压测；M2 进行中（PDF 练习卷与 entitlements 权益框架已实现并通过测试；每日加密备份已上线，支付渠道未接入）；
+> 状态快照（2026-10-20）：M0、M1 的代码与自动化测试部分已完成，剩余事项均为外部核查/运营；
+> M1.5 功能完成，待真实多人压测；M2 进行中（PDF、entitlements、每日加密备份已上线；Waffo Pancake 托管结账与 webhook 已接入 test 环境，生产发布与真实交易测试待做）；
 > M3 进行中（Math Tips 与 Blog 栏目已上线）。
 
 ### M0：免费海外试玩
@@ -919,15 +918,17 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 ### M2：真实支付与 Supporter
 
-- [ ] 支付主体和渠道确认
-- [ ] 服务端 SKU 与托管结账
-- [ ] 验签、重试、乱序与对账
-- [ ] USD 金额和税费映射
-- [x] PDF Letter / A4 与答案页（2026-10-19：entitlements 权益门禁 + pdf-lib 生成已上线并通过测试；支付渠道未接入前 Supporter 由 `server/src/grant-supporter.js` 管理脚本授予）
+- [x] 支付主体和渠道确认（Waffo Pancake，Merchant of Record；当前为 test 环境）
+- [x] 服务端 SKU 与托管结账（`checkout.authenticated.create()`，前端只拿 `checkoutUrl`）
+- [ ] 验签、重试、乱序与对账（验签、事件去重、终态后禁止复活已完成；平台对账与补偿任务待做）
+- [x] USD 金额和税费映射（金额以 USD 最小单位入库；销售税由 Waffo 作为 MoR 计算）
+- [x] PDF Letter / A4 与答案页（2026-10-19：entitlements 权益门禁 + pdf-lib 生成已上线并通过测试）
 - [ ] 本地图片设置
-- [ ] 退款、拒付和权益撤销（grant 来源的授予/撤销脚本已可用，order 来源随支付接入）
-- [ ] 清晰价格与售后说明
+- [x] 退款和权益撤销（`refund.succeeded` 只撤销该订单来源；拒付/dispute 状态处理待补）
+- [x] 清晰价格与售后说明
 - [ ] 上线前完成受控真实交易与退款测试
+
+**实施记录（2026-10-20）**：Waffo Pancake 托管结账已接入。迁移 6 新增 `orders` / `payment_events`；`server/src/waffo.js` 封装 SDK 与商品配置，`server/src/order-store.js` 负责订单与 webhook 事件，`server/src/payment-routes.js` 提供 `/api/orders`、取消续费与 `/api/payments/waffo/webhook`。webhook 使用原始 body 验签，按 `(provider, event_id)` 去重，并核对店铺、环境、币种、SKU 与金额后才写入权益；success URL 不授予权益。家长中心显示订阅状态并支持取消续费。`tests/waffo.test.js` 覆盖 13 项。商品与 webhook 通过 `server/scripts/waffo-setup.js` 一次性配置。
 
 验收：success URL 不能伪造权益；重复回调不重复开通；非会员不能生成付费 PDF；图片不产生上传请求。
 
@@ -996,7 +997,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 ## 17. 遗留决策点（实施时再定）
 
-1. 支付渠道在 Stripe / PayPal / Merchant of Record 中最终选择（取决于 0.2 节经营主体与税务安排）。
+1. 支付渠道已选 Waffo Pancake（MoR，test 环境）；生产发布、真实交易与退款演练待完成（见 M2）。
 2. 定价验证：月付 US$4.99 / 年付 US$49.90 / 永久版 US$149.99，视转化与退款情况再评估。
 3. 对战为家庭会员专属、不限次数；房间码字符集与回收时长、4 人房开放时机、平局加赛规则见 13.7。
 4. 家庭席位上限定为 2 位家长 + 2 名子女；是否需要更多席位、或按席位单独售卖，待真实使用后再评估。

@@ -35,7 +35,7 @@ npm start          # default 3000, override with PORT=3100; serves the static si
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
 - Parent center: `/account/` (parent sign-in, family membership, co-parent invites, child accounts, synced stats & data management)
 
-Run the tests with `cd server && npm test` (105 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
+Run the tests with `cd server && npm test` (118 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
 
 ### Email delivery
 
@@ -51,6 +51,42 @@ To use the Cloudflare transport you must first onboard the sending domain under 
 The project has no dotenv-style loader — `server/src/config.js` reads only `process.env` — so to exercise real delivery locally, start with `node --env-file=../.env.development src/index.js` and set `TM_MAIL_TRANSPORT=cloudflare` plus the two Cloudflare values in that file.
 
 Mail failures never break the request: registration and password reset return their normal response even if the provider is down or misconfigured, and the failure is logged as `[mailer:cloudflare]`.
+
+### Payments (Waffo Pancake)
+
+Supporter memberships are sold through **Waffo Pancake** as a hosted checkout (merchant of record). The server creates the checkout session with the SDK's `checkout.authenticated.create()`; the browser only receives `checkoutUrl`. Entitlements are written **only** by the verified webhook — opening the success URL never grants access.
+
+| Env var | Meaning |
+|---|---|
+| `WAFFO_PRIVATE_KEY` | API private key (PEM, literal `\n`, or use `WAFFO_PRIVATE_KEY_BASE64`) |
+| `WAFFO_MERCHANT_ID` / `WAFFO_STORE_ID` | Merchant and store IDs (defaults match the current store) |
+| `WAFFO_ENVIRONMENT` | `test` (default) or `prod` |
+| `WAFFO_PRODUCT_MONTHLY` / `..._YEARLY` / `..._LIFETIME` | Product IDs returned by the setup script |
+| `WAFFO_WEBHOOK_PUBLIC_KEY` | Optional override; the SDK ships Waffo's public keys |
+
+One-time setup:
+
+```bash
+cd server
+export WAFFO_PRIVATE_KEY="$(cat private.pem)"      # never commit this
+npm run waffo:products       # creates missing products, prints the three product IDs
+# put WAFFO_PRODUCT_* into the server environment, then restart
+
+# local webhook testing (ngrok preserves x-waffo-signature; localtunnel does not)
+ngrok http 3000
+npm run waffo:webhook -- https://<ngrok-host>/api/payments/waffo/webhook
+
+npm run waffo:list           # list store products
+npm run waffo:publish        # publish test products to production (go-live)
+```
+
+To go live: switch to the production API key, set `WAFFO_ENVIRONMENT=prod`, create/publish the production products, and register the webhook again (the script uses `testMode` from `WAFFO_ENVIRONMENT`). Test and production webhooks are separate registrations.
+
+Product tax categories default to `saas` for subscriptions and `digital_goods` for lifetime access; adjust them in the Waffo dashboard if your tax advisor requires different categories.
+
+Test cards (any future expiry/CVC): success `4576 7500 0000 0110`; declined `4576 7500 0000 0220`. Webhook events carry `mode: "test" | "prod"`; the server ignores events from the other environment. `payment_events` deduplicates by `(provider, event_id)`, and each event is matched back to an order through `metadata.orderNo` / `orderMerchantExternalId`, then checked against store, mode, currency and SKU before any entitlement changes.
+
+Subscribe → monthly/yearly renewals extend the existing order's entitlements to `currentPeriodEnd`; `subscription.canceling` keeps access, `subscription.canceled` and `refund.succeeded` revoke only that order's source. Cancelling from the Parent Center calls `orders.cancelSubscription()`.
 
 ### Backups
 
@@ -105,6 +141,7 @@ Open [multiplication_game.html](multiplication_game.html) directly (the Phase I 
 |---|---|---|
 | Frontend | Vanilla HTML / CSS / JavaScript | Zero dependencies, no build tools, no third-party requests |
 | Backend | Express + SQLite (better-sqlite3) + `ws` | Versioned migrations; rooms live in memory, only signed-in results are persisted |
+| Payments | `@waffo/pancake-ts` (Waffo Pancake) | Hosted checkout + RSA-SHA256 webhook verification; entitlements are written only by the verified webhook |
 | Theme | Red-and-white cute style + mascot Tangyuan | Unified palette via CSS variables |
 | Fonts | System font stack | No external fonts; math digits use a readable system font |
 | Tests | node:test | Unit tests for core logic plus full HTTP and WebSocket integration tests |

@@ -61,6 +61,23 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
+      # Waffo Pancake 支付。Merchant/Store ID 是公开标识；私钥与商品 ID 只在控制台填写。
+      # 先在本地或服务器上跑 `npm run waffo:products` 创建商品，再把三个商品 ID 填进控制台。
+      # 上线前把 WAFFO_ENVIRONMENT 改成 prod，并使用生产 API Key 与生产商品 ID。
+      - key: WAFFO_MERCHANT_ID
+        value: MER_47pr6GX7NZmc45XV3Yatqs
+      - key: WAFFO_STORE_ID
+        value: STO_0XhVdBglSpSA3dEQi6gfwt
+      - key: WAFFO_ENVIRONMENT
+        value: test
+      - key: WAFFO_PRIVATE_KEY
+        sync: false
+      - key: WAFFO_PRODUCT_MONTHLY
+        sync: false
+      - key: WAFFO_PRODUCT_YEARLY
+        sync: false
+      - key: WAFFO_PRODUCT_LIFETIME
+        sync: false
       # NODE_VERSION 故意不设：线上由 server/package.json 的 engines(>=22.5) 决定，当前解析为 Node 26.x。
       # 若要固定大版本，取消下面两行注释（注意：换大版本会触发 better-sqlite3 原生模块重新编译）。
       # - key: NODE_VERSION

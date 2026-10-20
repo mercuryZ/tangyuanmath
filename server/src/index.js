@@ -20,6 +20,7 @@ const { buildPdfRouter } = require('./pdf');
 const {
   buildFamilyRouter, familyInviteLandingHandler, familyInvitePendingHandler
 } = require('./family-routes');
+const { buildOrdersRouter, buildWaffoWebhookHandler } = require('./payment-routes');
 const { attachLiveRace } = require('./race-ws');
 const { startBackupScheduler } = require('./backup');
 
@@ -33,6 +34,15 @@ function createApp(db, opts) {
   app.disable('etag');
 
   app.use(mw.securityHeaders);
+
+  /* Waffo webhook 必须拿到原始 body 验签：挂在 express.json 之前，且只对该路径用 express.raw。
+   * 测试可注入 opts.payments 替换真实 SDK。 */
+  const payments = opts.payments || require('./waffo');
+  app.post('/api/payments/waffo/webhook',
+    mw.rateLimit({ windowMs: 60000, max: 120, name: 'waffo-webhook' }),
+    express.raw({ type: 'application/json', limit: '256kb' }),
+    buildWaffoWebhookHandler(db, payments));
+
   app.use(express.json({ limit: '128kb' }));
   app.use(cookieParser());
   app.use(mw.attachIdentity(db));
@@ -53,6 +63,7 @@ function createApp(db, opts) {
   api.use('/profiles', mw.requireAuth, buildProfilesRouter(db));
   api.use('/account', mw.requireAuth, buildAccountRouter(db));
   api.use('/pdf', mw.requireAuth, buildPdfRouter(db));
+  api.use('/orders', mw.requireAuth, buildOrdersRouter(db, payments));
 
   /* 家庭邀请的落地页必须允许未登录访问（Google OAuth 回跳前） */
   api.get('/family/invite/landing', familyInviteLandingHandler(db));

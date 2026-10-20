@@ -305,6 +305,61 @@ const MIGRATIONS = [
           UNION ALL SELECT 'live_race'
         ) k;
     `
+  },
+  {
+    /* Waffo Pancake 托管结账（DESIGN §6、§8.4）
+     * - orders：本站订单，金额存最小货币单位；order_no 同时作为 Waffo 的
+     *   orderMerchantExternalId / metadata.orderNo，webhook 靠它找回家庭；
+     * - payment_events：按 (provider, event_id) 去重，保证 webhook 重试幂等；
+     * - 权益仍写 entitlements，source_type='order'、source_id=orders.order_no。 */
+    version: 6,
+    name: 'waffo-orders',
+    sql: `
+      CREATE TABLE orders (
+        id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_no               TEXT NOT NULL UNIQUE,
+        family_id              INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+        purchased_by           INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        sku                    TEXT NOT NULL CHECK (sku IN
+                                 ('supporter_monthly','supporter_yearly','supporter_lifetime')),
+        amount_minor           INTEGER NOT NULL CHECK (amount_minor > 0),
+        currency               TEXT NOT NULL CHECK (currency IN ('USD')),
+        status                 TEXT NOT NULL DEFAULT 'pending' CHECK (status IN
+                                 ('pending','paid','canceling','past_due','canceled',
+                                  'failed','expired','refunded','partially_refunded','disputed')),
+        provider               TEXT NOT NULL DEFAULT 'waffo',
+        provider_checkout_id   TEXT,
+        provider_order_id      TEXT,
+        provider_payment_id    TEXT,
+        mode                   TEXT NOT NULL DEFAULT 'test' CHECK (mode IN ('test','prod')),
+        current_period_end     INTEGER,
+        last_event_at          INTEGER,
+        expires_at             INTEGER,
+        paid_at                INTEGER,
+        created_at             INTEGER NOT NULL,
+        updated_at             INTEGER NOT NULL
+      );
+      CREATE INDEX idx_orders_family ON orders(family_id, created_at);
+      CREATE UNIQUE INDEX idx_orders_provider_checkout
+        ON orders(provider, provider_checkout_id)
+        WHERE provider_checkout_id IS NOT NULL;
+      CREATE UNIQUE INDEX idx_orders_provider_order
+        ON orders(provider, provider_order_id)
+        WHERE provider_order_id IS NOT NULL;
+
+      CREATE TABLE payment_events (
+        id                INTEGER PRIMARY KEY AUTOINCREMENT,
+        provider          TEXT NOT NULL,
+        event_id          TEXT NOT NULL,
+        event_type        TEXT NOT NULL,
+        order_no          TEXT,
+        processing_status TEXT NOT NULL CHECK (processing_status IN ('processed','ignored')),
+        reason            TEXT,
+        processed_at      INTEGER NOT NULL,
+        UNIQUE (provider, event_id)
+      );
+      CREATE INDEX idx_payment_events_order ON payment_events(order_no, processed_at);
+    `
   }
 ];
 
