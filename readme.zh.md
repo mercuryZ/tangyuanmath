@@ -123,7 +123,16 @@ npm run waffo:list           # 查看店铺商品
 npm run waffo:publish        # 把测试环境商品发布到生产（上线时）
 ```
 
-上线切换：换生产 API Key，设 `WAFFO_ENVIRONMENT=prod`，创建/发布生产商品，并重新注册 webhook（脚本按 `WAFFO_ENVIRONMENT` 决定 `testMode`）。测试与生产的 webhook 是两套独立登记。
+上线切换：
+
+1. **发布商品**到生产：在 Waffo 控制台点 Publish，或用当前（测试环境）Key 执行 `npm run waffo:publish`。
+2. 生产环境设 `WAFFO_ENVIRONMENT=prod`，并把 `WAFFO_PRIVATE_KEY` / `WAFFO_PRIVATE_KEY_BASE64` 换成**生产 API Key**（测试与生产 Key 不同）。
+3. 用生产 Key 执行 `npm run waffo:list`，确认三个 `WAFFO_PRODUCT_*` 商品 ID（通常与测试相同，但以生产 Key 查到的为准）。
+4. 用生产 Key 注册生产 webhook：`WAFFO_ENVIRONMENT=prod node scripts/waffo-setup.js webhook https://tangyuanmath.com/api/payments/waffo/webhook`。脚本会以 `testMode: false` 登记；测试与生产是两套独立 webhook。
+5. 做一笔受控真实交易并退款，检查 Waffo 的 webhook 投递日志和服务端 `[waffo-webhook]` 日志。
+6. 如果测试订单写进了生产数据库，上线前撤销这些订单的 `source_type='order'` 权益。
+
+价格定义在 `server/src/waffo.js` 的 `SKUS` 中。改价时务必同步修改 Waffo 控制台里对应商品的售价并发布新版本；否则收银台仍按旧价扣款，永久版还可能因金额校验被拒绝开通。
 
 商品税务分类默认：订阅用 `saas`，永久版用 `digital_goods`；如税务顾问有不同要求，请在 Waffo 控制台调整。
 

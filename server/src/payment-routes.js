@@ -79,6 +79,11 @@ function buildOrdersRouter(db, payments) {
       order = orderStore.createPendingOrder(db, {
         familyId: req.familyId, userId: req.user.id, sku, mode
       });
+    } else if (order.amount_minor !== spec.amountMinor) {
+      // 复用的 pending 订单要跟随最新定价，避免改价后仍按旧金额快照校验
+      db.prepare('UPDATE orders SET amount_minor = ?, updated_at = ? WHERE id = ?')
+        .run(spec.amountMinor, Date.now(), order.id);
+      order.amount_minor = spec.amountMinor;
     }
 
     try {

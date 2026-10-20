@@ -80,7 +80,16 @@ npm run waffo:list           # list store products
 npm run waffo:publish        # publish test products to production (go-live)
 ```
 
-To go live: switch to the production API key, set `WAFFO_ENVIRONMENT=prod`, create/publish the production products, and register the webhook again (the script uses `testMode` from `WAFFO_ENVIRONMENT`). Test and production webhooks are separate registrations.
+Going live:
+
+1. **Publish products** to production (dashboard → Publish, or `npm run waffo:publish` while the test-environment key is configured).
+2. In the production environment set `WAFFO_ENVIRONMENT=prod` and `WAFFO_PRIVATE_KEY` / `WAFFO_PRIVATE_KEY_BASE64` to the **production** API key. Test and production keys are different.
+3. Copy the three `WAFFO_PRODUCT_*` IDs from `npm run waffo:list` while using the production key (the IDs are usually the same as test, but verify).
+4. Register the production webhook with the production key: `WAFFO_ENVIRONMENT=prod node scripts/waffo-setup.js webhook https://tangyuanmath.com/api/payments/waffo/webhook`. The script registers with `testMode: false`; test and production webhooks are separate registrations.
+5. Run one controlled real transaction and a refund; check the Waffo webhook delivery log and the `[waffo-webhook]` lines in the server log.
+6. If test-mode orders were created against the production database, revoke their `source_type='order'` entitlements before launch.
+
+Prices live in `server/src/waffo.js` (`SKUS`). When you change them, update the matching Waffo product prices in the dashboard and publish a new version; otherwise checkout still charges the old amount and the lifetime amount check can reject the order.
 
 Product tax categories default to `saas` for subscriptions and `digital_goods` for lifetime access; adjust them in the Waffo dashboard if your tax advisor requires different categories.
 

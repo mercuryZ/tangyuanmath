@@ -18,11 +18,11 @@ const SKUS = {
     name: 'Tangyuan Math Supporter — Monthly'
   },
   supporter_yearly: {
-    kind: 'subscription', months: 12, amountMinor: 4990, currency: CURRENCY,
+    kind: 'subscription', months: 12, amountMinor: 4900, currency: CURRENCY,
     name: 'Tangyuan Math Supporter — Yearly'
   },
   supporter_lifetime: {
-    kind: 'onetime', months: null, amountMinor: 14999, currency: CURRENCY,
+    kind: 'onetime', months: null, amountMinor: 14900, currency: CURRENCY,
     name: 'Tangyuan Math Supporter — Lifetime'
   }
 };

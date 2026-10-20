@@ -71,8 +71,8 @@ test('order.completed：一次性付款开通永久权益，重复事件不重�
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     const event = makeEvent('order.completed', order.order_no, order.sku, {
-      listPrice: { total: '149.99', subtotal: '149.99', taxAmount: '0' },
-      chargedAmount: '149.99'
+      listPrice: { total: '149.00', subtotal: '149.00', taxAmount: '0' },
+      chargedAmount: '149.00'
     });
 
     assert.strictEqual(process(f.db, event).status, 'processed');
@@ -175,9 +175,9 @@ test('refund.succeeded：只撤销该订单来源的权益', () => {
     ).run(f.familyId, f.userId, Date.now());
 
     process(f.db, makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.99', total: '149.99', taxAmount: '0' } }));
+      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } }));
     const refunded = process(f.db, makeEvent('refund.succeeded', order.order_no, order.sku,
-      { refundedAmount: '149.99' }));
+      { refundedAmount: '149.00' }));
 
     assert.strictEqual(refunded.status, 'processed');
     assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'refunded');
@@ -223,7 +223,7 @@ test('webhook 校验：店铺、环境、币种、SKU、金额不符时一律不
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     const base = () => makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.99', total: '149.99', taxAmount: '0' } });
+      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } });
 
     const wrongStore = base(); wrongStore.storeId = 'STO_other';
     const wrongMode = base(); wrongMode.mode = 'prod';
@@ -453,7 +453,7 @@ test('webhook 路由：验签失败 401，验签成功开通权益', async () =>
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     const event = makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.99', total: '149.99', taxAmount: '0' } });
+      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } });
     const body = JSON.stringify(event);
 
     let res = await fetch(ctx.base + '/api/payments/waffo/webhook', {
