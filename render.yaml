@@ -62,14 +62,17 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       # Waffo Pancake 支付。Merchant/Store ID 是公开标识；私钥与商品 ID 只在控制台填写。
-      # 先在本地或服务器上跑 `npm run waffo:products` 创建商品，再把三个商品 ID 填进控制台。
-      # 上线前把 WAFFO_ENVIRONMENT 改成 prod，并使用生产 API Key 与生产商品 ID。
+      # 2026-10-21 已在生产环境创建并发布三个商品（与定价页一致 $4.99/$49/$149），控制台需同步设置：
+      #   WAFFO_PRODUCT_MONTHLY=PROD_71yskxGFcF5Q3cjpSw7dmT
+      #   WAFFO_PRODUCT_YEARLY=PROD_4pqzHIrp1JloGbGQI4fqyt
+      #   WAFFO_PRODUCT_LIFETIME=PROD_1hRroFAQXQiaA93WsqCDR1
+      # 生产 webhook 已注册：https://tangyuanmath.com/api/payments/waffo/webhook（testMode=false）。
       - key: WAFFO_MERCHANT_ID
         value: MER_47pr6GX7NZmc45XV3Yatqs
       - key: WAFFO_STORE_ID
         value: STO_0XhVdBglSpSA3dEQi6gfwt
       - key: WAFFO_ENVIRONMENT
-        value: test
+        value: prod
       - key: WAFFO_PRIVATE_KEY
         sync: false
       - key: WAFFO_PRODUCT_MONTHLY
