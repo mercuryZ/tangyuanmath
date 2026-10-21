@@ -71,7 +71,8 @@ module.exports = {
   waffoWebhookPublicKey: cleanEnv(process.env.WAFFO_WEBHOOK_PUBLIC_KEY),
   waffoProductMonthly: cleanEnv(process.env.WAFFO_PRODUCT_MONTHLY),
   waffoProductYearly: cleanEnv(process.env.WAFFO_PRODUCT_YEARLY),
-  waffoProductLifetime: cleanEnv(process.env.WAFFO_PRODUCT_LIFETIME)
+  waffoProductLifetime: cleanEnv(process.env.WAFFO_PRODUCT_LIFETIME),
+  waffoProductTrial7: cleanEnv(process.env.WAFFO_PRODUCT_TRIAL7)
 };
 
 function intEnv(name, fallback) {

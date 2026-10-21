@@ -23,6 +23,7 @@ function printProduct(prefix, p, kind) {
 
 function configuredIds() {
   return {
+    supporter_trial7: config.waffoProductTrial7,
     supporter_monthly: config.waffoProductMonthly,
     supporter_yearly: config.waffoProductYearly,
     supporter_lifetime: config.waffoProductLifetime
@@ -45,8 +46,9 @@ async function main() {
     for (const warning of result.warnings) console.warn('警告：' + warning);
     console.log(result.created.length
       ? '已创建：' + result.created.join(', ')
-      : '三个商品都已存在，未创建新商品。');
+      : '所有商品都已存在，未创建新商品。');
     console.log('\n把下面几行加入服务端环境变量：');
+    console.log('WAFFO_PRODUCT_TRIAL7=' + result.ids.supporter_trial7);
     console.log('WAFFO_PRODUCT_MONTHLY=' + result.ids.supporter_monthly);
     console.log('WAFFO_PRODUCT_YEARLY=' + result.ids.supporter_yearly);
     console.log('WAFFO_PRODUCT_LIFETIME=' + result.ids.supporter_lifetime);
@@ -64,8 +66,8 @@ async function main() {
 
   if (cmd === 'publish') {
     const ids = configuredIds();
-    if (!ids.supporter_monthly || !ids.supporter_yearly || !ids.supporter_lifetime) {
-      throw new Error('请先设置三个 WAFFO_PRODUCT_* 环境变量');
+    for (const [sku, id] of Object.entries(ids)) {
+      if (!id) throw new Error('请先为 ' + sku + ' 设置 WAFFO_PRODUCT_* 环境变量');
     }
     const published = await waffo.publishProducts(ids);
     console.log('已发布到生产环境：');

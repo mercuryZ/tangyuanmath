@@ -533,3 +533,66 @@ test('verifyWebhook 包装：无效签名抛 invalid_signature', () => {
     err => err.code === 'invalid_signature'
   );
 });
+
+test('尝鲜 $1/7天：order.completed 开通 7 天到期权益，重复事件幂等', () => {
+  const f = fixture();
+  try {
+    const order = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_trial7', mode: 'test'
+    });
+    const event = makeEvent('order.completed', order.order_no, order.sku, {
+      listPrice: { total: '1.00', subtotal: '1.00', taxAmount: '0' },
+      chargedAmount: '1.00'
+    });
+    const ts = Date.parse(event.timestamp);
+
+    assert.strictEqual(process(f.db, event).status, 'processed');
+    const paid = orderStore.getOrderByNo(f.db, order.order_no);
+    assert.strictEqual(paid.status, 'paid');
+    assert.ok(paid.current_period_end > ts + 6.9 * 86400000, '订单周期 ≈ 7 天');
+
+    const rows = orderEntitlements(f.db, f.familyId);
+    assert.strictEqual(rows.length, 3);
+    for (const r of rows) {
+      assert.strictEqual(r.revoked_at, null);
+      const days = (r.expires_at - ts) / 86400000;
+      assert.ok(Math.abs(days - 7) < 0.01, '权益 7 天后到期，实际 ' + days);
+    }
+
+    assert.strictEqual(process(f.db, event).status, 'duplicate');
+    assert.strictEqual(orderEntitlements(f.db, f.familyId).length, 3);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('尝鲜路由守卫：已是会员 409 already_member；用过一次 409 already_trial', async () => {
+  const f = fixture();
+  const payments = fakePayments();
+  const ctx = await startServer(f.db, payments);
+  try {
+    const token = mw.createSession(f.db, f.userId);
+    const csrf = await getCsrf(ctx.base, token);
+
+    // fixture 已撤销赠送权益 → 首次可买
+    let r = await api(ctx.base, token, csrf, 'POST', '/api/orders', { sku: 'supporter_trial7' });
+    assert.strictEqual(r.status, 200);
+
+    const order = orderStore.getOrderByNo(f.db, r.json.data.orderNo);
+    process(f.db, makeEvent('order.completed', order.order_no, 'supporter_trial7', { chargedAmount: '1.00' }));
+
+    // 尝鲜生效期内是会员 → already_member
+    r = await api(ctx.base, token, csrf, 'POST', '/api/orders', { sku: 'supporter_trial7' });
+    assert.strictEqual(r.status, 409);
+    assert.strictEqual(r.json.code, 'already_member');
+
+    // 权益被撤销（等同退款/过期）后：尝鲜仍限一次 → already_trial
+    revokeFamilySource(f.db, f.familyId, 'order', order.order_no);
+    r = await api(ctx.base, token, csrf, 'POST', '/api/orders', { sku: 'supporter_trial7' });
+    assert.strictEqual(r.status, 409);
+    assert.strictEqual(r.json.code, 'already_trial');
+  } finally {
+    await ctx.close();
+    f.cleanup();
+  }
+});

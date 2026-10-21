@@ -360,6 +360,57 @@ const MIGRATIONS = [
       );
       CREATE INDEX idx_payment_events_order ON payment_events(order_no, processed_at);
     `
+  },
+  {
+    /* $1 尝鲜（7 天）：orders.sku 的 CHECK 枚举需要纳入 supporter_trial7。
+     * SQLite 不能直接改 CHECK，按「建新表 → 拷贝 → 删旧表 → 改名」重建（同 v3 做法）。
+     * 迁移期间外键关闭（见 initDb），DROP 不会级联；payment_events.order_no 只是文本无外键。 */
+    version: 7,
+    name: 'trial-sku',
+    sql: `
+      CREATE TABLE orders_v7 (
+        id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_no               TEXT NOT NULL UNIQUE,
+        family_id              INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+        purchased_by           INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        sku                    TEXT NOT NULL CHECK (sku IN
+                                 ('supporter_trial7','supporter_monthly','supporter_yearly',
+                                  'supporter_lifetime')),
+        amount_minor           INTEGER NOT NULL CHECK (amount_minor > 0),
+        currency               TEXT NOT NULL CHECK (currency IN ('USD')),
+        status                 TEXT NOT NULL DEFAULT 'pending' CHECK (status IN
+                                 ('pending','paid','canceling','past_due','canceled',
+                                  'failed','expired','refunded','partially_refunded','disputed')),
+        provider               TEXT NOT NULL DEFAULT 'waffo',
+        provider_checkout_id   TEXT,
+        provider_order_id      TEXT,
+        provider_payment_id    TEXT,
+        mode                   TEXT NOT NULL DEFAULT 'test' CHECK (mode IN ('test','prod')),
+        current_period_end     INTEGER,
+        last_event_at          INTEGER,
+        expires_at             INTEGER,
+        paid_at                INTEGER,
+        created_at             INTEGER NOT NULL,
+        updated_at             INTEGER NOT NULL
+      );
+      INSERT INTO orders_v7
+        (id, order_no, family_id, purchased_by, sku, amount_minor, currency, status,
+         provider, provider_checkout_id, provider_order_id, provider_payment_id, mode,
+         current_period_end, last_event_at, expires_at, paid_at, created_at, updated_at)
+      SELECT id, order_no, family_id, purchased_by, sku, amount_minor, currency, status,
+             provider, provider_checkout_id, provider_order_id, provider_payment_id, mode,
+             current_period_end, last_event_at, expires_at, paid_at, created_at, updated_at
+      FROM orders;
+      DROP TABLE orders;
+      ALTER TABLE orders_v7 RENAME TO orders;
+      CREATE INDEX idx_orders_family ON orders(family_id, created_at);
+      CREATE UNIQUE INDEX idx_orders_provider_checkout
+        ON orders(provider, provider_checkout_id)
+        WHERE provider_checkout_id IS NOT NULL;
+      CREATE UNIQUE INDEX idx_orders_provider_order
+        ON orders(provider, provider_order_id)
+        WHERE provider_order_id IS NOT NULL;
+    `
   }
 ];
 

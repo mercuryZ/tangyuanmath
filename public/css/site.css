@@ -297,6 +297,18 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
   overflow: hidden; box-shadow: 0 10px 30px rgba(217, 59, 71, .08);
 }
 .plan { min-width: 0; background: #fff; display: flex; flex-direction: column; padding: 26px 22px 30px; }
+/* 尝鲜价条幅：横贯套餐网格整行，置于四张方案卡之上 */
+.trial-banner {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: #fff; border-bottom: 2px dashed var(--pink);
+  padding: 18px 22px;
+}
+.trial-banner .ico { width: 1.6em; height: 1.6em; }
+.trial-banner .trial-text { flex: 1; min-width: 240px; line-height: 1.5; }
+.trial-banner .trial-text b { font-size: 16.5px; color: var(--red-deep); }
+.trial-banner .trial-text small { display: block; color: var(--ink-soft); font-weight: 600; margin-top: 2px; }
+.trial-banner .btn { padding: 12px 26px; white-space: nowrap; }
 .plan-featured { background: linear-gradient(180deg, #FFF1EC, #FFFAF7 72%); }
 .plan h2 {
   font-size: 21px; line-height: 1.25; font-weight: 900; color: var(--ink);

@@ -17,6 +17,8 @@
     unavailable: '在线支付暂不可用，请发邮件至 hi@tangyuanmath.com，我们会为你开通。',
     already: '这个家庭已经有有效订阅。请先在家长中心取消，再购买新的方案。',
     lifetime: '这个家庭已经拥有永久会员。',
+    trial: '尝鲜价每个家庭只能使用一次。',
+    member: '这个家庭已有有效会员，无需再买尝鲜。',
     child: '子女账号不能购买会员，请让家长登录后操作。',
     unverified: '请先在家长中心验证邮箱，然后再购买。',
     signin: '正在跳转到家长登录…',
@@ -31,6 +33,8 @@
     unavailable: 'Online checkout is not available yet. Email hi@tangyuanmath.com and we will enable it for your family.',
     already: 'This family already has an active subscription. Cancel it in the Parent Center before starting a new one.',
     lifetime: 'This family already has lifetime access.',
+    trial: 'The $1 intro price can be used once per family.',
+    member: 'This family already has an active membership — no trial needed.',
     child: 'Child accounts cannot buy a membership. Please ask a parent to sign in.',
     unverified: 'Please verify your email in the Parent Center before paying.',
     signin: 'Redirecting to parent sign-in…',
@@ -143,6 +147,10 @@
           showMessage(STR.already, { href: '/account/', text: ZH ? '前往家长中心' : 'Open Parent Center' });
         } else if (r.code === 'already_lifetime') {
           showMessage(STR.lifetime, { href: '/account/', text: ZH ? '前往家长中心' : 'Open Parent Center' });
+        } else if (r.code === 'already_trial') {
+          showMessage(STR.trial);
+        } else if (r.code === 'already_member') {
+          showMessage(STR.member, { href: '/account/', text: ZH ? '前往家长中心' : 'Open Parent Center' });
         } else if (r.code === 'email_unverified') {
           showMessage(STR.unverified, { href: '/account/', text: ZH ? '前往家长中心' : 'Open Parent Center' });
         } else {

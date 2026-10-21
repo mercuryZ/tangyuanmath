@@ -190,7 +190,10 @@ function markPaid(db, order, data, ts, periodEnd) {
 
 function expiryFor(order, data, at) {
   const spec = waffo.SKUS[order.sku];
-  if (!spec || spec.kind === 'onetime') return null;
+  if (!spec) return null;
+  /* 尝鲜价（如 $1/7天）：从事件时间起算固定天数，一次性到期不续费 */
+  if (spec.trialDays) return at + spec.trialDays * 24 * 3600 * 1000;
+  if (spec.kind === 'onetime') return null;
   const periodEnd = parseDate(data.currentPeriodEnd);
   if (periodEnd !== null) return periodEnd;
   // 没有周期信息时按事件时间顺延，避免延迟到达的事件从「处理时间」重新起算
@@ -203,7 +206,7 @@ function applyEvent(db, order, event, data, ts) {
   const spec = waffo.SKUS[order.sku];
 
   if (type === 'order.completed') {
-    const expiresAt = spec.kind === 'onetime' ? null : expiryFor(order, data, ts);
+    const expiresAt = expiryFor(order, data, ts); // onetime 无 trialDays 时为 null（永久）
     markPaid(db, order, data, ts, expiresAt);
     grantOrderEntitlements(db, order, expiresAt, ts);
     return;

@@ -13,6 +13,7 @@ const config = require('./config');
 const mw = require('./middleware');
 const orderStore = require('./order-store');
 const waffo = require('./waffo');
+const { hasFamilyEntitlement } = require('./entitlements');
 
 function publicOrder(order) {
   return {
@@ -36,8 +37,10 @@ function hasActiveOrder(db, familyId, kind, now) {
          AND status = 'paid' LIMIT 1`
     ).get(familyId);
   }
+  /* 订阅 = 可续费的月付/年付。尝鲜（trial7）不是订阅：它在有效期内的会员身份
+   * 由权益表表达，也不应阻止用户直接升级购买月付/年付。 */
   return !!db.prepare(
-    `SELECT 1 FROM orders WHERE family_id = ? AND sku <> 'supporter_lifetime'
+    `SELECT 1 FROM orders WHERE family_id = ? AND sku NOT IN ('supporter_lifetime','supporter_trial7')
        AND status IN ('paid','canceling','past_due')
        AND (current_period_end IS NULL OR current_period_end > ?) LIMIT 1`
   ).get(familyId, t);
@@ -60,6 +63,21 @@ function buildOrdersRouter(db, payments) {
 
     if (!req.user.emailVerified) {
       return mw.fail(res, 403, 'email_unverified', 'Please verify your email before paying.');
+    }
+    if (sku === 'supporter_trial7') {
+      /* 尝鲜价守卫：已有有效会员（含赠送期/订阅期/终身）不可买；每家庭限购一次 */
+      if (hasActiveOrder(db, req.familyId, 'subscription', Date.now()) ||
+          hasActiveOrder(db, req.familyId, 'onetime', Date.now()) ||
+          hasFamilyEntitlement(db, req.familyId, 'pdf_worksheet')) {
+        return mw.fail(res, 409, 'already_member',
+          'This family already has an active membership, no trial needed.');
+      }
+      const hadTrial = !!db.prepare(
+        "SELECT 1 FROM orders WHERE family_id = ? AND sku = 'supporter_trial7' AND status = 'paid' LIMIT 1"
+      ).get(req.familyId);
+      if (hadTrial) {
+        return mw.fail(res, 409, 'already_trial', 'The $1 trial can be used once per family.');
+      }
     }
     if (!payments.isCheckoutConfigured(sku)) {
       return mw.fail(res, 503, 'payments_not_configured',
