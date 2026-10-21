@@ -26,7 +26,10 @@ function printStatus() {
     console.log('  ' + sku.padEnd(20) + ' ' + (p.productId || '(missing product ID)') +
       (p.configured ? '  [ready]' : '  [NOT READY]'));
   }
-  console.log('Checkout ready    = ' + (Object.values(st.products).some(p => p.configured) ? 'yes (some plans)' : 'NO'));
+  const total = Object.keys(st.products).length;
+  const ready = Object.values(st.products).filter(p => p.configured).length;
+  console.log('Checkout ready    = ' + ready + '/' + total +
+    (ready === total ? ' (all plans)' : ready > 0 ? ' (some plans)' : ' (NO)'));
   return st;
 }
 

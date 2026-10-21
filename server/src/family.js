@@ -2,7 +2,7 @@
  * - 一个家庭最多 2 位家长 + 2 名子女；
  * - 家长邮箱/Google 登录；子女由家长创建，用用户名 + 密码登录；
  * - 会员权益按家庭计算，家庭成员共享；
- * - 上线活动：每个新家庭赠送 3 个自然月的 Supporter。
+ * - 新注册不再赠送免费会员；付费入口是 $1/7 天尝鲜与月付/年付/永久版。
  */
 'use strict';
 
@@ -10,17 +10,13 @@ const bcrypt = require('bcryptjs');
 const config = require('./config');
 const U = require('./util');
 const {
-  SUPPORTER_FEATURES,
   listActiveEntitlements,
   activeFamilyFeatureKeys,
-  hasFamilyEntitlement,
-  grantFamilyEntitlement
+  hasFamilyEntitlement
 } = require('./entitlements');
 
 const MAX_PARENTS = 2;
 const MAX_CHILDREN = 2;
-const LAUNCH_PROMO_ID = 'launch-2026';
-const LAUNCH_TRIAL_MONTHS = 3;
 
 /* 子女用户名：3–20 位，首字符为字母/数字，其余可为 . _ -；全局唯一（不区分大小写）。
  * 不允许 @（避免与家长邮箱登录混淆），保留词防止冒充官方角色。 */
@@ -39,7 +35,7 @@ function isValidUsername(value) {
   return USERNAME_RE.test(v) && !RESERVED_USERNAMES.has(v);
 }
 
-/* 自然月加法：1 月 31 日 + 3 个月 = 4 月 30 日（不溢出到 5 月） */
+/* 自然月加法：1 月 31 日 + 1 个月 = 2 月 28/29 日（不溢出到 3 月） */
 function addCalendarMonths(ts, months) {
   const d = new Date(ts);
   const day = d.getUTCDate();
@@ -60,36 +56,10 @@ function ensureFamilyForUser(db, userId, now) {
   return familyId;
 }
 
-/* 上线赠送：每个家庭一次，幂等；已撤销过的家庭不再补发。 */
-function grantLaunchTrial(db, familyId, now) {
-  const t = now === undefined ? Date.now() : now;
-  const existing = db.prepare(
-    "SELECT 1 FROM entitlements WHERE family_id = ? AND source_type = 'promo' AND source_id = ? LIMIT 1"
-  ).get(familyId, LAUNCH_PROMO_ID);
-  if (existing) return 0;
-  const expiresAt = addCalendarMonths(t, LAUNCH_TRIAL_MONTHS);
-  let granted = 0;
-  const tx = db.transaction(() => {
-    for (const featureKey of SUPPORTER_FEATURES) {
-      granted += grantFamilyEntitlement(db, {
-        familyId, featureKey, sourceType: 'promo', sourceId: LAUNCH_PROMO_ID,
-        startsAt: t, expiresAt
-      });
-    }
-  });
-  tx();
-  return granted;
-}
-
-/* 注册 / 新建 Google 账号时调用：同一事务内建家庭并发赠送 */
+/* 注册 / 新建 Google 账号时调用：创建家庭，不赠送任何权益。
+ * 付费会员必须通过 $1/7 天尝鲜或订阅/永久版订单开通。 */
 function initFamilyForNewUser(db, userId, now) {
-  const t = now === undefined ? Date.now() : now;
-  const tx = db.transaction(() => {
-    const familyId = ensureFamilyForUser(db, userId, t);
-    grantLaunchTrial(db, familyId, t);
-    return familyId;
-  });
-  return tx();
+  return ensureFamilyForUser(db, userId, now);
 }
 
 function hasActiveMembership(db, familyId, now) {
@@ -105,7 +75,7 @@ function membershipSummary(db, familyId, now) {
     `SELECT order_no AS orderNo, sku, status,
             current_period_end AS currentPeriodEnd
      FROM orders
-     WHERE family_id = ? AND sku <> 'supporter_lifetime'
+     WHERE family_id = ? AND sku NOT IN ('supporter_lifetime','supporter_trial7')
        AND status IN ('paid','canceling','past_due')
        AND (current_period_end IS NULL OR current_period_end > ?)
      ORDER BY CASE status
@@ -131,7 +101,7 @@ function membershipSummary(db, familyId, now) {
   const best = rows[0];
   return {
     active: true,
-    plan: best.source_type === 'promo' ? 'launch_trial' : best.source_type,
+    plan: best.source_type,
     sourceType: best.source_type,
     expiresAt: best.expires_at,
     subscription,
@@ -277,9 +247,9 @@ function checkMergeableFamily(db, familyId, userId) {
 }
 
 module.exports = {
-  MAX_PARENTS, MAX_CHILDREN, LAUNCH_PROMO_ID, LAUNCH_TRIAL_MONTHS,
+  MAX_PARENTS, MAX_CHILDREN,
   normalizeUsername, isValidUsername, addCalendarMonths,
-  ensureFamilyForUser, grantLaunchTrial, initFamilyForNewUser,
+  ensureFamilyForUser, initFamilyForNewUser,
   hasActiveMembership, membershipSummary,
   familyParentCount, familyChildCount, familySummary,
   publicChild, findChildByUsername, createChild, setChildCredentials,

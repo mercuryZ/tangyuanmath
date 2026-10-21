@@ -249,8 +249,7 @@
       status.textContent = t('acct.membershipLifetime');
       hint.textContent = t('acct.membershipHintActive');
     } else {
-      var key = m.plan === 'launch_trial' ? 'acct.membershipTrial' : 'acct.membershipActive';
-      status.textContent = t(key, { date: fmtDate(m.expiresAt) });
+      status.textContent = t('acct.membershipActive', { date: fmtDate(m.expiresAt) });
       hint.textContent = t('acct.membershipHintActive');
     }
     renderSubscription(m.subscription);

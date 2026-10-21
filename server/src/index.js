@@ -153,9 +153,10 @@ if (require.main === module) {
     /* 支付配置自检：只输出布尔值与公开 ID，不输出私钥。 */
     const wp = require('./waffo').status();
     const readyProducts = Object.values(wp.products).filter(p => p.configured).length;
+    const totalProducts = Object.keys(wp.products).length;
     console.log('  payments=' + wp.environment + ' key=' +
       (wp.privateKeyValid ? 'ok' : wp.privateKeyPresent ? 'INVALID' : 'missing') +
-      ' products=' + readyProducts + '/3');
+      ' products=' + readyProducts + '/' + totalProducts);
     if (config.isProd && !config.waffoEnvironmentInput) {
       console.warn('[waffo] WAFFO_ENVIRONMENT is not set in production; defaulting to test — webhooks will be verified with the TEST key');
     }

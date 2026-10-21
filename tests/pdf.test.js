@@ -85,16 +85,13 @@ test.before(async () => {
   /* 建两个账号：supporter@example.com（有权益）、plain@example.com（无权益） */
   await createUser('supporter@example.com', 'supporter-pass-1');
   await createUser('plain@example.com', 'plain-pass-123');
-  // 新注册会获得 3 个月上线赠送；plain 账号需要先撤销，才能测试「无权益」
-  revokeFamilySource(dbRef, familyId('plain@example.com'), 'promo');
-  grantFamilyEntitlement(dbRef, {
-    familyId: familyId('supporter@example.com'), userId: userId('supporter@example.com'),
-    featureKey: 'pdf_worksheet', sourceType: 'grant'
-  });
-  grantFamilyEntitlement(dbRef, {
-    familyId: familyId('supporter@example.com'), userId: userId('supporter@example.com'),
-    featureKey: 'celebration_image', sourceType: 'grant'
-  });
+  // 新注册不再赠送会员：supporter 显式授予全部权益，plain 保持无权益
+  for (const featureKey of ['pdf_worksheet', 'celebration_image', 'live_race']) {
+    grantFamilyEntitlement(dbRef, {
+      familyId: familyId('supporter@example.com'), userId: userId('supporter@example.com'),
+      featureKey, sourceType: 'grant'
+    });
+  }
 });
 
 test.after(async () => {
@@ -237,7 +234,6 @@ test('/api/me 返回去重后的有效权益键', async () => {
 
 test('过期权益与已撤销权益都不能生成', async () => {
   await createUser('expired@example.com', 'expired-pass-12');
-  revokeFamilySource(dbRef, familyId('expired@example.com'), 'promo');
   grantFamilyEntitlement(dbRef, {
     familyId: familyId('expired@example.com'), userId: userId('expired@example.com'),
     featureKey: 'pdf_worksheet',
@@ -248,7 +244,6 @@ test('过期权益与已撤销权益都不能生成', async () => {
   assert.strictEqual(r.status, 403);
 
   await createUser('revoked@example.com', 'revoked-pass-1');
-  revokeFamilySource(dbRef, familyId('revoked@example.com'), 'promo');
   grantFamilyEntitlement(dbRef, {
     familyId: familyId('revoked@example.com'), userId: userId('revoked@example.com'),
     featureKey: 'pdf_worksheet', sourceType: 'grant'
@@ -263,6 +258,10 @@ test('过期权益与已撤销权益都不能生成', async () => {
 test('限流：同一账号 10 分钟内第 21 次 → 429（独立用户桶不受影响）', async () => {
   /* 前面用例已为 supporter 消耗少量配额；先切到全新账号精确计数 */
   await createUser('burst@example.com', 'burst-pass-123');
+  grantFamilyEntitlement(dbRef, {
+    familyId: familyId('burst@example.com'), userId: userId('burst@example.com'),
+    featureKey: 'pdf_worksheet', sourceType: 'grant'
+  });
   await loginAs('burst@example.com', 'burst-pass-123');
   let last;
   for (let i = 0; i < 21; i++) {

@@ -281,11 +281,6 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
   font-size: 17px; font-weight: 600; color: var(--ink-soft);
 }
 .pricing-hero .lede b { color: var(--red-deep); }
-.launch-offer {
-  display: inline-block; margin-top: 16px; padding: 8px 16px; border-radius: 999px;
-  background: var(--red-light); color: var(--red-deep);
-  font-size: 13.5px; font-weight: 700;
-}
 .pricing-hero-actions { margin-top: 18px; }
 
 /* 套餐栏：四列共用一个外框，列间 2px 缝隙充当分隔线 */

@@ -8,6 +8,18 @@ const fs = require('node:fs');
 
 const { initDb } = require('../server/src/db');
 const { createApp } = require('../server/src/index');
+const { SUPPORTER_FEATURES, grantFamilyEntitlement } = require('../server/src/entitlements');
+
+/* 新注册不再赠送会员；这个文件里的档案相关用例需要有效会员。 */
+function grantMembership(email) {
+  const u = dbRef.prepare('SELECT id, family_id FROM users WHERE email_normalized = ?').get(email);
+  for (const featureKey of SUPPORTER_FEATURES) {
+    grantFamilyEntitlement(dbRef, {
+      familyId: u.family_id, userId: u.id, featureKey,
+      sourceType: 'grant', sourceId: 'test-server'
+    });
+  }
+}
 
 let base, jar, csrfToken, mailCapture, serverRef, dbRef;
 
@@ -154,6 +166,9 @@ test('注册 → 邮箱验证 → 重复注册 409', async () => {
   assert.strictEqual(verify.json.data.verified, true);
   const reuse = await req('POST', '/api/auth/verify-email', { token });
   assert.strictEqual(reuse.status, 400); // 一次性
+
+  // 后续档案用例需要有效会员；注册本身不再赠送
+  grantMembership('parent@example.com');
 });
 
 test('登录失败统一 401；成功建立会话并轮换；me 返回邮箱与档案', async () => {

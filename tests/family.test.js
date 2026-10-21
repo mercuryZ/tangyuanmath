@@ -10,8 +10,10 @@ const fs = require('node:fs');
 
 const { initDb } = require('../server/src/db');
 const { createApp } = require('../server/src/index');
-const { addCalendarMonths, LAUNCH_TRIAL_MONTHS } = require('../server/src/family');
-const { revokeFamilySource } = require('../server/src/entitlements');
+const { addCalendarMonths } = require('../server/src/family');
+const {
+  SUPPORTER_FEATURES, grantFamilyEntitlement, revokeFamilySource
+} = require('../server/src/entitlements');
 const { resolveGoogleUser } = require('../server/src/auth');
 
 let base, db, server, dbFile, mailCapture;
@@ -92,6 +94,17 @@ function familyCount() {
   return db.prepare('SELECT COUNT(*) c FROM families').get().c;
 }
 
+/* 测试辅助：新注册不再赠送会员，需要会员的用例显式授予。
+ * 用 grant 来源，避免与 order/promo 语义混淆。 */
+function grantMembership(familyId, expiresAt) {
+  for (const featureKey of SUPPORTER_FEATURES) {
+    grantFamilyEntitlement(db, {
+      familyId, featureKey, sourceType: 'grant', sourceId: 'test-membership',
+      startsAt: Date.now() - 1000, expiresAt: expiresAt === undefined ? null : expiresAt
+    });
+  }
+}
+
 test.before(async () => {
   dbFile = path.join(os.tmpdir(), 'tm-family-test-' + Date.now() + '.db');
   db = initDb(dbFile);
@@ -118,7 +131,7 @@ test('自然月加法：1 月 31 日 + 3 个月 = 4 月 30 日', () => {
   assert.strictEqual(new Date(addCalendarMonths(dec31, 2)).toISOString().slice(0, 10), '2027-02-28');
 });
 
-test('注册：创建家庭并赠送 3 个月全部 Supporter 权益（每家庭一次）', async () => {
+test('注册：创建家庭，不再赠送免费会员', async () => {
   const before = familyCount();
   const c = await newAccount('fam1@example.com');
   assert.strictEqual(familyCount(), before + 1);
@@ -128,26 +141,17 @@ test('注册：创建家庭并赠送 3 个月全部 Supporter 权益（每家庭
   const d = me.json.data;
   assert.strictEqual(d.user.familyRole, 'owner');
   assert.deepStrictEqual(d.family.seats, { parents: 1, maxParents: 2, children: 0, maxChildren: 2 });
-  assert.deepStrictEqual(d.entitlements, ['celebration_image', 'live_race', 'pdf_worksheet']);
-  assert.strictEqual(d.membership.active, true);
-  assert.strictEqual(d.membership.plan, 'launch_trial');
-
-  const now = Date.now();
-  const days = (d.membership.expiresAt - now) / (24 * 3600 * 1000);
-  assert.ok(days > 80 && days < 95, '3 个自然月，实际约 ' + days.toFixed(1) + ' 天');
-  assert.strictEqual(LAUNCH_TRIAL_MONTHS, 3);
+  assert.deepStrictEqual(d.entitlements, []);
+  assert.strictEqual(d.membership.active, false);
+  assert.strictEqual(d.membership.plan, null);
 
   const rows = db.prepare(
-    "SELECT feature_key FROM entitlements WHERE family_id = ? AND source_type = 'promo'"
-  ).all(d.family.id).map(r => r.feature_key).sort();
-  assert.deepStrictEqual(rows, ['celebration_image', 'live_race', 'pdf_worksheet']);
-
-  // 重复调用不会叠加第二份赠送
-  const { grantLaunchTrial } = require('../server/src/family');
-  assert.strictEqual(grantLaunchTrial(db, d.family.id), 0);
+    'SELECT feature_key FROM entitlements WHERE family_id = ?'
+  ).all(d.family.id);
+  assert.deepStrictEqual(rows, [], '注册不应写入任何权益（包括旧 promo）');
 });
 
-test('Google 全新账号：同样创建家庭并赠送 3 个月', () => {
+test('Google 全新账号：创建家庭，不赠送免费会员', () => {
   const before = familyCount();
   const resolved = resolveGoogleUser(db, {
     sub: 'google-new-1', email: 'google-new@example.com', locale: 'en'
@@ -156,14 +160,15 @@ test('Google 全新账号：同样创建家庭并赠送 3 个月', () => {
   assert.ok(resolved.user.family_id);
   assert.strictEqual(familyCount(), before + 1);
   const keys = db.prepare(
-    "SELECT feature_key FROM entitlements WHERE family_id = ? AND source_type = 'promo' ORDER BY feature_key"
+    'SELECT feature_key FROM entitlements WHERE family_id = ? ORDER BY feature_key'
   ).all(resolved.user.family_id).map(r => r.feature_key);
-  assert.deepStrictEqual(keys, ['celebration_image', 'live_race', 'pdf_worksheet']);
+  assert.deepStrictEqual(keys, []);
 });
 
 test('共同家长：邮箱邀请 → 接受 → 合并空家庭，共享会员；席位与令牌保护', async () => {
   const owner = await newAccount('fam2-owner@example.com');
   const ownerFam = familyOf('fam2-owner@example.com').family_id;
+  grantMembership(ownerFam); // 邀请另一位家长需要有效会员
   const before = familyCount();
 
   let r = await owner.fetch('POST', '/api/family/invite', { email: 'fam2-coparent@example.com' });
@@ -207,6 +212,7 @@ test('共同家长：邮箱邀请 → 接受 → 合并空家庭，共享会员�
 
 test('邀请：邮箱不匹配、过期、已有子女的家庭不能合并', async () => {
   const owner = await newAccount('fam3-owner@example.com');
+  grantMembership(familyOf('fam3-owner@example.com').family_id);
   let r = await owner.fetch('POST', '/api/family/invite', { email: 'fam3-invitee@example.com' });
   assert.strictEqual(r.status, 200);
   const token = tokenFromMail(lastMail('family'));
@@ -217,6 +223,7 @@ test('邀请：邮箱不匹配、过期、已有子女的家庭不能合并', as
   assert.strictEqual(r.json.code, 'invite_email_mismatch');
 
   const invitee = await newAccount('fam3-invitee@example.com');
+  grantMembership(familyOf('fam3-invitee@example.com').family_id);
   // 邀请对象先创建了子女 → 家庭不再可合并
   r = await invitee.fetch('POST', '/api/profiles', { nickname: 'Kid', username: 'fam3kid', password: 'child-pass-123' });
   assert.strictEqual(r.status, 200);
@@ -234,6 +241,7 @@ test('邀请：邮箱不匹配、过期、已有子女的家庭不能合并', as
 
 test('子女账号：创建 2 个、用户名登录、越权拦截、密码重置撤销旧会话', async () => {
   const parent = await newAccount('fam4-parent@example.com');
+  grantMembership(familyOf('fam4-parent@example.com').family_id);
   let r = await parent.fetch('POST', '/api/profiles', {
     nickname: 'Kid One', username: 'fam4kid1', password: 'child-pass-123'
   });
@@ -288,6 +296,7 @@ test('子女账号：创建 2 个、用户名登录、越权拦截、密码重�
 
   // 全局唯一用户名
   const other = await newAccount('fam4-other@example.com');
+  grantMembership(familyOf('fam4-other@example.com').family_id);
   r = await other.fetch('POST', '/api/profiles', {
     nickname: 'Copy', username: 'fam4kid1', password: 'child-pass-123'
   });
@@ -322,7 +331,8 @@ test('未验证邮箱：不能创建子女或邀请另一位家长', async () =>
 test('会员到期：不能新增子女，PDF 与联机对战权益失效', async () => {
   const parent = await newAccount('fam5-parent@example.com');
   const fam = familyOf('fam5-parent@example.com').family_id;
-  revokeFamilySource(db, fam, 'promo');
+  grantMembership(fam);
+  revokeFamilySource(db, fam, 'grant');
 
   let r = await parent.fetch('POST', '/api/profiles', { nickname: 'After Expiry', username: 'fam5kid', password: 'child-pass-123' });
   assert.strictEqual(r.status, 403);
@@ -340,6 +350,7 @@ test('会员到期：不能新增子女，PDF 与联机对战权益失效', asyn
 test('owner 删除：家长身份转交共同家长，子女不被 creator 级联删除', async () => {
   const owner = await newAccount('fam7-owner@example.com');
   const fam = familyOf('fam7-owner@example.com').family_id;
+  grantMembership(fam);
   let r = await owner.fetch('POST', '/api/profiles', { nickname: 'Owner Kid', username: 'fam7kid', password: 'child-pass-123' });
   assert.strictEqual(r.status, 200);
   const childId = r.json.data.profile.id;
@@ -363,6 +374,7 @@ test('owner 删除：家长身份转交共同家长，子女不被 creator 级�
 test('账号删除：共同家长离开时家庭与子女保留；最后一位家长删除整个家庭', async () => {
   const owner = await newAccount('fam6-owner@example.com');
   const fam = familyOf('fam6-owner@example.com').family_id;
+  grantMembership(fam);
   let r = await owner.fetch('POST', '/api/family/invite', { email: 'fam6-coparent@example.com' });
   assert.strictEqual(r.status, 200);
   const token = tokenFromMail(lastMail('family'));

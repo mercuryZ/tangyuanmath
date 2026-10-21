@@ -12,10 +12,17 @@ const WebSocket = require('../server/node_modules/ws');
 
 const { initDb } = require('../server/src/db');
 const { createApp, attachLiveRace } = require('../server/src/index');
-const { revokeFamilySource } = require('../server/src/entitlements');
+const { SUPPORTER_FEATURES, grantFamilyEntitlement } = require('../server/src/entitlements');
 
-function familyIdFor(email) {
-  return db.prepare('SELECT family_id FROM users WHERE email_normalized = ?').get(email).family_id;
+/* 新注册不再赠送会员；需要参赛/建子女的账号显式授予。 */
+function grantMembership(email) {
+  const u = db.prepare('SELECT id, family_id FROM users WHERE email_normalized = ?').get(email);
+  for (const featureKey of SUPPORTER_FEATURES) {
+    grantFamilyEntitlement(db, {
+      familyId: u.family_id, userId: u.id, featureKey,
+      sourceType: 'grant', sourceId: 'test-race'
+    });
+  }
 }
 
 let base, httpBase, db, server, race, dbFile, mailCapture;
@@ -73,6 +80,7 @@ async function createProfile(session, nickname, credentials) {
 /* 家长创建子女账号 → 子女用用户名密码登录，拿到 tm_session */
 async function newChild(email, username) {
   const { session } = await newSession(email);
+  grantMembership(email); // 创建子女需要有效会员
   const pid = await createProfile(session, 'Kid ' + username, {
     username, password: 'child-pass-123'
   });
@@ -233,9 +241,8 @@ test('WS：游客与无会员家长被会员门禁拒绝，且零落库', async 
   assert.strictEqual((await guest.wait('error')).code, 'login_required');
   await guest.close();
 
-  // 已登录但没有会员（撤销上线赠送）
+  // 已登录但没有会员（新注册不再赠送）
   const { session } = await newSession('nomember@example.com');
-  revokeFamilySource(db, familyIdFor('nomember@example.com'), 'promo');
   const parent = connect({ cookie: session, origin: httpBase });
   await parent.open();
   const helloParent = await parent.wait('hello');
@@ -251,6 +258,7 @@ test('WS：游客与无会员家长被会员门禁拒绝，且零落库', async 
 test('WS：子女对局落库；家长直接参赛不落库', async () => {
   const { parentSession, childSession, pid } = await newChild('race3@example.com', 'kidthree');
   const other = await newSession('race4@example.com');
+  grantMembership('race4@example.com');
 
   const a = connect({ cookie: childSession, origin: httpBase });
   const b = connect({ cookie: other.session, origin: httpBase });
@@ -313,6 +321,8 @@ test('WS：子女对局落库；家长直接参赛不落库', async () => {
 test('WS：断线后带座位令牌重连，回归原座位并保留进度', async () => {
   const aS = (await newSession('race5@example.com')).session;
   const bS = (await newSession('race6@example.com')).session;
+  grantMembership('race5@example.com');
+  grantMembership('race6@example.com');
   const a = connect({ cookie: aS, origin: httpBase });
   const b = connect({ cookie: bS, origin: httpBase });
   await a.open(); await b.open();

@@ -11,7 +11,7 @@ const { createApp } = require('../server/src/index');
 const mw = require('../server/src/middleware');
 const config = require('../server/src/config');
 const orderStore = require('../server/src/order-store');
-const { initFamilyForNewUser } = require('../server/src/family');
+const { initFamilyForNewUser, membershipSummary } = require('../server/src/family');
 const { revokeFamilySource } = require('../server/src/entitlements');
 const waffo = require('../server/src/waffo');
 
@@ -25,8 +25,6 @@ function fixture() {
     'INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, created_at) VALUES (?,?,?,?,?)'
   ).run('parent-' + now + '@example.com', 'hash', now, 'en', now).lastInsertRowid);
   const familyId = initFamilyForNewUser(db, userId);
-  // 清掉上线赠送，测试只看 order 来源
-  revokeFamilySource(db, familyId, 'promo', 'launch-2026');
   return {
     dir, db, userId, familyId,
     cleanup() { db.close(); fs.rmSync(dir, { recursive: true, force: true }); }
@@ -561,6 +559,12 @@ test('尝鲜 $1/7天：order.completed 开通 7 天到期权益，重复事件�
 
     assert.strictEqual(process(f.db, event).status, 'duplicate');
     assert.strictEqual(orderEntitlements(f.db, f.familyId).length, 3);
+
+    // 尝鲜是一次性商品，不应出现在「订阅续费」信息里
+    const summary = membershipSummary(f.db, f.familyId);
+    assert.strictEqual(summary.active, true);
+    assert.strictEqual(summary.plan, 'order');
+    assert.strictEqual(summary.subscription, null);
   } finally {
     f.cleanup();
   }

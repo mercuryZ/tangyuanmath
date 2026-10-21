@@ -38,7 +38,7 @@ window.TM_I18N.zh = {
   'home.mistakes.emptyDesc': '还没有错题——练习或挑战中做错的题会出现在这里。',
   'home.mistakes.cta': '开始重练 →',
   'home.versus.title': '和朋友比一场',
-  'home.versus.desc': '会员专属。同一套题、同一个倒计时——新家庭首送 3 个月。',
+  'home.versus.desc': '会员专属。同一套题、同一个倒计时——$1 体验 7 天。',
   'home.versus.cta': '发起对战 →',
 
   /* Live Race（M1.5，DESIGN §13） */
@@ -59,8 +59,8 @@ window.TM_I18N.zh = {
   'race.gate.title': '联机对战属于支持者会员',
   'race.gate.desc': '一份会员最多覆盖 2 位家长和 2 名子女。',
   'race.gate.titleLogin': '登录后开始对战',
-  'race.gate.descLogin': '联机对战属于支持者会员。登录或注册新账号——每个新家庭首送 3 个月。',
-  'race.gate.offer': '新家庭专享：3 个月支持者会员免费，无需绑卡。',
+  'race.gate.descLogin': '联机对战属于支持者会员。登录或注册新账号——$1 体验 7 天。',
+  'race.gate.offer': '尝鲜价：$1 体验 7 天支持者会员——一次付款，不会自动续费。',
   'race.gate.register': '免费注册',
   'race.gate.signin': '登录',
   'race.gate.pricing': '查看会员方案',
@@ -234,7 +234,7 @@ window.TM_I18N.zh = {
   'acct.loginBtn': '登录',
   'acct.registerBtn': '注册',
   'acct.registerHint': '注册后会发送验证链接（演示环境中链接会打印在服务器控制台）。',
-  'acct.registerOffer': '新家庭免费获得 3 个月支持者会员——无需绑卡，含联机对战与自定义练习卷。',
+  'acct.registerOffer': '可以 $1 体验 7 天支持者会员——含联机对战与自定义练习卷。',
   'acct.sendResetBtn': '发送重置链接',
   'acct.forgotHint': '如果该邮箱已注册，重置链接已发送。',
   'acct.resetBtn': '设置新密码',
@@ -256,7 +256,6 @@ window.TM_I18N.zh = {
   'acct.loginStudentBtn': '以学生身份登录',
 
   'acct.membershipTitle': '会员',
-  'acct.membershipTrial': '上线活动——支持者会员有效期至 {date}',
   'acct.membershipActive': '支持者会员有效期至 {date}',
   'acct.membershipLifetime': '支持者会员——永久有效',
   'acct.membershipNone': '当前没有有效会员',

@@ -38,7 +38,7 @@ window.TM_I18N.en = {
   'home.mistakes.emptyDesc': 'Nothing to review yet — mistakes you make in Practice or Challenge will show up here.',
   'home.mistakes.cta': 'Review Mistakes →',
   'home.versus.title': 'Race a Friend',
-  'home.versus.desc': 'Members only. Same questions, same clock — new families get 3 months free.',
+  'home.versus.desc': 'Members only. Same questions, same clock — try 7 days for $1.',
   'home.versus.cta': 'Start a race →',
 
   /* Live Race（M1.5，DESIGN §13） */
@@ -59,8 +59,8 @@ window.TM_I18N.en = {
   'race.gate.title': 'Live Race is part of Supporter',
   'race.gate.desc': 'One membership covers up to 2 parents and 2 children.',
   'race.gate.titleLogin': 'Sign in to race',
-  'race.gate.descLogin': 'Live Race is part of Supporter. Sign in, or create a free account — every new family gets 3 months.',
-  'race.gate.offer': 'New family offer: 3 months of Supporter free — no card required.',
+  'race.gate.descLogin': 'Live Race is part of Supporter. Sign in, or create a free account — you can try 7 days for $1.',
+  'race.gate.offer': 'Intro offer: 7 days of Supporter for $1 — one payment, no auto-renewal.',
   'race.gate.register': 'Create free account',
   'race.gate.signin': 'Sign in',
   'race.gate.pricing': 'See membership',
@@ -234,7 +234,7 @@ window.TM_I18N.en = {
   'acct.loginBtn': 'Sign in',
   'acct.registerBtn': 'Create account',
   'acct.registerHint': 'We\u2019ll send a verification link (in this demo it appears in the server console).',
-  'acct.registerOffer': 'New families get 3 months of Supporter free \u2014 no card required. Live Race and custom worksheets included.',
+  'acct.registerOffer': 'Try Supporter for 7 days for $1 \u2014 Live Race and custom worksheets included.',
   'acct.sendResetBtn': 'Send reset link',
   'acct.forgotHint': 'If the email exists, a reset link has been sent.',
   'acct.resetBtn': 'Set new password',
@@ -256,7 +256,6 @@ window.TM_I18N.en = {
   'acct.loginStudentBtn': 'Sign in as student',
 
   'acct.membershipTitle': 'Membership',
-  'acct.membershipTrial': 'Launch offer — Supporter until {date}',
   'acct.membershipActive': 'Supporter active until {date}',
   'acct.membershipLifetime': 'Supporter — lifetime access',
   'acct.membershipNone': 'No active membership',

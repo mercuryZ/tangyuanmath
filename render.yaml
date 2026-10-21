@@ -62,7 +62,8 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       # Waffo Pancake 支付。Merchant/Store ID 是公开标识；私钥与商品 ID 只在控制台填写。
-      # 2026-10-21 已在生产环境创建并发布三个商品（与定价页一致 $4.99/$49/$149），控制台需同步设置：
+      # 2026-10-21 已在生产环境创建并发布商品（$1 7 天尝鲜、$4.99 月付、$49 年付、$149 永久），控制台需同步设置：
+      #   WAFFO_PRODUCT_TRIAL7=PROD_5JlW69aOEaD1VtL7PiwYBX
       #   WAFFO_PRODUCT_MONTHLY=PROD_71yskxGFcF5Q3cjpSw7dmT
       #   WAFFO_PRODUCT_YEARLY=PROD_4pqzHIrp1JloGbGQI4fqyt
       #   WAFFO_PRODUCT_LIFETIME=PROD_1hRroFAQXQiaA93WsqCDR1
@@ -74,6 +75,8 @@ services:
       - key: WAFFO_ENVIRONMENT
         value: prod
       - key: WAFFO_PRIVATE_KEY
+        sync: false
+      - key: WAFFO_PRODUCT_TRIAL7
         sync: false
       - key: WAFFO_PRODUCT_MONTHLY
         sync: false
