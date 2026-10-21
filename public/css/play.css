@@ -244,7 +244,7 @@ body {
 
 .btn-row { display: flex; gap: 12px; margin-top: 24px; justify-content: center; flex-wrap: wrap; }
 .btn {
-  border: none; cursor: pointer; font: 900 15px/1 inherit; letter-spacing: .4px;
+  border: none; cursor: pointer; font: 900 18px/1 inherit; letter-spacing: .4px;
   padding: 13px 30px; border-radius: 999px; color: #fff;
   text-decoration: none;
   transition: transform .1s, box-shadow .15s;
@@ -255,6 +255,20 @@ body {
   box-shadow: 0 4px 0 var(--red-dark), 0 8px 20px rgba(242, 85, 90, .3);
 }
 .btn.primary:active { box-shadow: 0 1px 0 var(--red-dark); }
+/* 关键行动按钮统一类 .cta：Start Practice / Check Answers / Next Level /
+ * Create room / Join room / Create free account / Start race / Submit answers /
+ * Rematch / Result OK。所有关键按钮共用这一条规则，改这里即可统一调整。
+ * 当前沿用 race-gate 主 CTA 的外观（12px 圆角、15px、4px 硬阴影）。 */
+.btn.cta {
+  border-radius: 12px;
+  padding: 14px 26px;
+  font-size: 15px;
+  box-shadow: 0 4px 0 var(--red-dark), 0 10px 24px rgba(242, 85, 90, .3);
+}
+.btn.cta:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--red-dark);
+}
 .btn.ghost { background: #fff; color: var(--red-deep); border: 2px solid var(--pink); box-shadow: 0 4px 0 var(--pink-light); }
 .btn.ghost:active { box-shadow: 0 1px 0 var(--pink-light); }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
@@ -392,17 +406,9 @@ body {
 }
 #view-race-gate { text-align: center; }
 .race-gate-card { max-width: 620px; margin: 0 auto; text-align: center; }
-/* 主 CTA 与定价页「订阅年付」按钮同款：12px 圆角、同色渐变、4px 硬阴影 */
-#raceGatePrimary {
-  border-radius: 12px;
-  padding: 14px 26px;
-  font-size: 15px;
-  box-shadow: 0 4px 0 var(--red-dark), 0 10px 24px rgba(242, 85, 90, .3);
-}
-#raceGatePrimary:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--red-dark);
-}
+/* Back 按钮：与家长中心登录主按钮保持相同字号/字重 */
+#raceGateBack { font-size: 14px; font-weight: 500; }
+/* race-gate 主 CTA 使用统一的 .btn.cta 样式（见上方） */
 .race-gate-offer { font-size: 14.5px; font-weight: 800; color: var(--red-deep); line-height: 1.6; }
 .race-lobby { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 8px; }
 .race-card {
