@@ -114,7 +114,12 @@ function createApp(db, opts) {
     extensions: ['html'],
     maxAge: config.isProd ? '1h' : 0,
     setHeaders(res, filePath) {
-      if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+      /* HTML 与 CSS/JS 必须和最新部署保持一致（CDN 前置会把可缓存资源放大到 4 小时），
+       * 用 no-cache 走 304 协商：始终新鲜，代价只是一次再验证请求。
+       * 图片/PDF 等内容型资源保留 1 小时缓存。 */
+      if (filePath.endsWith('.html') || filePath.endsWith('.css') || filePath.endsWith('.js')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
     }
   }));
 
