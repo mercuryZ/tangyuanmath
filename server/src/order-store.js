@@ -97,6 +97,14 @@ function setCheckoutSession(db, orderId, session) {
   ).run(session.sessionId || null, expiresAt, Date.now(), orderId);
 }
 
+/* 是否有过已确认的订单（含已取消/已退款），用于决定是否显示账单门户入口。 */
+function hasAnyOrder(db, familyId) {
+  return !!db.prepare(
+    `SELECT 1 FROM orders
+     WHERE family_id = ? AND status NOT IN ('pending','failed','expired') LIMIT 1`
+  ).get(familyId);
+}
+
 function listFamilyOrders(db, familyId, limit) {
   const n = Math.min(Math.max(Number(limit) || 20, 1), 50);
   return db.prepare(
@@ -342,6 +350,7 @@ module.exports = {
   createPendingOrder,
   findReusablePendingOrder,
   getOrderByNo,
+  hasAnyOrder,
   listFamilyOrders,
   setCheckoutSession,
   processWaffoEvent,

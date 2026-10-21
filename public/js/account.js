@@ -254,7 +254,30 @@
       hint.textContent = t('acct.membershipHintActive');
     }
     renderSubscription(m.subscription);
+    renderBillingPortal(m);
     $('membershipLink').href = pricingUrl();
+  }
+
+  /* Waffo 客户门户：取消订阅、更新支付方式、查看账单、提交退款申请。
+   * 链接是 bearer token，服务端每次点击即时签发，前端只负责在用户手势中打开新标签页。 */
+  function renderBillingPortal(m) {
+    var btn = $('billingPortalBtn');
+    btn.hidden = !(m && m.hasOrders);
+    btn.onclick = async function () {
+      // 同步打开空白标签页，避免异步请求后弹窗被拦截
+      var win = window.open('', '_blank');
+      btn.disabled = true;
+      var r = await global.TMAPI.call('POST', '/api/orders/portal');
+      btn.disabled = false;
+      if (!r.ok) {
+        if (win) win.close();
+        toast(errMsg(r), true);
+        return;
+      }
+      if (!win) { toast(t('acct.portalPopupBlocked'), true); return; }
+      win.opener = null;
+      win.location.href = r.data.portalUrl;
+    };
   }
 
   /* 订阅续费状态与取消入口（Waffo Pancake；取消后本周期仍可用） */

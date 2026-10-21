@@ -12,6 +12,7 @@
     "backup:list": "node scripts/backup.js list",
     "backup:verify": "node scripts/backup.js verify",
     "backup:prune": "node scripts/backup.js prune",
+    "waffo:doctor": "node scripts/waffo-doctor.js",
     "waffo:products": "node scripts/waffo-setup.js products",
     "waffo:list": "node scripts/waffo-setup.js list",
     "waffo:webhook": "node scripts/waffo-setup.js webhook",

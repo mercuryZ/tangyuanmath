@@ -270,6 +270,8 @@ window.TM_I18N.en = {
   'acct.cancelRenewal': 'Cancel renewal',
   'acct.cancelRenewalConfirm': 'Cancel automatic renewal? You keep access until the end of the paid period.',
   'acct.cancelRenewalDone': 'Renewal cancelled. Access continues until the end of the paid period.',
+  'acct.billingPortal': 'Manage subscription & refunds',
+  'acct.portalPopupBlocked': 'Please allow pop-ups for this site, then try again.',
   'acct.checkoutSuccess': 'Payment received — your membership is active.',
 
   'acct.familyTitle': 'Family',

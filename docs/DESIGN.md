@@ -924,11 +924,11 @@ PDF 服务端鉴权、限流、限制并发和超时。
 - [x] USD 金额和税费映射（金额以 USD 最小单位入库；销售税由 Waffo 作为 MoR 计算）
 - [x] PDF Letter / A4 与答案页（2026-10-19：entitlements 权益门禁 + pdf-lib 生成已上线并通过测试）
 - [ ] 本地图片设置
-- [x] 退款和权益撤销（`refund.succeeded` 只撤销该订单来源；拒付/dispute 状态处理待补）
+- [x] 退款和权益撤销（家长中心可打开 Waffo 客户门户提交退款申请；`refund.succeeded` 只撤销该订单来源；拒付/dispute 状态处理待补）
 - [x] 清晰价格与售后说明
 - [ ] 上线前完成受控真实交易与退款测试
 
-**实施记录（2026-10-20）**：Waffo Pancake 托管结账已接入。迁移 6 新增 `orders` / `payment_events`；`server/src/waffo.js` 封装 SDK 与商品配置，`server/src/order-store.js` 负责订单与 webhook 事件，`server/src/payment-routes.js` 提供 `/api/orders`、取消续费与 `/api/payments/waffo/webhook`。webhook 使用原始 body 验签，按 `(provider, event_id)` 去重，并核对店铺、环境、币种、SKU 与金额后才写入权益；success URL 不授予权益。家长中心显示订阅状态并支持取消续费。`tests/waffo.test.js` 覆盖 13 项。商品与 webhook 通过 `server/scripts/waffo-setup.js` 一次性配置。
+**实施记录（2026-10-20）**：Waffo Pancake 托管结账已接入。迁移 6 新增 `orders` / `payment_events`；`server/src/waffo.js` 封装 SDK 与商品配置，`server/src/order-store.js` 负责订单与 webhook 事件，`server/src/payment-routes.js` 提供 `/api/orders`、取消续费与 `/api/payments/waffo/webhook`。webhook 使用原始 body 验签，按 `(provider, event_id)` 去重，并核对店铺、环境、币种、SKU 与金额后才写入权益；success URL 不授予权益。家长中心显示订阅状态、支持取消续费，并可通过 `/api/orders/portal` 打开 Waffo 客户门户（取消订阅、更新支付方式、查看账单、提交退款申请）；门户链接用 `auth.createCustomerPortalLink` 每次点击即时签发，带 bearer token，响应 `Cache-Control: no-store`。`tests/waffo.test.js` 覆盖 14 项。商品与 webhook 通过 `server/scripts/waffo-setup.js` 一次性配置。
 
 验收：success URL 不能伪造权益；重复回调不重复开通；非会员不能生成付费 PDF；图片不产生上传请求。
 

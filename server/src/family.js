@@ -113,9 +113,13 @@ function membershipSummary(db, familyId, now) {
               created_at DESC
      LIMIT 1`
   ).get(familyId, t) || null;
+  const hasOrders = !!db.prepare(
+    `SELECT 1 FROM orders
+     WHERE family_id = ? AND status NOT IN ('pending','failed','expired') LIMIT 1`
+  ).get(familyId);
   const rows = listActiveEntitlements(db, familyId, now);
   if (!rows.length) {
-    return { active: false, plan: null, sourceType: null, expiresAt: null, subscription };
+    return { active: false, plan: null, sourceType: null, expiresAt: null, subscription, hasOrders };
   }
   const priority = { order: 4, redeem: 3, grant: 2, promo: 1 };
   rows.sort((a, b) => {
@@ -130,7 +134,8 @@ function membershipSummary(db, familyId, now) {
     plan: best.source_type === 'promo' ? 'launch_trial' : best.source_type,
     sourceType: best.source_type,
     expiresAt: best.expires_at,
-    subscription
+    subscription,
+    hasOrders
   };
 }
 

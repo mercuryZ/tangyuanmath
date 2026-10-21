@@ -35,7 +35,7 @@ npm start          # default 3000, override with PORT=3100; serves the static si
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
 - Parent center: `/account/` (parent sign-in, family membership, co-parent invites, child accounts, synced stats & data management)
 
-Run the tests with `cd server && npm test` (118 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
+Run the tests with `cd server && npm test` (119 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
 
 ### Email delivery
 
@@ -96,6 +96,20 @@ Product tax categories default to `saas` for subscriptions and `digital_goods` f
 Test cards (any future expiry/CVC): success `4576 7500 0000 0110`; declined `4576 7500 0000 0220`. Webhook events carry `mode: "test" | "prod"`; the server ignores events from the other environment. `payment_events` deduplicates by `(provider, event_id)`, and each event is matched back to an order through `metadata.orderNo` / `orderMerchantExternalId`, then checked against store, mode, currency and SKU before any entitlement changes.
 
 Subscribe → monthly/yearly renewals extend the existing order's entitlements to `currentPeriodEnd`; `subscription.canceling` keeps access, `subscription.canceled` and `refund.succeeded` revoke only that order's source. Cancelling from the Parent Center calls `orders.cancelSubscription()`.
+
+**Manage subscription & refunds.** Parents also get a button in the Parent Center that opens the Waffo customer portal (`auth.createCustomerPortalLink`). The link is issued per click, expires within minutes, and is never cached or logged. The portal handles cancellation, payment-method changes, invoices and refund requests. Refund tickets are reviewed in the Waffo dashboard; when `refund.succeeded` arrives, only that order's entitlements are revoked.
+
+Troubleshooting:
+
+```bash
+cd server
+npm run waffo:doctor                     # config check, no secrets printed
+node --env-file=../.env.production scripts/waffo-doctor.js --api   # also query Waffo
+```
+
+- `503 payments_not_configured` → `WAFFO_PRIVATE_KEY` or one of the `WAFFO_PRODUCT_*` IDs is missing (check the exact variable names).
+- Payment succeeds but membership stays inactive → `WAFFO_ENVIRONMENT` must be `prod`; check the Waffo webhook delivery log (401 means the wrong environment's public key) and the `[waffo-webhook]` lines in the server log.
+- `waffo:doctor --api` also flags products whose Waffo price differs from `SKUS`.
 
 ### Backups
 

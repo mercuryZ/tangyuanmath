@@ -144,6 +144,24 @@ if (require.main === module) {
         config.backupRetentionDays + 'd, dir=' +
         (config.backupDir || require('node:path').join(require('node:path').dirname(config.dbFile), 'backups')));
     }
+
+    /* 支付配置自检：只输出布尔值与公开 ID，不输出私钥。 */
+    const wp = require('./waffo').status();
+    const readyProducts = Object.values(wp.products).filter(p => p.configured).length;
+    console.log('  payments=' + wp.environment + ' key=' +
+      (wp.privateKeyValid ? 'ok' : wp.privateKeyPresent ? 'INVALID' : 'missing') +
+      ' products=' + readyProducts + '/3');
+    if (config.isProd && !config.waffoEnvironmentInput) {
+      console.warn('[waffo] WAFFO_ENVIRONMENT is not set in production; defaulting to test — webhooks will be verified with the TEST key');
+    }
+    if (!wp.privateKeyPresent) {
+      console.warn('[waffo] WAFFO_PRIVATE_KEY is missing; online checkout is disabled');
+    } else if (!wp.privateKeyValid) {
+      console.warn('[waffo] WAFFO_PRIVATE_KEY is present but cannot be parsed (check quotes/newlines/base64)');
+    }
+    for (const [sku, p] of Object.entries(wp.products)) {
+      if (!p.productId) console.warn('[waffo] missing product ID for ' + sku + ' (set WAFFO_PRODUCT_*)');
+    }
   });
   attachLiveRace(server, db, { log: console.error });
 }

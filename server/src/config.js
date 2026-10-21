@@ -3,11 +3,32 @@
 
 const path = require('node:path');
 
-/* Waffo 私钥支持三种写法：PEM（含真实换行）、环境变量里的字面量 \n、以及 base64。
- * 私钥只保存在服务端环境变量里，绝不写日志或返回给前端。 */
-const waffoPrivateKey = process.env.WAFFO_PRIVATE_KEY_BASE64
-  ? Buffer.from(process.env.WAFFO_PRIVATE_KEY_BASE64, 'base64').toString('utf8')
-  : (process.env.WAFFO_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+/* 环境变量从控制台/聊天里复制时经常带引号或首尾空白；统一清理，但绝不打印值。
+ * Waffo 私钥支持 PEM（真实换行或字面量 \n）与裸 base64；_BASE64 变量按约定是
+ * 「PEM 文件的 base64」，若误放 PEM 也兼容。私钥只存在服务端环境变量里。 */
+function cleanEnv(value) {
+  let v = String(value == null ? '' : value).trim();
+  if (v.length >= 2) {
+    const q = v[0];
+    if ((q === '"' || q === "'") && v[v.length - 1] === q) v = v.slice(1, -1).trim();
+  }
+  return v;
+}
+
+function readWaffoPrivateKey() {
+  const pem = cleanEnv(process.env.WAFFO_PRIVATE_KEY);
+  const base64 = cleanEnv(process.env.WAFFO_PRIVATE_KEY_BASE64);
+  if (!base64) return pem.replace(/\\n/g, '\n');
+  if (/BEGIN [A-Z ]*PRIVATE KEY/.test(base64)) return base64.replace(/\\n/g, '\n');
+  const decoded = Buffer.from(base64.replace(/\s+/g, ''), 'base64').toString('utf8');
+  if (/BEGIN [A-Z ]*PRIVATE KEY/.test(decoded)) return decoded;
+  return base64; // 裸 base64 密钥数据，交给 SDK 处理
+}
+
+const waffoEnvironmentInput = cleanEnv(process.env.WAFFO_ENVIRONMENT).toLowerCase();
+const waffoEnvironment =
+  ['prod', 'production', 'live'].includes(waffoEnvironmentInput) ? 'prod' : 'test';
+const waffoPrivateKey = readWaffoPrivateKey();
 
 module.exports = {
   env: process.env.NODE_ENV || 'development',
@@ -42,14 +63,15 @@ module.exports = {
   backupIntervalHours: intEnv('TM_BACKUP_INTERVAL_HOURS', 24),
   /* Waffo Pancake 支付（托管结账）。Merchant/Store ID 是公开标识，允许用 env 覆盖；
    * 私钥必须来自环境变量。默认 test 环境，上线时改 WAFFO_ENVIRONMENT=prod。 */
-  waffoMerchantId: process.env.WAFFO_MERCHANT_ID || 'MER_47pr6GX7NZmc45XV3Yatqs',
-  waffoStoreId: process.env.WAFFO_STORE_ID || 'STO_0XhVdBglSpSA3dEQi6gfwt',
+  waffoMerchantId: cleanEnv(process.env.WAFFO_MERCHANT_ID) || 'MER_47pr6GX7NZmc45XV3Yatqs',
+  waffoStoreId: cleanEnv(process.env.WAFFO_STORE_ID) || 'STO_0XhVdBglSpSA3dEQi6gfwt',
   waffoPrivateKey,
-  waffoEnvironment: process.env.WAFFO_ENVIRONMENT === 'prod' ? 'prod' : 'test',
-  waffoWebhookPublicKey: process.env.WAFFO_WEBHOOK_PUBLIC_KEY || '',
-  waffoProductMonthly: process.env.WAFFO_PRODUCT_MONTHLY || '',
-  waffoProductYearly: process.env.WAFFO_PRODUCT_YEARLY || '',
-  waffoProductLifetime: process.env.WAFFO_PRODUCT_LIFETIME || ''
+  waffoEnvironment,
+  waffoEnvironmentInput: waffoEnvironmentInput || '',
+  waffoWebhookPublicKey: cleanEnv(process.env.WAFFO_WEBHOOK_PUBLIC_KEY),
+  waffoProductMonthly: cleanEnv(process.env.WAFFO_PRODUCT_MONTHLY),
+  waffoProductYearly: cleanEnv(process.env.WAFFO_PRODUCT_YEARLY),
+  waffoProductLifetime: cleanEnv(process.env.WAFFO_PRODUCT_LIFETIME)
 };
 
 function intEnv(name, fallback) {

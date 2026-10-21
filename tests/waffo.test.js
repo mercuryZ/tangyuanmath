@@ -247,10 +247,17 @@ test('webhook 校验：店铺、环境、币种、SKU、金额不符时一律不
 /* ---------- HTTP 路由 ---------- */
 
 function fakePayments() {
-  const calls = { checkout: [], cancel: [] };
+  const calls = { checkout: [], cancel: [], portal: [] };
   return {
     calls,
     isCheckoutConfigured: () => true,
+    createPortalLink: async buyerIdentity => {
+      calls.portal.push(buyerIdentity);
+      return {
+        portalUrl: 'https://portal.test/store/STO_test#token=portal-token',
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      };
+    },
     createCheckout: async (order, opts) => {
       calls.checkout.push({ order, opts });
       return {
@@ -303,7 +310,7 @@ async function api(base, token, csrf, method, p, body) {
     method, headers,
     body: body === undefined ? undefined : JSON.stringify(body)
   });
-  return { status: res.status, json: await res.json() };
+  return { status: res.status, json: await res.json(), headers: res.headers };
 }
 
 test('POST /api/orders：鉴权、SKU 校验、pending 订单与托管结账 URL', async () => {
@@ -419,6 +426,49 @@ test('订单查询跨家庭 404；订阅取消调用 Waffo 并更新状态', asy
     assert.strictEqual(r.json.data.status, 'canceling');
     assert.deepStrictEqual(payments.calls.cancel, ['ORD_sub_1']);
     assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'canceling');
+  } finally {
+    await ctx.close();
+    f.cleanup();
+  }
+});
+
+test('账单门户：家长获取一次性链接；无订单或子女会话被拒', async () => {
+  const f = fixture();
+  const payments = fakePayments();
+  const ctx = await startServer(f.db, payments);
+  try {
+    const token = mw.createSession(f.db, f.userId);
+    const csrf = await getCsrf(ctx.base, token);
+
+    let r = await api(ctx.base, token, csrf, 'POST', '/api/orders/portal');
+    assert.strictEqual(r.status, 404);
+    assert.strictEqual(r.json.code, 'no_orders');
+
+    const order = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
+    });
+    f.db.prepare("UPDATE orders SET status='paid', paid_at=? WHERE id=?").run(Date.now(), order.id);
+
+    r = await api(ctx.base, token, csrf, 'POST', '/api/orders/portal');
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.json.data.portalUrl.startsWith('https://portal.test/'));
+    assert.strictEqual(r.headers.get('cache-control'), 'no-store');
+    assert.deepStrictEqual(payments.calls.portal, ['family:' + f.familyId]);
+
+    const me = await api(ctx.base, token, csrf, 'GET', '/api/me');
+    assert.strictEqual(me.json.data.membership.hasOrders, true);
+
+    const childId = Number(f.db.prepare(
+      'INSERT INTO child_profiles (user_id, family_id, nickname, created_at) VALUES (?,?,?,?)'
+    ).run(f.userId, f.familyId, 'Kid', Date.now()).lastInsertRowid);
+    const childToken = mw.createChildSession(f.db, childId);
+    const childCsrf = await getCsrf(ctx.base, childToken);
+    r = await api(ctx.base, childToken, childCsrf, 'POST', '/api/orders/portal');
+    assert.strictEqual(r.status, 403);
+
+    const childMe = await api(ctx.base, childToken, childCsrf, 'GET', '/api/me');
+    assert.strictEqual(childMe.json.data.membership.hasOrders, undefined);
+    assert.strictEqual(childMe.json.data.membership.subscription, undefined);
   } finally {
     await ctx.close();
     f.cleanup();

@@ -6,6 +6,8 @@
  */
 'use strict';
 
+const crypto = require('node:crypto');
+
 const config = require('./config');
 
 const PROVIDER = 'waffo';
@@ -62,6 +64,45 @@ function isConfigured() {
 
 function isCheckoutConfigured(sku) {
   return isConfigured() && Boolean(productIdFor(sku));
+}
+
+/* 诊断用：只返回布尔值与公开 ID，绝不返回或打印私钥。 */
+function keyValidationPem(raw) {
+  const pem = String(raw || '').replace(/\\n/g, '\n').trim();
+  if (!pem) return null;
+  if (/BEGIN [A-Z ]*PRIVATE KEY/.test(pem)) return pem;
+  const compact = pem.replace(/\s+/g, '');
+  if (!/^[A-Za-z0-9+/]+=*$/.test(compact)) return null;
+  const wrapped = compact.match(/.{1,64}/g);
+  return wrapped
+    ? '-----BEGIN PRIVATE KEY-----\n' + wrapped.join('\n') + '\n-----END PRIVATE KEY-----'
+    : null;
+}
+
+function status() {
+  let keyValid = false;
+  if (config.waffoPrivateKey) {
+    try {
+      const pem = keyValidationPem(config.waffoPrivateKey);
+      if (pem) { crypto.createPrivateKey(pem); keyValid = true; }
+    } catch (e) { keyValid = false; }
+  }
+  const products = {};
+  for (const sku of Object.keys(SKUS)) {
+    products[sku] = {
+      productId: productIdFor(sku) || null,
+      configured: Boolean(isConfigured() && productIdFor(sku))
+    };
+  }
+  return {
+    environment: config.waffoEnvironment,
+    environmentInput: config.waffoEnvironmentInput || '(unset)',
+    merchantId: config.waffoMerchantId || null,
+    storeId: config.waffoStoreId || null,
+    privateKeyPresent: Boolean(config.waffoPrivateKey),
+    privateKeyValid: keyValid,
+    products
+  };
 }
 
 let client = null;
@@ -153,6 +194,18 @@ function verifyWebhook(rawBody, signatureHeader) {
   } catch (e) {
     throw paymentError('invalid_signature', 'Invalid Waffo webhook signature.', e);
   }
+}
+
+/* 客户自助门户：取消订阅、更新支付方式、查看账单、提交退款申请。
+ * 返回的 URL 带 bearer token（5–15 分钟有效），只能由服务端按当前会话即时签发，
+ * 不要缓存、记录日志或放进可分享的页面。 */
+async function createPortalLink(buyerIdentity) {
+  const c = getClient();
+  const result = await c.auth.createCustomerPortalLink({
+    storeId: config.waffoStoreId,
+    buyerIdentity
+  });
+  return { portalUrl: result.portalUrl, expiresAt: result.expiresAt };
 }
 
 /* 取消订阅续费：Waffo 会保留到当前计费周期结束（状态 canceling）。 */
@@ -271,8 +324,10 @@ module.exports = {
   createCheckout,
   isConfigured,
   isCheckoutConfigured,
+  status,
   productIdFor,
   verifyWebhook,
+  createPortalLink,
   cancelSubscription,
   listProducts,
   ensureProducts,

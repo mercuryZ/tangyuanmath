@@ -77,7 +77,7 @@ cd server
 npm install
 npm start          # 默认 3000，可用 PORT=3100 覆盖；静态站与 API 同源
 # 打开 http://127.0.0.1:3000（邮箱验证/重置链接打印在服务器控制台）
-npm test           # 118 项测试：题目生成、记录、错题本、家庭会员/邀请/子女登录、加密备份、Waffo 支付/订单/webhook，以及完整 HTTP/WebSocket API（含 Google 登录与邮件通道）
+npm test           # 119 项测试：题目生成、记录、错题本、家庭会员/邀请/子女登录、加密备份、Waffo 支付/订单/webhook，以及完整 HTTP/WebSocket API（含 Google 登录与邮件通道）
 ```
 
 ### 邮件发送
@@ -139,6 +139,20 @@ npm run waffo:publish        # 把测试环境商品发布到生产（上线时�
 测试卡（任意未来有效期/CVC）：成功 `4576 7500 0000 0110`，拒付 `4576 7500 0000 0220`。webhook 事件带 `mode: "test" | "prod"`，服务端会忽略另一环境的事件。`payment_events` 按 `(provider, event_id)` 去重；事件通过 `metadata.orderNo` / `orderMerchantExternalId` 找回订单，并核对店铺、环境、币种与 SKU 后才改动权益。
 
 订阅开通/续费会把同一订单来源的权益延长到 `currentPeriodEnd`；`subscription.canceling` 保留访问权，`subscription.canceled` 与 `refund.succeeded` 只撤销该订单来源。家长中心的“取消续费”会调用 `orders.cancelSubscription()`。
+
+**管理订阅与退款。** 家长中心还有一个按钮打开 Waffo 客户门户（`auth.createCustomerPortalLink`）。链接每次点击即时签发、几分钟后过期，不缓存、不写日志。门户里可以取消订阅、更新支付方式、查看账单和提交退款申请；退款申请在 Waffo 控制台审核，`refund.succeeded` 到达后只撤销该订单来源的权益。
+
+排查支付问题：
+
+```bash
+cd server
+npm run waffo:doctor                     # 只检查配置，不打印私钥
+node --env-file=../.env.production scripts/waffo-doctor.js --api   # 额外调用 Waffo 验证
+```
+
+- `503 payments_not_configured` → `WAFFO_PRIVATE_KEY` 或某个 `WAFFO_PRODUCT_*` 缺失（注意变量名必须完全一致）。
+- 付款成功但会员没开通 → `WAFFO_ENVIRONMENT` 必须为 `prod`；检查 Waffo webhook 投递日志（401 表示用了错误环境的公钥）和服务端 `[waffo-webhook]` 日志。
+- `waffo:doctor --api` 还会提示 Waffo 商品价格与 `SKUS` 不一致。
 
 ### 数据库备份
 

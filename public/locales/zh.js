@@ -270,6 +270,8 @@ window.TM_I18N.zh = {
   'acct.cancelRenewal': '取消续费',
   'acct.cancelRenewalConfirm': '确定取消自动续费吗？已付周期结束前仍可使用。',
   'acct.cancelRenewalDone': '已取消续费。已付周期结束前仍可使用。',
+  'acct.billingPortal': '管理订阅与退款',
+  'acct.portalPopupBlocked': '请允许本站打开新标签页后重试。',
   'acct.checkoutSuccess': '付款成功，会员已开通。',
 
   'acct.familyTitle': '家庭',

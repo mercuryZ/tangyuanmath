@@ -113,6 +113,35 @@ function buildOrdersRouter(db, payments) {
     mw.ok(res, { orders: orderStore.listFamilyOrders(db, req.familyId, 20) });
   });
 
+  /* 客户自助门户：取消订阅、更新支付方式、查看账单、提交退款申请。
+   * 链接带 bearer token，必须每次按当前登录家庭即时签发，且不缓存。 */
+  const portalLimit = mw.rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 30,
+    keyFn: req => 'u' + (req.user ? req.user.id : req.ip),
+    name: 'billing-portal'
+  });
+  r.post('/portal', portalLimit, mw.csrfProtect, async (req, res) => {
+    if (!orderStore.hasAnyOrder(db, req.familyId)) {
+      return mw.fail(res, 404, 'no_orders', 'There are no orders to manage yet.');
+    }
+    try {
+      const link = await payments.createPortalLink(waffo.buyerIdentityFor(req.familyId));
+      res.set('Cache-Control', 'no-store');
+      res.set('Pragma', 'no-cache');
+      return mw.ok(res, link);
+    } catch (err) {
+      const code = err && err.code;
+      if (code === 'payments_not_configured' || code === 'sdk_missing') {
+        return mw.fail(res, 503, 'payments_not_configured',
+          'Billing management is not available yet. Please contact us.');
+      }
+      console.error('[waffo] portal link failed:', err && err.message ? err.message : err);
+      return mw.fail(res, 502, 'payment_provider_error',
+        'The billing portal could not be opened. Please try again.');
+    }
+  });
+
   r.get('/:orderNo', (req, res) => {
     const order = orderStore.getOrderByNo(db, req.params.orderNo);
     // 跨家庭一律 404，不泄露订单是否存在
