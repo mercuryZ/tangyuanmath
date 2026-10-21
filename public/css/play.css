@@ -220,11 +220,14 @@ body {
 }
 .card.done .idx { background: #CDEEDD; color: var(--green); }
 .card.wrong .idx { background: #FFE0DE; color: var(--red); }
-.question { font-size: 18px; font-weight: 800; flex-shrink: 0; }
+.question {
+  display: inline-flex; align-items: center;
+  font-size: 18px; font-weight: 800; flex-shrink: 0;
+}
 .question .op {
   color: #fff; background: var(--red); width: 23px; height: 23px; border-radius: 9px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 13px; margin: 0 4px; vertical-align: -3px;
+  font-size: 13px; margin: 0 4px; vertical-align: middle;
 }
 .question .eq { color: var(--pink); margin-left: 4px; font-weight: 900; }
 .card input {

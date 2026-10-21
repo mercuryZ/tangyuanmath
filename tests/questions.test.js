@@ -25,6 +25,21 @@ test('组内题目按规范化键不重复', () => {
   assert.strictEqual(keys.size, 20);
 });
 
+test('挑战第 0–10 关因子范围正确（第 0 关为热身）', () => {
+  assert.strictEqual(Q.CHALLENGE_LEVELS.length, 11);
+  for (let level = 0; level <= 10; level++) {
+    const def = Q.CHALLENGE_LEVELS[level];
+    const set = Q.generateChallenge(level, 10);
+    assert.strictEqual(set.length, 10, 'level ' + level + ' 题数');
+    for (const q of set) {
+      assert.ok(q.a >= def.a[0] && q.a <= def.a[1], `level ${level} a 越界: ${q.a}`);
+      assert.ok(q.b >= def.b[0] && q.b <= def.b[1], `level ${level} b 越界: ${q.b}`);
+      assert.strictEqual(q.answer, q.a * q.b);
+    }
+  }
+  assert.throws(() => Q.generateChallenge(11, 10));
+});
+
 test('非法难度与题数抛错', () => {
   assert.throws(() => Q.generateSet('near_100', 10)); // M0 未实现的枚举
   assert.throws(() => Q.generateSet('two_by_two', 7)); // 题数不在允许列表

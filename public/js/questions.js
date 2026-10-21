@@ -16,6 +16,23 @@
     two_by_two:      { a: [10, 99], b: [10, 99] }
   };
 
+  /* 闯关因子范围（DESIGN 2.1）
+   * 第 0 关是热身（1 位 × 1 位），不计入 10 关；
+   * 第 1–10 关从 1 位 × 1–19 逐步扩大到两位数 × 两位数。 */
+  var CHALLENGE_LEVELS = [
+    { a: [1, 9], b: [1, 9] },
+    { a: [1, 9], b: [1, 19] },
+    { a: [1, 9], b: [11, 19] },
+    { a: [11, 19], b: [11, 19] },
+    { a: [11, 19], b: [11, 29] },
+    { a: [11, 19], b: [11, 39] },
+    { a: [11, 29], b: [11, 49] },
+    { a: [11, 39], b: [11, 59] },
+    { a: [11, 49], b: [11, 69] },
+    { a: [11, 59], b: [11, 89] },
+    { a: [11, 99], b: [11, 99] }
+  ];
+
   var ALLOWED_COUNTS = [5, 10, 20];
 
   function randInt(rng, min, max) {
@@ -27,11 +44,10 @@
     return a <= b ? { a: a, b: b } : { a: b, b: a };
   }
 
-  /* 生成一组不重复（按规范化键）的题目。
+  /* 按范围生成一组不重复（按规范化键）的题目。
    * 空间不足时（如 two_by_one 组合数 < count）允许重复补足，保证题数。 */
-  function generateSet(difficulty, count, rng) {
-    var def = DIFFICULTIES[difficulty];
-    if (!def) throw new Error('unknown difficulty: ' + difficulty);
+  function generateFromRange(def, count, rng) {
+    if (!def) throw new Error('missing range');
     if (ALLOWED_COUNTS.indexOf(count) === -1 && count !== 10) {
       throw new Error('count must be 5, 10 or 20');
     }
@@ -58,10 +74,24 @@
     return out;
   }
 
+  function generateSet(difficulty, count, rng) {
+    var def = DIFFICULTIES[difficulty];
+    if (!def) throw new Error('unknown difficulty: ' + difficulty);
+    return generateFromRange(def, count, rng);
+  }
+
+  function generateChallenge(level, count, rng) {
+    var def = CHALLENGE_LEVELS[level];
+    if (!def) throw new Error('unknown challenge level: ' + level);
+    return generateFromRange(def, count, rng);
+  }
+
   var api = {
     DIFFICULTIES: DIFFICULTIES,
+    CHALLENGE_LEVELS: CHALLENGE_LEVELS,
     ALLOWED_COUNTS: ALLOWED_COUNTS,
     generateSet: generateSet,
+    generateChallenge: generateChallenge,
     normalize: normalize
   };
 

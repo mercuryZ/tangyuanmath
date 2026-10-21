@@ -8,11 +8,11 @@
 
 ## About
 
-Tangyuan Math is a pure front-end mental-math practice game that turns two-digit (10–99) multiplication into untimed practice, a 10-level timed challenge, and mistake review. With its adorable red-and-white visual style, the mascot Tangyuan (a sweet rice ball) encourages players along the way, making arithmetic practice feel fun instead of stressful.
+Tangyuan Math is a pure front-end mental-math practice game that turns multiplication into untimed practice, a 10-level timed challenge (with a level-0 warm-up), and mistake review. With its adorable red-and-white visual style, the mascot Tangyuan (a sweet rice ball) encourages players along the way, making arithmetic practice feel fun instead of stressful.
 
 ### Current features (M0 — complete)
 
-- **10-level Challenge**: 10 questions per level; level 1 gives 120 seconds, level 10 only 20.
+- **10-level Challenge (plus a level-0 warm-up)**: 10 questions per level; level 1 gives 120 seconds, level 10 only 20.
 - **Untimed Practice**: pick a number range (times tables up to two-digit × two-digit) and 5, 10 or 20 questions.
 - **Mistake review**: wrong answers collect in a mistake book; replay them until they're gone.
 - **First/final answer tracking**: first-attempt accuracy and final completion are recorded separately.
@@ -35,7 +35,7 @@ npm start          # default 3000, override with PORT=3100; serves the static si
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
 - Parent center: `/account/` (parent sign-in, family membership, co-parent invites, child accounts, synced stats & data management)
 
-Run the tests with `cd server && npm test` (121 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks/$1 trial, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
+Run the tests with `cd server && npm test` (123 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks/$1 trial, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
 
 ### Email delivery
 
@@ -201,7 +201,7 @@ tobemathmaster/
 
 Milestones are detailed in [docs/DESIGN.md](docs/DESIGN.md) (v3.0 merged edition: overseas-first, parent accounts, never any ads).
 
-- **M0 ✅ Free overseas trial**: full English UI + Chinese, untimed practice (choose range & count), 10-level challenge, mistake review, first/final answer tracking, per-question active time, accessibility, public pages (home/FAQ/about/privacy), local-only visitor data you can clear, zero ads and zero third-party scripts.
+- **M0 ✅ Free overseas trial**: full English UI + Chinese, untimed practice (choose range & count), 10-level challenge (with a level-0 warm-up), mistake review, first/final answer tracking, per-question active time, accessibility, public pages (home/FAQ/about/privacy), local-only visitor data you can clear, zero ads and zero third-party scripts.
 - **M1 ✅ Parent accounts & cloud data**: Express + SQLite (versioned migrations), email register/verify/login/reset + session revocation (CSRF + rate limits + strict CSP), child profiles with ownership checks, server-authoritative grading with idempotent upload (first/final answers + per-question active time), cloud mistake review, idempotent guest import, timezone-aware streaks, export & account deletion.
 - **M1.5 ✅ Live Race (multiplayer)**: invite-code 2–4 player speed races over WebSocket. Server-authoritative grading (clients never receive answers), system-generated display names with no chat or free text, 30-second reconnect window back to the same seat, and results saved only for signed-in child profiles. Live Race is now a family Supporter feature (Practice and Challenge stay free).
 - **M1.6 ✅ Family membership & child logins**: one Supporter membership covers up to 2 parents and 2 children. Parents sign in with email/password or Google; children use a parent-created username and password. A second parent joins by email invite. New registrations no longer receive a free membership; paid access starts with the $1 7-day trial or a monthly/yearly/lifetime plan.

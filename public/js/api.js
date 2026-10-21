@@ -208,7 +208,7 @@
       clientEventId: String(rec.id).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64) || ('r' + rec.createdAt),
       mode: rec.mode,
       difficulty: rec.difficulty,
-      level: rec.level || undefined,
+      level: (rec.level === undefined || rec.level === null) ? undefined : rec.level,
       usedTimeS: rec.usedTimeS || undefined,
       createdAt: rec.createdAt,
       perQuestion: rec.perQuestion.map(q => ({

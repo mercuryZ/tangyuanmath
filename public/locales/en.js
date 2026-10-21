@@ -29,7 +29,7 @@ window.TM_I18N.en = {
   'home.practice.desc': 'Untimed by default. Pick a range, check your answers, take your time.',
   'home.practice.cta': 'Start Practice →',
   'home.challenge.title': 'Challenge',
-  'home.challenge.desc': '10 levels, 10 questions each. Level 1 gives 120 seconds — level 10 only 20.',
+  'home.challenge.desc': '10 levels plus a level-0 warm-up, 10 questions each. Level 1 gives 120 seconds — level 10 only 20.',
   'home.challenge.cta': 'Start Challenge →',
   'home.challenge.ctaLevel': 'Continue at Level {level} →',
   'home.mistakes.title': 'Practice My Mistakes',

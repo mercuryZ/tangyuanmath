@@ -229,6 +229,28 @@ test('记录上报：服务端判分（忽略客户端声明）+ 首次错误进
   assert.strictEqual(wb[0].wrongCount, 1);
 });
 
+test('挑战关卡：level 0（热身）合法且原样保存，level 11 拒绝', async () => {
+  const pid = (await req('GET', '/api/profiles')).json.data.profiles[0].id;
+  const body = {
+    clientEventId: 'lvl-warmup-0', mode: 'challenge', difficulty: 'two_by_two', level: 0,
+    perQuestion: [{ a: 3, b: 4, firstAnswer: 12, finalAnswer: 12, activeMs: 1200 }]
+  };
+  const r = await req('POST', `/api/profiles/${pid}/records`, body);
+  assert.strictEqual(r.status, 200, JSON.stringify(r.json));
+
+  const list = (await req('GET', `/api/profiles/${pid}/records`)).json.data.records;
+  const saved = list.find(x => x.clientEventId === 'lvl-warmup-0');
+  assert.ok(saved, 'record saved');
+  assert.strictEqual(saved.level, 0, 'level 0 不能被当成 null');
+
+  const bad = await req('POST', `/api/profiles/${pid}/records`, {
+    clientEventId: 'lvl-invalid-11', mode: 'challenge', difficulty: 'two_by_two', level: 11,
+    perQuestion: [{ a: 3, b: 4, firstAnswer: 12, finalAnswer: 12, activeMs: 1200 }]
+  });
+  assert.strictEqual(bad.status, 400);
+  assert.strictEqual(bad.json.code, 'invalid_level');
+});
+
 test('幂等：同 client_event_id 重复上报不重复计数', async () => {
   const pid = (await req('GET', '/api/profiles')).json.data.profiles[0].id;
   const payload = {
@@ -246,7 +268,7 @@ test('幂等：同 client_event_id 重复上报不重复计数', async () => {
   assert.strictEqual(wb[0].wrongCount, 1); // 未重复累计
 
   const list = (await req('GET', `/api/profiles/${pid}/records`)).json.data;
-  assert.strictEqual(list.records.length, 1);
+  assert.strictEqual(list.records.filter(x => x.clientEventId === 'evt-001').length, 1);
 });
 
 test('错题口径：同答案不累计、不同答案 +1；重练答对减到零移出', async () => {

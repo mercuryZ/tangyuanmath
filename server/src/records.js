@@ -25,7 +25,7 @@ function validateRecordPayload(body) {
   if (!U.isValidEventId(body.clientEventId)) return { err: 'invalid_event_id' };
   if (!MODES.includes(body.mode)) return { err: 'invalid_mode' };
   if (!DIFFS.includes(body.difficulty)) return { err: 'invalid_difficulty' };
-  if (body.level !== undefined && body.level !== null && !U.intIn(body.level, 1, 10)) return { err: 'invalid_level' };
+  if (body.level !== undefined && body.level !== null && !U.intIn(body.level, 0, 10)) return { err: 'invalid_level' };
   if (body.usedTimeS !== undefined && body.usedTimeS !== null && !U.intIn(body.usedTimeS, 0, 3600)) return { err: 'invalid_used_time' };
   if (body.createdAt !== undefined && body.createdAt !== null &&
       (!U.intIn(body.createdAt, Date.now() - 366 * 24 * 3600 * 1000, Date.now() + 24 * 3600 * 1000))) {
@@ -72,10 +72,10 @@ function applyFirstWrong(db, profileId, graded, level, now) {
     if (!row) {
       db.prepare(
         'INSERT INTO wrong_questions (profile_id, a, b, user_answer, wrong_count, level, last_wrong_at) VALUES (?,?,?,?,1,?,?)'
-      ).run(profileId, na, nb, g.first_answer, level || null, now);
+      ).run(profileId, na, nb, g.first_answer, level === undefined || level === null ? null : level, now);
     } else if (row.user_answer !== g.first_answer) {
       db.prepare('UPDATE wrong_questions SET user_answer = ?, wrong_count = wrong_count + 1, level = ?, last_wrong_at = ? WHERE id = ?')
-        .run(g.first_answer, level || null, now, row.id);
+        .run(g.first_answer, level === undefined || level === null ? null : level, now, row.id);
     } else {
       db.prepare('UPDATE wrong_questions SET last_wrong_at = ? WHERE id = ?').run(now, row.id);
     }
@@ -95,7 +95,7 @@ function insertRecord(db, profileId, payload) {
          (profile_id, client_event_id, mode, difficulty, level, passed, used_time_s, active_time_ms, created_at, received_at)
        VALUES (?,?,?,?,?,?,?,?,?,?)`
     ).run(profileId, payload.clientEventId, payload.mode, payload.difficulty,
-      payload.level || null, passed ? 1 : 0,
+      payload.level === undefined || payload.level === null ? null : payload.level, passed ? 1 : 0,
       payload.usedTimeS ?? null,
       graded.reduce((s, g) => s + (g.active_ms || 0), 0) || null,
       createdAt, now);

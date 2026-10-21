@@ -10,8 +10,14 @@
 (function (global) {
   'use strict';
 
+  /* 10 关挑战（第 1–10 关），第 0 关是热身关、不计入 10 关。
+   * 第 1 关 120 秒，第 10 关 20 秒；热身关也给 120 秒。 */
+  var MAX_LEVEL = 10;
   var TOTAL_LEVELS = 10;
-  var LEVEL_TIME = function (lvl) { return Math.round(120 - (lvl - 1) * (100 / (TOTAL_LEVELS - 1))); };
+  var LEVEL_TIME = function (lvl) {
+    if (lvl <= 0) return 120;
+    return Math.round(120 - (lvl - 1) * (100 / (MAX_LEVEL - 1)));
+  };
 
   var state = null;
 
@@ -71,7 +77,8 @@
   function newState(cfg) {
     return {
       mode: cfg.mode, difficulty: cfg.difficulty, count: cfg.questions.length,
-      level: cfg.level || null, questions: cfg.questions,
+      level: (cfg.level === undefined || cfg.level === null) ? null : cfg.level,
+      questions: cfg.questions,
       per: cfg.questions.map(function (q) {
         return {
           a: q.a, b: q.b,
@@ -336,7 +343,7 @@
     if (!global.TMUI.reduceMotion()) global.TMUI.confetti();
 
     var titleKey, subKey;
-    var isFinalLevel = state.mode === 'challenge' && state.level === TOTAL_LEVELS;
+    var isFinalLevel = state.mode === 'challenge' && state.level === MAX_LEVEL;
     if (state.mode === 'mistakes') { titleKey = 'result.mistakesClear'; subKey = 'result.mistakesClearSub'; }
     else if (state.mode === 'challenge') {
       titleKey = isFinalLevel ? 'result.allLevels' : 'result.levelComplete';
@@ -345,7 +352,8 @@
 
     if (state.mode === 'challenge') {
       var next = state.level + 1;
-      setChallengeLevel(next > TOTAL_LEVELS ? 1 : next);
+      // 第 0 关只是热身；通过后进入第 1 关，全部通过后从第 1 关重新开始
+      setChallengeLevel(next > MAX_LEVEL ? 1 : next);
     }
     var mainAction = mainActionFor(true);
     global.TMUI.showResult({
@@ -384,7 +392,7 @@
   function mainActionFor(won) {
     if (state.mode === 'challenge') {
       if (won) {
-        var final = state.level === TOTAL_LEVELS;
+        var final = state.level === MAX_LEVEL;
         return {
           label: final ? t('result.playAgain') : t('round.nextLevel'),
           fn: function () { TMGame.startChallenge(getChallengeLevel()); }
@@ -433,8 +441,8 @@
   /* ---------- 挑战关卡进度（本地记忆） ---------- */
   var LEVEL_KEY = 'tm_challenge_level';
   function getChallengeLevel() {
-    try { var v = Number(global.localStorage.getItem(LEVEL_KEY)); return (v >= 1 && v <= TOTAL_LEVELS) ? v : 1; }
-    catch (e) { return 1; }
+    try { var v = Number(global.localStorage.getItem(LEVEL_KEY)); return (v >= 0 && v <= MAX_LEVEL) ? v : 0; }
+    catch (e) { return 0; }
   }
   function setChallengeLevel(l) {
     try { global.localStorage.setItem(LEVEL_KEY, String(l)); } catch (e) { /* 忽略 */ }
@@ -444,6 +452,7 @@
   var TMGame = {
     LEVEL_TIME: LEVEL_TIME,
     TOTAL_LEVELS: TOTAL_LEVELS,
+    MAX_LEVEL: MAX_LEVEL,
     getChallengeLevel: getChallengeLevel,
 
     startPractice: function (cfg) {
@@ -457,10 +466,11 @@
     },
 
     startChallenge: function (level) {
-      level = level || getChallengeLevel();
+      level = (level === undefined || level === null) ? getChallengeLevel() : level;
+      if (!Number.isInteger(level) || level < 0 || level > MAX_LEVEL) level = getChallengeLevel();
       state = newState({
-        mode: 'challenge', difficulty: 'two_by_two',
-        questions: TMQuestions.generateSet('two_by_two', 10),
+        mode: 'challenge', difficulty: 'two_by_two', // 记录仍沿用 two_by_two，具体范围由 level 决定
+        questions: TMQuestions.generateChallenge(level, 10),
         level: level
       });
       global.TMUI.showView('round');

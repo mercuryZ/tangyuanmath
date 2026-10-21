@@ -29,7 +29,7 @@ window.TM_I18N.zh = {
   'home.practice.desc': '默认不计时。自选范围，答完检查，慢慢来。',
   'home.practice.cta': '开始练习 →',
   'home.challenge.title': '挑战 Challenge',
-  'home.challenge.desc': '10 关、每关 10 题。第 1 关 120 秒，第 10 关只有 20 秒。',
+  'home.challenge.desc': '10 关挑战（第 0 关为热身），每关 10 题。第 1 关 120 秒，第 10 关只有 20 秒。',
   'home.challenge.cta': '开始挑战 →',
   'home.challenge.ctaLevel': '从第 {level} 关继续 →',
   'home.mistakes.title': '错题重练',
