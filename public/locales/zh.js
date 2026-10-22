@@ -406,6 +406,9 @@ window.TM_I18N.zh = {
   'admin.fImg': '庆祝图片',
   'admin.never': '—',
   'admin.errorPrefix': '请求失败（代码：{code}）。',
+  'admin.totals': '共 {families} 个家庭 · {parents} 位注册家长',
+  'admin.showingRecent': '显示最近 {count} 个',
+  'admin.searchHint': '留空可列出最近注册的 50 个家庭。',
 
   /* ---------- 优惠码兑换（家长中心） ---------- */
   'acct.redeemTitle': '有优惠码？',

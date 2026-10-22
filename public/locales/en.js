@@ -406,6 +406,9 @@ window.TM_I18N.en = {
   'admin.fImg': 'Celebration images',
   'admin.never': '—',
   'admin.errorPrefix': 'Request failed (code: {code}).',
+  'admin.totals': '{families} families · {parents} registered parents',
+  'admin.showingRecent': 'showing the latest {count}',
+  'admin.searchHint': 'Leave empty to list the 50 most recently registered families.',
 
   /* ---------- 优惠码兑换（家长中心） ---------- */
   'acct.redeemTitle': 'Have a redeem code?',

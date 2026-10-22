@@ -94,6 +94,15 @@ test('管理鉴权：非管理员 403；匿名兑换 401；/api/me 带 isAdmin',
     r = await api(ctx.base, adminToken, adminCsrf, 'GET', '/api/admin/members?q=plain@');
     assert.strictEqual(r.status, 200);
     assert.ok(r.data.families.length >= 1);
+
+    // 不带 q：列出最近注册的家庭（浏览全部用户）+ 总数
+    const all = await api(ctx.base, adminToken, adminCsrf, 'GET', '/api/admin/members');
+    assert.strictEqual(all.status, 200);
+    assert.ok(all.data.families.length >= 2);
+    assert.ok(all.data.totalFamilies >= 2 && all.data.totalParents >= 2);
+    // 单字符仍拒绝
+    const short = await api(ctx.base, adminToken, adminCsrf, 'GET', '/api/admin/members?q=p');
+    assert.strictEqual(short.status, 400);
   } finally {
     await ctx.close();
     f.cleanup();

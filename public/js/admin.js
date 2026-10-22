@@ -60,20 +60,21 @@
     }
     showView('admin');
     bindForms();
+    loadMembers(); // 进页即列出最近注册的家庭（浏览全部用户）
     loadCodes();
   }
 
-  /* ---------- 会员查询 ---------- */
-  async function searchMembers(ev) {
-    ev.preventDefault();
+  /* ---------- 会员查询（留空 = 列出最近注册的家庭；进页自动加载一次） ---------- */
+  async function loadMembers(q) {
     $('memberMsg').textContent = '';
     $('memberDetail').hidden = true;
     $('memberResults').innerHTML = '';
-    const q = $('memberQuery').value.trim();
-    if (q.length < 2) { $('memberMsg').textContent = t('admin.queryTooShort'); return; }
-    const r = await global.TMAPI.call('GET', '/api/admin/members?q=' + encodeURIComponent(q));
-    if (!r.ok) { $('memberMsg').textContent = t('admin.errorPrefix') + r.code; return; }
+    const r = await global.TMAPI.call('GET', '/api/admin/members' + (q ? '?q=' + encodeURIComponent(q) : ''));
+    if (!r.ok) { $('memberMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     if (!r.data.families.length) { $('memberMsg').textContent = t('admin.noResults'); return; }
+    $('memberMsg').textContent = t('admin.totals', {
+      families: r.data.totalFamilies, parents: r.data.totalParents
+    }) + ' · ' + t('admin.showingRecent', { count: r.data.families.length });
     for (const f of r.data.families) {
       const row = document.createElement('div');
       row.className = 's-row';
@@ -89,10 +90,17 @@
     }
   }
 
+  async function searchMembers(ev) {
+    ev.preventDefault();
+    const q = $('memberQuery').value.trim();
+    if (q && q.length < 2) { $('memberMsg').textContent = t('admin.queryTooShort'); return; }
+    await loadMembers(q);
+  }
+
   async function showMember(familyId) {
     $('memberResults').innerHTML = '';
     const r = await global.TMAPI.call('GET', '/api/admin/members/' + familyId);
-    if (!r.ok) { $('memberMsg').textContent = t('admin.errorPrefix') + r.code; return; }
+    if (!r.ok) { $('memberMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     const d = r.data;
     const parts = [];
 
@@ -135,7 +143,7 @@
         if (rowEl.dataset.sid) body.sourceId = rowEl.dataset.sid;
         const r2 = await global.TMAPI.call('POST', '/api/admin/revoke', body);
         if (r2.ok) { toast(t('admin.revokedOk')); showMember(familyId); }
-        else toast(t('admin.errorPrefix') + r2.code, true);
+        else toast(t('admin.errorPrefix', { code: r2.code }), true);
       });
     });
     $('memberDetail').hidden = false;
@@ -154,7 +162,7 @@
       });
       toast(t('admin.grantedOk', { email: email, until: r.data.expiresAt === null ? t('admin.mLifetime') : fmtDate(r.data.expiresAt) }));
     } else {
-      $('grantMsg').textContent = t('admin.errorPrefix') + r.code;
+      $('grantMsg').textContent = t('admin.errorPrefix', { code: r.code });
     }
   }
 
@@ -170,7 +178,7 @@
     const days = Number($('codeExpires').value);
     if (days > 0) body.expiresInDays = days;
     const r = await global.TMAPI.call('POST', '/api/admin/codes', body);
-    if (!r.ok) { $('codeMsg').textContent = t('admin.errorPrefix') + r.code; return; }
+    if (!r.ok) { $('codeMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     $('codeOutput').value = r.data.codes.join('\n');
     $('codeResults').hidden = false;
     loadCodes();
@@ -189,7 +197,7 @@
 
   async function loadCodes() {
     const r = await global.TMAPI.call('GET', '/api/admin/codes?limit=100');
-    if (!r.ok) { $('codesListMsg').textContent = t('admin.errorPrefix') + r.code; return; }
+    if (!r.ok) { $('codesListMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     const list = $('codesList');
     list.innerHTML = '';
     if (!r.data.codes.length) { $('codesListMsg').textContent = t('admin.listEmpty'); return; }
@@ -214,7 +222,7 @@
         if (!global.confirm(t('admin.disableConfirm'))) return;
         const r2 = await global.TMAPI.call('POST', '/api/admin/codes/' + c.id + '/revoke');
         if (r2.ok) { toast(t('admin.disabledOk')); loadCodes(); }
-        else toast(t('admin.errorPrefix') + r2.code, true);
+        else toast(t('admin.errorPrefix', { code: r2.code }), true);
       });
       list.appendChild(row);
     }

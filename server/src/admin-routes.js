@@ -34,18 +34,28 @@ function grantSkuToFamily(db, { familyId, userId, sku, sourceId, now }) {
 function buildAdminRouter(db) {
   const r = express.Router();
 
-  /* ---------- 会员查询 ---------- */
+  /* ---------- 会员查询 ----------
+   * 带 q：按邮箱前缀搜索；不带 q：列出最近注册的家庭（管理端浏览全部用户）。 */
   r.get('/members', (req, res) => {
     const q = String(req.query.q || '').trim().toLowerCase();
-    if (q.length < 2) return mw.fail(res, 400, 'query_too_short', 'Enter at least 2 characters of an email.');
-    const rows = db.prepare(
-      `SELECT id, email_normalized, family_id, family_role FROM users
-       WHERE email_normalized LIKE ? AND family_id IS NOT NULL
-       ORDER BY created_at DESC LIMIT 20`
-    ).all(q + '%');
+    let users;
+    if (q) {
+      if (q.length < 2) return mw.fail(res, 400, 'query_too_short', 'Enter at least 2 characters of an email.');
+      users = db.prepare(
+        `SELECT id, email_normalized, family_id, family_role FROM users
+         WHERE email_normalized LIKE ? AND family_id IS NOT NULL
+         ORDER BY created_at DESC LIMIT 20`
+      ).all(q + '%');
+    } else {
+      users = db.prepare(
+        `SELECT id, email_normalized, family_id, family_role FROM users
+         WHERE family_id IS NOT NULL
+         ORDER BY created_at DESC LIMIT 50`
+      ).all();
+    }
     const seen = new Set();
     const families = [];
-    for (const u of rows) {
+    for (const u of users) {
       if (seen.has(u.family_id)) continue;
       seen.add(u.family_id);
       families.push({
@@ -56,7 +66,11 @@ function buildAdminRouter(db) {
         ).all(u.family_id)
       });
     }
-    mw.ok(res, { families });
+    const totals = db.prepare(
+      `SELECT (SELECT COUNT(*) FROM families) AS families,
+              (SELECT COUNT(*) FROM users WHERE family_id IS NOT NULL) AS parents`
+    ).get();
+    mw.ok(res, { families, totalFamilies: totals.families, totalParents: totals.parents });
   });
 
   r.get('/members/:familyId', (req, res) => {
