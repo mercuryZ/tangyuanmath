@@ -385,6 +385,7 @@ window.TM_I18N.zh = {
   'admin.grantedOk': '已授予 {email}，有效期至 {until}。',
   'admin.codesTitle': '优惠码',
   'admin.skuTrial': '3 天',
+  'admin.daysValid': '有效天数（可选）',
   'admin.skuMonthly': '1 个月',
   'admin.skuYearly': '12 个月',
   'admin.skuLifetime': '终身',

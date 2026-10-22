@@ -15,12 +15,29 @@ a.btn, a.s-btn { text-decoration: none; }
 }
 .acct-input:focus { border-color: var(--red); background: #fff; }
 .acct-select {
-  width: auto; min-width: 220px; padding-right: 38px;
-  border-color: var(--pink); color: var(--red-deep);
+  width: auto; min-width: 150px;
+  padding: 11px 40px 11px 14px;
+  border: 2px solid var(--pink); border-radius: 14px;
+  background-color: #FFF9F5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23D93B47' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px 8px;
+  color: var(--red-deep);
   font-family: inherit; font-size: 15px; font-weight: 800;
   cursor: pointer;
-  appearance: base-select; /* 支持时整块定制弹出列表；不支持则退回原生 */
+  appearance: none; /* 先移除原生箭头，用品牌色 SVG 替代 */
 }
+@supports (appearance: base-select) {
+  .acct-select { appearance: base-select; } /* 支持时仍可定制弹出列表 */
+  .acct-select::picker-icon { display: none; }
+}
+/* admin 的会员查询/授权/优惠码表单：让输入框、下拉框、按钮排成一行 */
+#memberSearchForm, #grantForm, #codeForm { max-width: none; }
+#grantForm .s-row, #codeForm .s-row { justify-content: flex-start; }
+#memberSearchForm .s-row { flex-wrap: nowrap; justify-content: flex-start; }
+#memberSearchForm .acct-input { flex: 1 1 0%; min-width: 0; }
+#memberSearchForm .s-btn { flex: 0 0 auto; }
 .acct-select:hover { border-color: var(--red); }
 .acct-select:focus-visible {
   outline: 3px solid var(--red-light); outline-offset: 2px; border-color: var(--red);

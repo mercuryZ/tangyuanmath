@@ -385,6 +385,7 @@ window.TM_I18N.en = {
   'admin.grantedOk': 'Granted to {email} until {until}.',
   'admin.codesTitle': 'Redeem codes',
   'admin.skuTrial': '3 days',
+  'admin.daysValid': 'Days valid (optional)',
   'admin.skuMonthly': '1 month',
   'admin.skuYearly': '12 months',
   'admin.skuLifetime': 'Lifetime',

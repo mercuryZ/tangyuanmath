@@ -12,7 +12,7 @@ Tangyuan Math is a pure front-end mental-math practice game that turns multiplic
 
 ### Current features (M0 — complete)
 
-- **10-level Challenge (plus a level-0 warm-up)**: 10 questions per level; level 1 gives 120 seconds, level 10 only 20.
+- **10-level Challenge (plus a level-0 warm-up)**: 10 questions per level; every level gives 120 seconds.
 - **Untimed Practice**: pick a number range (times tables up to two-digit × two-digit) and 5, 10 or 20 questions.
 - **Mistake review**: wrong answers collect in a mistake book; replay them until they're gone.
 - **First/final answer tracking**: first-attempt accuracy and final completion are recorded separately.
@@ -35,7 +35,7 @@ npm start          # default 3000, override with PORT=3100; serves the static si
 - Game app: `/play/` (Practice / Challenge / Mistake review, switch language anytime)
 - Parent center: `/account/` (parent sign-in, family membership, co-parent invites, child accounts, synced stats & data management)
 
-Run the tests with `cd server && npm test` (123 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks/$1 trial, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
+Run the tests with `cd server && npm test` (131 tests: question generation, records, mistake book, family membership/invites, child logins, encrypted backups, Waffo payments/orders/webhooks/$1 trial, and the full HTTP/WebSocket APIs including Google sign-in and the mail channel).
 
 ### Email delivery
 
@@ -56,7 +56,7 @@ Mail failures never break the request: registration and password reset return th
 
 Supporter memberships are sold through **Waffo Pancake** as a hosted checkout (merchant of record). The server creates the checkout session with the SDK's `checkout.authenticated.create()`; the browser only receives `checkoutUrl`. Entitlements are written **only** by the verified webhook — opening the success URL never grants access.
 
-New registrations receive **no free membership**. The intro offer is the one-time `supporter_trial7` product: **$1 for 7 days**, no auto-renewal, limited to one per family. After it ends, paid features lock unless the family subscribes.
+New registrations receive **no free membership**. The intro offer is the one-time `supporter_trial7` product: **$1 for 3 days**, no auto-renewal, limited to one per family. After it ends, paid features lock unless the family subscribes.
 
 Old databases may still contain the discontinued 3-month launch promo. To revoke those remaining grants (dry run first):
 
@@ -71,7 +71,7 @@ npm run revoke-launch-promo -- --yes
 | `WAFFO_PRIVATE_KEY` | API private key (PEM, literal `\n`, or use `WAFFO_PRIVATE_KEY_BASE64`) |
 | `WAFFO_MERCHANT_ID` / `WAFFO_STORE_ID` | Merchant and store IDs (defaults match the current store) |
 | `WAFFO_ENVIRONMENT` | `test` (default) or `prod` |
-| `WAFFO_PRODUCT_TRIAL7` / `..._MONTHLY` / `..._YEARLY` / `..._LIFETIME` | Product IDs returned by the setup script (the trial is the $1/7-day one-time product) |
+| `WAFFO_PRODUCT_TRIAL7` / `..._MONTHLY` / `..._YEARLY` / `..._LIFETIME` | Product IDs returned by the setup script (the trial is the $1/3-day one-time product) |
 | `WAFFO_WEBHOOK_PUBLIC_KEY` | Optional override; the SDK ships Waffo's public keys |
 
 One-time setup:
@@ -204,7 +204,7 @@ Milestones are detailed in [docs/DESIGN.md](docs/DESIGN.md) (v3.0 merged edition
 - **M0 ✅ Free overseas trial**: full English UI + Chinese, untimed practice (choose range & count), 10-level challenge (with a level-0 warm-up), mistake review, first/final answer tracking, per-question active time, accessibility, public pages (home/FAQ/about/privacy), local-only visitor data you can clear, zero ads and zero third-party scripts.
 - **M1 ✅ Parent accounts & cloud data**: Express + SQLite (versioned migrations), email register/verify/login/reset + session revocation (CSRF + rate limits + strict CSP), child profiles with ownership checks, server-authoritative grading with idempotent upload (first/final answers + per-question active time), cloud mistake review, idempotent guest import, timezone-aware streaks, export & account deletion.
 - **M1.5 ✅ Live Race (multiplayer)**: invite-code 2–4 player speed races over WebSocket. Server-authoritative grading (clients never receive answers), system-generated display names with no chat or free text, 30-second reconnect window back to the same seat, and results saved only for signed-in child profiles. Live Race is now a family Supporter feature (Practice and Challenge stay free).
-- **M1.6 ✅ Family membership & child logins**: one Supporter membership covers up to 2 parents and 2 children. Parents sign in with email/password or Google; children use a parent-created username and password. A second parent joins by email invite. New registrations no longer receive a free membership; paid access starts with the $1 7-day trial or a monthly/yearly/lifetime plan.
+- **M1.6 ✅ Family membership & child logins**: one Supporter membership covers up to 2 parents and 2 children. Parents sign in with email/password or Google; children use a parent-created username and password. A second parent joins by email invite. New registrations no longer receive a free membership; paid access starts with the $1 3-day trial or a monthly/yearly/lifetime plan.
 - **M2 ⏳ Real payments & Supporter**: hosted checkout (pending), printable PDF worksheets (live — free samples for everyone, supporter-only custom generation with US Letter/A4 and optional answer pages), custom local celebration images.
 - **M3 ⏳ Content & growth**: English tutorials, SEO/GEO, community outreach.
 

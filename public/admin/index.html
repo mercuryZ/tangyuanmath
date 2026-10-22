@@ -8,7 +8,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="../img/tangyuan_small.png">
 <link rel="stylesheet" href="../css/play.css?v=20261022c">
-<link rel="stylesheet" href="../css/account.css?v=20261022e">
+<link rel="stylesheet" href="../css/account.css?v=20261022h">
 </head>
 <body>
 
@@ -43,7 +43,7 @@
       <form id="memberSearchForm" class="acct-form" novalidate>
         <div class="s-row">
           <input class="acct-input" id="memberQuery" type="email" autocomplete="off"
-                 placeholder="parent@example.com" data-i18n-placeholder="admin.searchPlaceholder" style="flex:1;min-width:200px">
+                 placeholder="parent@example.com" data-i18n-placeholder="admin.searchPlaceholder">
           <button class="s-btn" id="memberSearchBtn" type="submit" data-i18n="admin.search">Search</button>
         </div>
       </form>
@@ -85,7 +85,9 @@
             <option value="supporter_lifetime" data-i18n="admin.skuLifetime">Lifetime</option>
           </select>
           <input class="acct-input" id="codeCount" type="number" min="1" max="100" value="10" style="width:80px" aria-label="Count">
-          <input class="acct-input" id="codeExpires" type="number" min="1" placeholder="30" style="width:90px" aria-label="Days valid">
+          <input class="acct-input" id="codeExpires" type="number" min="1" placeholder="Days valid (optional)"
+                 data-i18n-placeholder="admin.daysValid" data-i18n-aria-label="admin.daysValid"
+                 aria-label="Days valid (optional)" style="width:180px">
           <input class="acct-input" id="codeNote" type="text" maxlength="200" autocomplete="off"
                  placeholder="note" data-i18n-placeholder="admin.notePlaceholder" style="flex:1;min-width:140px">
           <button class="s-btn" id="codeBtn" type="submit" data-i18n="admin.generate">Generate</button>
@@ -108,8 +110,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="../locales/en.js?v=20261022g"></script>
-<script src="../locales/zh.js?v=20261022g"></script>
+<script src="../locales/en.js?v=20261022h"></script>
+<script src="../locales/zh.js?v=20261022h"></script>
 <script src="../js/i18n.js?v=20261022c"></script>
 <script src="../js/api.js?v=20261022c"></script>
 <script src="../js/admin.js?v=20261022c"></script>
