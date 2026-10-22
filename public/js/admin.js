@@ -65,7 +65,9 @@
   }
 
   /* ---------- 会员查询（留空 = 列出最近注册的家庭；进页自动加载一次） ---------- */
+  var lastMemberQuery = '';
   async function loadMembers(q) {
+    lastMemberQuery = q || ''; // 详情页“返回列表”要用同一查询条件重建列表
     $('memberMsg').textContent = '';
     $('memberDetail').hidden = true;
     $('memberResults').innerHTML = '';
@@ -231,7 +233,10 @@
   /* ---------- 初始化 ---------- */
   function bindForms() {
     $('memberSearchForm').addEventListener('submit', searchMembers);
-    $('detailBack').addEventListener('click', () => { $('memberDetail').hidden = true; });
+    $('detailBack').addEventListener('click', () => {
+      $('memberDetail').hidden = true;
+      loadMembers(lastMemberQuery); // showMember 清空了列表，返回时按原条件重建
+    });
     $('grantForm').addEventListener('submit', submitGrant);
     $('codeForm').addEventListener('submit', submitCodes);
     $('copyCodesBtn').addEventListener('click', copyCodes);
