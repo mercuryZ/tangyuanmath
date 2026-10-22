@@ -177,7 +177,10 @@ test('优惠码：批量生成（明文仅一次）、列表无明文、禁用�
     let r = await api(ctx.base, token, csrf, 'POST', '/api/admin/codes', { sku: 'supporter_monthly', count: 5, note: 'unit-test' });
     assert.strictEqual(r.status, 200);
     assert.strictEqual(r.data.codes.length, 5);
-    for (const c of r.data.codes) assert.ok(/^TANGYUAN-[2-9A-HJ-NP-Z]{5}-[2-9A-HJ-NP-Z]{5}$/.test(c), '码格式: ' + c);
+    for (const c of r.data.codes) {
+      assert.ok(/^TM-[2-9A-HJ-NP-Z]{5}-[2-9A-HJ-NP-Z]{5}$/.test(c), '码格式: ' + c);
+      assert.ok(c.length <= 15, '激活码不超过 15 位: ' + c);
+    }
 
     const list = await api(ctx.base, token, csrf, 'GET', '/api/admin/codes');
     assert.strictEqual(list.data.codes.length, 5);

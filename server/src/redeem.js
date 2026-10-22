@@ -13,14 +13,15 @@ const { SKUS } = require('./waffo');
 const { addCalendarMonths } = require('./family');
 const { hashToken } = require('./util');
 
-/* 生成可读码：TANGYUAN-XXXXX-XXXXX，去掉易混的 0/O/1/I */
+/* 生成可读码：TM-XXXXX-XXXXX（14 位，≤15 位），去掉易混的 0/O/1/I。
+ * 旧版 TANGYUAN-XXXXX-XXXXX 仍可兑换，避免已发出的码失效。 */
 const CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
 function generateCode() {
   const bytes = crypto.randomBytes(10);
   let s = '';
   for (let i = 0; i < 10; i++) s += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
-  return 'TANGYUAN-' + s.slice(0, 5) + '-' + s.slice(5);
+  return 'TM-' + s.slice(0, 5) + '-' + s.slice(5);
 }
 
 function normalizeCode(input) {
@@ -64,7 +65,7 @@ function createCodes(db, { sku, count, expiresInDays, note, adminUserId, now }) 
 /* 兑换：占用码 + 开通权益，整体事务。失败抛 {code} 错误。 */
 function redeemCode(db, { code, familyId, userId, now }) {
   const normalized = normalizeCode(code);
-  if (!/^(TANGYUAN-)?[A-Z2-9-]{5,}$/.test(normalized)) {
+  if (!/^(TANGYUAN|TM)-[A-Z2-9]{5}-[A-Z2-9]{5}$/.test(normalized)) {
     throw Object.assign(new Error('Invalid code format.'), { code: 'code_not_found' });
   }
   const t = now === undefined ? Date.now() : now;

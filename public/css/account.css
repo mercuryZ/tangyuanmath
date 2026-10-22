@@ -38,6 +38,12 @@ a.btn, a.s-btn { text-decoration: none; }
 #memberSearchForm .s-row { flex-wrap: nowrap; justify-content: flex-start; }
 #memberSearchForm .acct-input { flex: 1 1 0%; min-width: 0; }
 #memberSearchForm .s-btn { flex: 0 0 auto; }
+.member-pager { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.member-pager .pg-btn { padding: 6px 10px; font-size: 12px; }
+.member-pager .pg-cur { background: var(--red); border-color: var(--red-deep); color: #fff; box-shadow: 0 2px 0 var(--red-dark); }
+.member-pager .pg-btn:disabled { opacity: .45; cursor: default; }
+.member-pager .pg-ellipsis { color: var(--ink-soft); font-weight: 800; padding: 0 4px; }
+.member-pager .pg-info { margin-left: auto; font-size: 12px; color: var(--ink-soft); font-weight: 700; }
 .acct-select:hover { border-color: var(--red); }
 .acct-select:focus-visible {
   outline: 3px solid var(--red-light); outline-offset: 2px; border-color: var(--red);

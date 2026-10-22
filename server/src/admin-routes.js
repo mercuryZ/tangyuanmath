@@ -34,43 +34,58 @@ function grantSkuToFamily(db, { familyId, userId, sku, sourceId, now }) {
 function buildAdminRouter(db) {
   const r = express.Router();
 
-  /* ---------- 会员查询 ----------
-   * 带 q：按邮箱前缀搜索；不带 q：列出最近注册的家庭（管理端浏览全部用户）。 */
+  /* ---------- 会员查询（分页，每页默认 10 个家庭） ----------
+   * 带 q：按家长邮箱前缀搜索；不带 q：浏览全部家庭（按注册时间倒序）。
+   * 页码对「家庭」计数：搜索命中任一家长邮箱的家庭只算一次。 */
   r.get('/members', (req, res) => {
     const q = String(req.query.q || '').trim().toLowerCase();
-    let users;
+    if (q && q.length < 2) return mw.fail(res, 400, 'query_too_short', 'Enter at least 2 characters of an email.');
+    const pageSize = Math.min(Math.max(Number(req.query.pageSize) || 10, 1), 50);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const offset = (page - 1) * pageSize;
+
+    let rows;
+    let matched;
     if (q) {
-      if (q.length < 2) return mw.fail(res, 400, 'query_too_short', 'Enter at least 2 characters of an email.');
-      users = db.prepare(
-        `SELECT id, email_normalized, family_id, family_role FROM users
-         WHERE email_normalized LIKE ? AND family_id IS NOT NULL
-         ORDER BY created_at DESC LIMIT 20`
-      ).all(q + '%');
+      rows = db.prepare(
+        `SELECT DISTINCT f.id AS fid, f.created_at AS fcat
+         FROM families f JOIN users u ON u.family_id = f.id
+         WHERE u.email_normalized LIKE ?
+         ORDER BY f.created_at DESC, f.id DESC
+         LIMIT ? OFFSET ?`
+      ).all(q + '%', pageSize, offset);
+      matched = db.prepare(
+        `SELECT COUNT(DISTINCT f.id) AS n
+         FROM families f JOIN users u ON u.family_id = f.id
+         WHERE u.email_normalized LIKE ?`
+      ).get(q + '%').n;
     } else {
-      users = db.prepare(
-        `SELECT id, email_normalized, family_id, family_role FROM users
-         WHERE family_id IS NOT NULL
-         ORDER BY created_at DESC LIMIT 50`
-      ).all();
+      rows = db.prepare(
+        `SELECT id AS fid, created_at AS fcat FROM families
+         ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`
+      ).all(pageSize, offset);
+      matched = db.prepare('SELECT COUNT(*) AS n FROM families').get().n;
     }
-    const seen = new Set();
-    const families = [];
-    for (const u of users) {
-      if (seen.has(u.family_id)) continue;
-      seen.add(u.family_id);
-      families.push({
-        familyId: u.family_id,
-        membership: family.membershipSummary(db, u.family_id),
-        parents: db.prepare(
-          'SELECT id, email_normalized AS email, family_role AS role FROM users WHERE family_id = ? ORDER BY id'
-        ).all(u.family_id)
-      });
-    }
+    const families = rows.map(row => ({
+      familyId: row.fid,
+      membership: family.membershipSummary(db, row.fid),
+      parents: db.prepare(
+        'SELECT id, email_normalized AS email, family_role AS role FROM users WHERE family_id = ? ORDER BY id'
+      ).all(row.fid)
+    }));
     const totals = db.prepare(
       `SELECT (SELECT COUNT(*) FROM families) AS families,
               (SELECT COUNT(*) FROM users WHERE family_id IS NOT NULL) AS parents`
     ).get();
-    mw.ok(res, { families, totalFamilies: totals.families, totalParents: totals.parents });
+    mw.ok(res, {
+      families,
+      page,
+      pageSize,
+      matchedFamilies: matched,
+      totalPages: Math.max(1, Math.ceil(matched / pageSize)),
+      totalFamilies: totals.families,
+      totalParents: totals.parents
+    });
   });
 
   r.get('/members/:familyId', (req, res) => {

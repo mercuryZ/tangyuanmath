@@ -64,19 +64,26 @@
     loadCodes();
   }
 
-  /* ---------- 会员查询（留空 = 列出最近注册的家庭；进页自动加载一次） ---------- */
+  /* ---------- 会员查询（分页：每页 10 个家庭；留空 = 浏览全部） ---------- */
+  var MEMBER_PAGE_SIZE = 10;
   var lastMemberQuery = '';
-  async function loadMembers(q) {
+  var memberPage = 1;
+  async function loadMembers(q, page) {
     lastMemberQuery = q || ''; // 详情页“返回列表”要用同一查询条件重建列表
+    memberPage = page || 1;
     $('memberMsg').textContent = '';
     $('memberDetail').hidden = true;
     $('memberResults').innerHTML = '';
-    const r = await global.TMAPI.call('GET', '/api/admin/members' + (q ? '?q=' + encodeURIComponent(q) : ''));
+    $('memberPager').hidden = false;
+    $('memberPager').innerHTML = '';
+    const qs = '?page=' + memberPage + '&pageSize=' + MEMBER_PAGE_SIZE +
+      (q ? '&q=' + encodeURIComponent(q) : '');
+    const r = await global.TMAPI.call('GET', '/api/admin/members' + qs);
     if (!r.ok) { $('memberMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     if (!r.data.families.length) { $('memberMsg').textContent = t('admin.noResults'); return; }
     $('memberMsg').textContent = t('admin.totals', {
       families: r.data.totalFamilies, parents: r.data.totalParents
-    }) + ' · ' + t('admin.showingRecent', { count: r.data.families.length });
+    }) + (q ? ' · ' + t('admin.matchedCount', { count: r.data.matchedFamilies }) : '');
     for (const f of r.data.families) {
       const row = document.createElement('div');
       row.className = 's-row';
@@ -90,17 +97,57 @@
       row.querySelector('button').addEventListener('click', () => showMember(f.familyId));
       $('memberResults').appendChild(row);
     }
+    renderPager(r.data);
+  }
+
+  /* 页码条：上一页/下一页 + 页码（当前页左右各 2 页，首尾页保留） */
+  function renderPager(d) {
+    const pager = $('memberPager');
+    pager.innerHTML = '';
+    if (d.totalPages <= 1) return;
+    const mkBtn = (label, target, disabled, current) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 's-btn pg-btn';
+      b.textContent = label;
+      if (disabled) b.disabled = true;
+      if (current) b.classList.add('pg-cur');
+      if (!disabled && !current) b.addEventListener('click', () => loadMembers(lastMemberQuery, target));
+      return b;
+    };
+    pager.appendChild(mkBtn(t('admin.prevPage'), memberPage - 1, memberPage <= 1, false));
+    const pages = [];
+    for (let i = 1; i <= d.totalPages; i++) {
+      if (i === 1 || i === d.totalPages || Math.abs(i - memberPage) <= 2) pages.push(i);
+      else if (pages[pages.length - 1] !== '…') pages.push('…');
+    }
+    for (const p of pages) {
+      if (p === '…') {
+        const s = document.createElement('span');
+        s.className = 'pg-ellipsis';
+        s.textContent = '…';
+        pager.appendChild(s);
+      } else {
+        pager.appendChild(mkBtn(String(p), p, false, p === memberPage));
+      }
+    }
+    pager.appendChild(mkBtn(t('admin.nextPage'), memberPage + 1, memberPage >= d.totalPages, false));
+    const info = document.createElement('span');
+    info.className = 'pg-info';
+    info.textContent = t('admin.pageInfo', { page: memberPage, pages: d.totalPages });
+    pager.appendChild(info);
   }
 
   async function searchMembers(ev) {
     ev.preventDefault();
     const q = $('memberQuery').value.trim();
     if (q && q.length < 2) { $('memberMsg').textContent = t('admin.queryTooShort'); return; }
-    await loadMembers(q);
+    await loadMembers(q, 1);
   }
 
   async function showMember(familyId) {
     $('memberResults').innerHTML = '';
+    $('memberPager').hidden = true;
     const r = await global.TMAPI.call('GET', '/api/admin/members/' + familyId);
     if (!r.ok) { $('memberMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     const d = r.data;
@@ -235,7 +282,7 @@
     $('memberSearchForm').addEventListener('submit', searchMembers);
     $('detailBack').addEventListener('click', () => {
       $('memberDetail').hidden = true;
-      loadMembers(lastMemberQuery); // showMember 清空了列表，返回时按原条件重建
+      loadMembers(lastMemberQuery, memberPage); // showMember 清空了列表，返回时按原条件与页码重建
     });
     $('grantForm').addEventListener('submit', submitGrant);
     $('codeForm').addEventListener('submit', submitCodes);

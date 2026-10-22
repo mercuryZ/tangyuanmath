@@ -410,12 +410,16 @@ window.TM_I18N.zh = {
   'admin.never': '—',
   'admin.errorPrefix': '请求失败（代码：{code}）。',
   'admin.totals': '共 {families} 个家庭 · {parents} 位注册家长',
+  'admin.matchedCount': '匹配 {count} 个家庭',
   'admin.showingRecent': '显示最近 {count} 个',
-  'admin.searchHint': '留空可列出最近注册的 50 个家庭。',
+  'admin.prevPage': '上一页',
+  'admin.nextPage': '下一页',
+  'admin.pageInfo': '第 {page} / {pages} 页',
+  'admin.searchHint': '留空可浏览全部已注册家庭。',
 
   /* ---------- 优惠码兑换（家长中心） ---------- */
   'acct.redeemTitle': '有优惠码？',
-  'acct.redeemPlaceholder': 'TANGYUAN-XXXXX-XXXXX',
+  'acct.redeemPlaceholder': 'TM-XXXXX-XXXXX',
   'acct.redeemBtn': '兑换',
   'acct.redeemOk': '兑换成功，会员已生效！',
   'acct.redeemCodeNotFound': '优惠码不存在，请核对后重试。',

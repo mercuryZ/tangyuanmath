@@ -410,12 +410,16 @@ window.TM_I18N.en = {
   'admin.never': '—',
   'admin.errorPrefix': 'Request failed (code: {code}).',
   'admin.totals': '{families} families · {parents} registered parents',
+  'admin.matchedCount': 'matched {count}',
   'admin.showingRecent': 'showing the latest {count}',
-  'admin.searchHint': 'Leave empty to list the 50 most recently registered families.',
+  'admin.prevPage': 'Previous',
+  'admin.nextPage': 'Next',
+  'admin.pageInfo': 'Page {page} of {pages}',
+  'admin.searchHint': 'Leave empty to browse all registered families.',
 
   /* ---------- 优惠码兑换（家长中心） ---------- */
   'acct.redeemTitle': 'Have a redeem code?',
-  'acct.redeemPlaceholder': 'TANGYUAN-XXXXX-XXXXX',
+  'acct.redeemPlaceholder': 'TM-XXXXX-XXXXX',
   'acct.redeemBtn': 'Redeem',
   'acct.redeemOk': 'Code redeemed — membership is active!',
   'acct.redeemCodeNotFound': 'This code does not exist. Check the spelling.',
