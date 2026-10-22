@@ -288,6 +288,19 @@
     }
   }
 
+  async function cleanupCodes() {
+    if (!global.confirm(t('admin.cleanupConfirm'))) return;
+    const r = await global.TMAPI.call('POST', '/api/admin/codes/cleanup');
+    if (!r.ok) {
+      const msg = t('admin.errorPrefix', { code: r.code });
+      $('codesListMsg').textContent = msg;
+      toast(msg, true);
+      return;
+    }
+    toast(t('admin.cleanupDone', { count: r.data.deleted }));
+    loadCodes();
+  }
+
   async function loadCodes() {
     const r = await global.TMAPI.call('GET', '/api/admin/codes?limit=100');
     if (!r.ok) { $('codesListMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
@@ -359,6 +372,7 @@
     $('grantForm').addEventListener('submit', submitGrant);
     $('codeForm').addEventListener('submit', submitCodes);
     $('copyCodesBtn').addEventListener('click', copyCodes);
+    $('cleanupCodesBtn').addEventListener('click', cleanupCodes);
   }
 
   document.addEventListener('DOMContentLoaded', async () => {

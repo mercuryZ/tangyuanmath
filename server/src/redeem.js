@@ -130,4 +130,18 @@ function revokeCode(db, id, now) {
   return info.changes === 1;
 }
 
-module.exports = { createCodes, redeemCode, listCodes, revokeCode, expiryForSku, normalizeCode };
+/* 批量清理已使用 / 已过期（含被禁用）的码。
+ * 注意：只删除码记录，不会撤销已发放的 entitlements。 */
+function deleteExpiredOrUsedCodes(db, now) {
+  const t = now === undefined ? Date.now() : now;
+  return db.prepare(
+    `DELETE FROM redeem_codes
+     WHERE used_at IS NOT NULL
+        OR (expires_at IS NOT NULL AND expires_at <= ?)`
+  ).run(t).changes;
+}
+
+module.exports = {
+  createCodes, redeemCode, listCodes, revokeCode, deleteExpiredOrUsedCodes,
+  expiryForSku, normalizeCode
+};

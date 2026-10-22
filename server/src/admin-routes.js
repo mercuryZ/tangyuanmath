@@ -160,6 +160,13 @@ function buildAdminRouter(db) {
     mw.ok(res, { codes: redeem.listCodes(db, req.query.limit) });
   });
 
+  /* 批量清理已使用/已过期（含被禁用）的码；不撤销已发放的会员权益。 */
+  r.post('/codes/cleanup', mw.rateLimit(MUTATE_LIMIT), mw.csrfProtect, (req, res) => {
+    const deleted = redeem.deleteExpiredOrUsedCodes(db);
+    res.setHeader('Cache-Control', 'no-store');
+    mw.ok(res, { deleted });
+  });
+
   r.post('/codes/:id/revoke', mw.rateLimit(MUTATE_LIMIT), mw.csrfProtect, (req, res) => {
     const ok = redeem.revokeCode(db, Number(req.params.id));
     if (!ok) return mw.fail(res, 409, 'code_not_revocable', 'Code is used or missing.');

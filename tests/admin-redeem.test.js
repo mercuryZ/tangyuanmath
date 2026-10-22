@@ -232,6 +232,46 @@ test('优惠码：批量生成、列表回显完整码（加密存储）、禁�
   }
 });
 
+test('优惠码：批量清理已过期/已使用，不撤销已发放权益', async () => {
+  const f = fixture();
+  const ctx = await startServer(f.db);
+  try {
+    const admin = f.mk(ADMIN_EMAIL);
+    const token = mw.createSession(f.db, admin.userId);
+    const csrf = await getCsrf(ctx.base, token);
+    const hashToken = require('../server/src/util').hashToken;
+
+    const created = redeem.createCodes(f.db, {
+      sku: 'supporter_monthly', count: 3, adminUserId: admin.userId
+    });
+    const [unused, expired, used] = created.codes;
+    const now = Date.now();
+    f.db.prepare('UPDATE redeem_codes SET expires_at = ? WHERE code_hash = ?')
+      .run(now - 1000, hashToken(expired));
+
+    const member = f.mk('cleanup-member@example.com');
+    redeem.redeemCode(f.db, {
+      code: used, familyId: member.familyId, userId: member.userId, now
+    });
+    assert.strictEqual(listActiveEntitlements(f.db, member.familyId).length, 3);
+
+    const r = await api(ctx.base, token, csrf, 'POST', '/api/admin/codes/cleanup');
+    assert.strictEqual(r.status, 200);
+    assert.strictEqual(r.data.deleted, 2);
+
+    const list = await api(ctx.base, token, csrf, 'GET', '/api/admin/codes');
+    assert.strictEqual(list.data.codes.length, 1);
+    assert.strictEqual(list.data.codes[0].code, unused);
+    assert.strictEqual(
+      listActiveEntitlements(f.db, member.familyId).length, 3,
+      '删除码记录不应撤销已发放权益'
+    );
+  } finally {
+    await ctx.close();
+    f.cleanup();
+  }
+});
+
 test('兑换时长：四档 SKU 与自然月语义一致（领域层）', () => {
   const f = fixture();
   try {
