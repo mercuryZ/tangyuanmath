@@ -166,7 +166,7 @@ test('手动授予与撤销（管理 API）', async () => {
   }
 });
 
-test('优惠码：批量生成（明文仅一次）、列表无明文、禁用未用码', async () => {
+test('优惠码：批量生成、列表回显完整码（加密存储）、禁用未用码', async () => {
   const f = fixture();
   const ctx = await startServer(f.db);
   try {
@@ -184,10 +184,30 @@ test('优惠码：批量生成（明文仅一次）、列表无明文、禁用�
 
     const list = await api(ctx.base, token, csrf, 'GET', '/api/admin/codes');
     assert.strictEqual(list.data.codes.length, 5);
+    assert.deepStrictEqual(
+      list.data.codes.map(c => c.code).sort(),
+      r.data.codes.slice().sort(),
+      '列表应回显全部完整激活码'
+    );
     for (const c of list.data.codes) {
       assert.ok(c.hashPrefix && c.hashPrefix.length === 8);
-      assert.ok(!('code' in c) && !('codeHash' in c), '列表不含明文或哈希全文');
+      assert.ok(!('codeHash' in c) && !('codeEnc' in c), '列表不返回哈希全文或密文');
     }
+    for (const row of f.db.prepare('SELECT code_hash, code_enc FROM redeem_codes').all()) {
+      assert.ok(row.code_enc && row.code_enc.includes('.'), '激活码应加密存储');
+      assert.ok(!row.code_enc.includes('TM-'), '数据库中不得出现明文激活码');
+    }
+
+    // 旧码没有 code_enc：仍可列出，但只能显示哈希前缀
+    const legacy = 'TANGYUAN-AAAAA-AAAAA';
+    f.db.prepare('INSERT INTO redeem_codes (code_hash, sku, created_at) VALUES (?,?,?)')
+      .run(require('../server/src/util').hashToken(legacy), 'supporter_monthly', Date.now());
+    const listLegacy = await api(ctx.base, token, csrf, 'GET', '/api/admin/codes');
+    const legacyRow = listLegacy.data.codes.find(
+      c => c.hashPrefix === require('../server/src/util').hashToken(legacy).slice(0, 8)
+    );
+    assert.ok(legacyRow, '旧码应出现在列表中');
+    assert.strictEqual(legacyRow.code, null, '旧码没有密文，不能回显完整码');
 
     // 列表按创建时间倒序：list[0] 是最后创建的码，与 r.data.codes[4] 是同一行
     const one = list.data.codes[0];

@@ -2,6 +2,7 @@
 'use strict';
 
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 /* 环境变量从控制台/聊天里复制时经常带引号或首尾空白；统一清理，但绝不打印值。
  * Waffo 私钥支持 PEM（真实换行或字面量 \n）与裸 base64；_BASE64 变量按约定是
@@ -38,6 +39,26 @@ const adminEmails = new Set(
     .map(s => s.trim().toLowerCase())
     .filter(Boolean)
 );
+
+/* 激活码明文加密密钥（AES-256-GCM），仅用于让管理后台能再次显示激活码。
+ * 支持 base64 或 64 位 hex；生产必须显式配置，本地/测试使用固定开发密钥。 */
+function readCodeEncKey() {
+  const raw = cleanEnv(process.env.TM_CODE_ENC_KEY);
+  if (raw) {
+    const key = /^[0-9a-f]{64}$/i.test(raw)
+      ? Buffer.from(raw, 'hex')
+      : Buffer.from(raw, 'base64');
+    if (key.length !== 32) {
+      throw new Error('TM_CODE_ENC_KEY must decode to exactly 32 bytes (base64 or 64-char hex).');
+    }
+    return key;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('TM_CODE_ENC_KEY is required in production to encrypt redeem codes.');
+  }
+  return crypto.createHash('sha256').update('tobemathmaster-dev-code-key').digest();
+}
+const codeEncKey = readCodeEncKey();
 
 module.exports = {
   env: process.env.NODE_ENV || 'development',
@@ -82,7 +103,8 @@ module.exports = {
   waffoProductYearly: cleanEnv(process.env.WAFFO_PRODUCT_YEARLY),
   waffoProductLifetime: cleanEnv(process.env.WAFFO_PRODUCT_LIFETIME),
   waffoProductTrial7: cleanEnv(process.env.WAFFO_PRODUCT_TRIAL7),
-  adminEmails
+  adminEmails,
+  codeEncKey
 };
 
 function intEnv(name, fallback) {

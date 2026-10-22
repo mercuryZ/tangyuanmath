@@ -73,6 +73,7 @@ npm run revoke-launch-promo -- --yes
 | `WAFFO_ENVIRONMENT` | `test` (default) or `prod` |
 | `WAFFO_PRODUCT_TRIAL7` / `..._MONTHLY` / `..._YEARLY` / `..._LIFETIME` | Product IDs returned by the setup script (the trial is the $1/3-day one-time product) |
 | `WAFFO_WEBHOOK_PUBLIC_KEY` | Optional override; the SDK ships Waffo's public keys |
+| `TM_CODE_ENC_KEY` | 32-byte key (base64 or 64-char hex) used to encrypt redeem codes at rest so the admin console can show them later. **Required in production**; generate with `openssl rand -base64 32`. Local development falls back to a fixed dev key. |
 
 One-time setup:
 

@@ -368,7 +368,7 @@ SQLite 开启外键、WAL、合理的 busy timeout。
 | `orders` | id、order_no UNIQUE、family_id FK、purchased_by FK、sku、amount_minor、currency、status、provider、provider_checkout_id、provider_trade_no、expires_at、paid_at、created_at |
 | `payment_events` | provider、event_id、event_type、processing_status、processed_at |
 | `entitlements` | id、family_id FK、user_id FK nullable（授予人/审计）、feature_key、source_type('order'/'redeem'/'grant'/'promo')、source_id、starts_at、expires_at nullable、revoked_at nullable |
-| `redeem_codes` | code_hash UNIQUE、sku、expires_at nullable、used_by nullable、used_at nullable |
+| `redeem_codes` | code_hash UNIQUE、code_enc（AES-256-GCM 加密明文，供后台展示）、sku、expires_at nullable、used_by nullable、used_at nullable |
 | `privacy_consents` | user_id、scope、policy_version、method、granted_at、withdrawn_at nullable |
 | `matches` | id、room_code、mode='versus'、difficulty、count、started_at、ended_at（Live Race 对局，仅登录档案落库，见第 13 节） |
 | `match_players` | id、match_id FK、profile_id FK、seat、display_name（系统生成名）、solved、used_ms、rank、disconnected |
@@ -623,7 +623,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 - 会话令牌与重置令牌使用密码学安全随机数；
 - 密钥只在服务端环境或秘密管理中保存；
 - webhook 签名验证失败不更新订单；
-- 兑换码一次性、哈希存储、过期与事务防竞争；
+- 兑换码一次性、哈希校验、明文用 AES-256-GCM 加密存储（密钥仅在服务端环境），过期与事务防竞争；
 - 依赖锁定和安全更新；
 - 日志过滤邮箱、Cookie、令牌和详细儿童答题内容；
 - 管理权限不暴露在普通前端。

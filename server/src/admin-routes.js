@@ -151,10 +151,12 @@ function buildAdminRouter(db) {
     } catch (e) {
       return mw.fail(res, 400, e.code || 'invalid_request', e.message);
     }
+    res.setHeader('Cache-Control', 'no-store');
     mw.ok(res, { codes: out.codes, expiresAt: out.expiresAt, sku });
   });
 
   r.get('/codes', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
     mw.ok(res, { codes: redeem.listCodes(db, req.query.limit) });
   });
 

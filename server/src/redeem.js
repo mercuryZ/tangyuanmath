@@ -12,6 +12,7 @@ const { SUPPORTER_FEATURES, grantFamilyEntitlement } = require('./entitlements')
 const { SKUS } = require('./waffo');
 const { addCalendarMonths } = require('./family');
 const { hashToken } = require('./util');
+const { encryptCode, decryptCode } = require('./code-crypto');
 
 /* 生成可读码：TM-XXXXX-XXXXX（14 位，≤15 位），去掉易混的 0/O/1/I。
  * 旧版 TANGYUAN-XXXXX-XXXXX 仍可兑换，避免已发出的码失效。 */
@@ -47,14 +48,14 @@ function createCodes(db, { sku, count, expiresInDays, note, adminUserId, now }) 
   const t = now === undefined ? Date.now() : now;
   const expiresAt = expiresInDays ? t + expiresInDays * 24 * 3600 * 1000 : null;
   const insert = db.prepare(
-    `INSERT INTO redeem_codes (code_hash, sku, note, created_by, created_at, expires_at)
-     VALUES (?,?,?,?,?,?)`
+    `INSERT INTO redeem_codes (code_hash, code_enc, sku, note, created_by, created_at, expires_at)
+     VALUES (?,?,?,?,?,?,?)`
   );
   const codes = [];
   const tx = db.transaction(() => {
     for (let i = 0; i < n; i++) {
       const code = generateCode();
-      insert.run(hashToken(code), sku, note || null, adminUserId || null, t, expiresAt);
+      insert.run(hashToken(code), encryptCode(code), sku, note || null, adminUserId || null, t, expiresAt);
       codes.push(code);
     }
   });
@@ -96,18 +97,28 @@ function redeemCode(db, { code, familyId, userId, now }) {
   return { sku: row.sku, expiresAt };
 }
 
-/* 管理端列表：只返回元数据 + 哈希前缀，绝不含明文 */
+/* 管理端列表：返回元数据、哈希前缀，以及可逆解密后的完整激活码（旧码无密文时为 null）。 */
 function listCodes(db, limit) {
   const n = Math.min(Math.max(Number(limit) || 100, 1), 500);
-  return db.prepare(
+  const rows = db.prepare(
     `SELECT c.id, c.sku, c.note, c.created_at AS createdAt, c.expires_at AS expiresAt,
             c.used_at AS usedAt,
             su.email_normalized AS usedByEmail,
-            substr(c.code_hash, 1, 8) AS hashPrefix
+            substr(c.code_hash, 1, 8) AS hashPrefix,
+            c.code_enc AS codeEnc
      FROM redeem_codes c
      LEFT JOIN users su ON su.id = c.used_by
      ORDER BY c.created_at DESC, c.id DESC LIMIT ?`
   ).all(n);
+  return rows.map(row => {
+    let code = null;
+    if (row.codeEnc) {
+      try { code = decryptCode(row.codeEnc); }
+      catch (e) { console.error('[redeem] code decrypt failed for id ' + row.id); }
+    }
+    const { codeEnc, ...rest } = row;
+    return { ...rest, code };
+  });
 }
 
 /* 禁用未使用的码（软禁用：置过期时间为当前时刻） */

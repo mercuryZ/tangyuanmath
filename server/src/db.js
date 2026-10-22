@@ -435,6 +435,12 @@ const MIGRATIONS = [
       );
       CREATE INDEX idx_redeem_codes_created ON redeem_codes(created_at DESC);
     `
+  },
+  {
+    /* 激活码明文加密保存，供管理后台长期查看；旧码没有密文时仍用哈希前缀展示。 */
+    version: 9,
+    name: 'redeem-code-encrypted',
+    sql: `ALTER TABLE redeem_codes ADD COLUMN code_enc TEXT;`
   }
 ];
 

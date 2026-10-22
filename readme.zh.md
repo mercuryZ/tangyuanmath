@@ -116,6 +116,7 @@ npm run revoke-launch-promo -- --yes
 | `WAFFO_ENVIRONMENT` | `test`（默认）或 `prod` |
 | `WAFFO_PRODUCT_TRIAL7` / `..._MONTHLY` / `..._YEARLY` / `..._LIFETIME` | 配置脚本打印的四个商品 ID（TRIAL7 是 $1/3 天一次性商品） |
 | `WAFFO_WEBHOOK_PUBLIC_KEY` | 可选覆盖；SDK 内置 Waffo 公钥 |
+| `TM_CODE_ENC_KEY` | 32 字节密钥（base64 或 64 位 hex），用于加密存储激活码明文，让后台可以长期回显。**生产环境必须设置**，可用 `openssl rand -base64 32` 生成；本地未设置时使用固定开发密钥。 |
 
 一次性配置：
 

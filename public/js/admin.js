@@ -216,30 +216,74 @@
   }
 
   /* ---------- 优惠码 ---------- */
+  var lastNewCodes = [];
+
+  function tableHtml(headers, rows) {
+    const th = headers.map(h => '<th>' + esc(t(h)) + '</th>').join('');
+    return '<table class="admin-table"><thead><tr>' + th + '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+  }
+
+  function renderNewCodes(codes, sku, expiresAt, note) {
+    const plan = esc(t(SKU_LABELS[sku] || sku));
+    const valid = expiresAt ? esc(fmtDate(expiresAt)) : esc(t('admin.noExpiry'));
+    const noteCell = note ? esc(note) : '—';
+    const rows = codes.map(code => (
+      '<tr>' +
+        '<td class="code-cell">' + esc(code) + '</td>' +
+        '<td>' + plan + '</td>' +
+        '<td><span class="badge-ok">' + esc(t('admin.statusUnused')) + '</span></td>' +
+        '<td class="cell-muted">' + valid + '</td>' +
+        '<td class="cell-muted">' + noteCell + '</td>' +
+        '<td class="row-actions"><button type="button" class="s-btn tiny" data-copy="' + esc(code) + '">' +
+          esc(t('admin.copyOne')) + '</button></td>' +
+      '</tr>'
+    ));
+    $('codeNewList').innerHTML = tableHtml(
+      ['admin.colCode', 'admin.colPlan', 'admin.colStatus', 'admin.colValidUntil', 'admin.colNote', 'admin.colAction'],
+      rows
+    );
+    $('codeNewList').querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.getAttribute('data-copy'));
+          toast(t('admin.copiedOne'));
+        } catch (e) {
+          toast(t('admin.errorPrefix', { code: 'copy_failed' }), true);
+        }
+      });
+    });
+  }
+
   async function submitCodes(ev) {
     ev.preventDefault();
     $('codeMsg').textContent = '';
-    const body = {
-      sku: $('codeSku').value,
-      count: Number($('codeCount').value) || 1,
-      note: $('codeNote').value.trim()
-    };
+    const sku = $('codeSku').value;
+    const note = $('codeNote').value.trim();
+    const body = { sku, count: Number($('codeCount').value) || 1, note };
     const days = Number($('codeExpires').value);
     if (days > 0) body.expiresInDays = days;
     const r = await global.TMAPI.call('POST', '/api/admin/codes', body);
     if (!r.ok) { $('codeMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
-    $('codeOutput').value = r.data.codes.join('\n');
+    lastNewCodes = r.data.codes.slice();
+    renderNewCodes(r.data.codes, sku, r.data.expiresAt, note);
     $('codeResults').hidden = false;
     loadCodes();
   }
 
   async function copyCodes() {
+    const text = lastNewCodes.join('\n');
     try {
-      await navigator.clipboard.writeText($('codeOutput').value);
+      await navigator.clipboard.writeText(text);
       toast(t('admin.copied'));
     } catch (e) {
-      $('codeOutput').select();
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
       global.document.execCommand && global.document.execCommand('copy');
+      ta.remove();
       toast(t('admin.copied'));
     }
   }
@@ -248,33 +292,61 @@
     const r = await global.TMAPI.call('GET', '/api/admin/codes?limit=100');
     if (!r.ok) { $('codesListMsg').textContent = t('admin.errorPrefix', { code: r.code }); return; }
     const list = $('codesList');
-    list.innerHTML = '';
-    if (!r.data.codes.length) { $('codesListMsg').textContent = t('admin.listEmpty'); return; }
+    if (!r.data.codes.length) { list.innerHTML = ''; $('codesListMsg').textContent = t('admin.listEmpty'); return; }
     $('codesListMsg').textContent = '';
     const now = Date.now();
-    for (const c of r.data.codes) {
+    const rows = r.data.codes.map(c => {
       const used = !!c.usedAt;
       const expired = !used && c.expiresAt !== null && c.expiresAt <= now;
-      const badge = used
-        ? '<span class="badge-ok off">' + esc(t('admin.statusUsed')) + (c.usedByEmail ? ' · ' + esc(c.usedByEmail) : '') + '</span>'
-        : expired
-          ? '<span class="badge-ok off">' + esc(t('admin.statusExpired')) + '</span>'
-          : '<span class="badge-ok">' + esc(t('admin.statusUnused')) + (c.expiresAt ? ' · ' + esc(t('admin.expiresOn', { date: fmtDate(c.expiresAt) })) : '') + '</span>';
-      const row = document.createElement('div');
-      row.className = 's-row';
-      row.innerHTML =
-        '<span>' + esc(t(SKU_LABELS[c.sku] || c.sku)) +
-        ' <small>#' + esc(c.hashPrefix) + (c.note ? ' · ' + esc(c.note) : '') + '</small></span>' +
-        '<span>' + badge + (used || expired ? '' : ' <button class="s-btn danger">' + esc(t('admin.disable')) + '</button>') + '</span>';
-      const btn = row.querySelector('button');
-      if (btn) btn.addEventListener('click', async () => {
+      const status = used ? t('admin.statusUsed') : expired ? t('admin.statusExpired') : t('admin.statusUnused');
+      const badgeClass = used || expired ? 'badge-ok off' : 'badge-ok';
+      const valid = c.expiresAt ? fmtDate(c.expiresAt) : t('admin.noExpiry');
+      const note = c.note ? '<span class="cell-note">' + esc(c.note) + '</span>' : '';
+      const codeCell = c.code
+        ? '<span>' + esc(c.code) + '</span>'
+        : '<span title="' + esc(t('admin.hashHint')) + '">#' + esc(c.hashPrefix) + '</span>';
+      const actions = [];
+      if (c.code) {
+        actions.push('<button type="button" class="s-btn tiny" data-copy="' + esc(c.code) + '">' +
+          esc(t('admin.copyOne')) + '</button>');
+      }
+      if (!used && !expired) {
+        actions.push('<button type="button" class="s-btn danger tiny" data-disable="' + esc(c.id) + '">' +
+          esc(t('admin.disable')) + '</button>');
+      }
+      return '<tr>' +
+        '<td class="code-cell">' + codeCell + note + '</td>' +
+        '<td>' + esc(t(SKU_LABELS[c.sku] || c.sku)) + '</td>' +
+        '<td><span class="' + badgeClass + '">' + esc(status) + '</span></td>' +
+        '<td class="cell-muted">' + esc(valid) + '</td>' +
+        '<td class="cell-muted">' + esc(c.usedByEmail || '—') + '</td>' +
+        '<td class="cell-muted">' + esc(fmtDate(c.createdAt)) + '</td>' +
+        '<td class="row-actions">' + (actions.length ? actions.join(' ') : '<span class="cell-muted">—</span>') + '</td>' +
+      '</tr>';
+    });
+    list.innerHTML = tableHtml(
+      ['admin.colCode', 'admin.colPlan', 'admin.colStatus', 'admin.colValidUntil', 'admin.colUsedBy', 'admin.colCreated', 'admin.colAction'],
+      rows
+    );
+    list.querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.getAttribute('data-copy'));
+          toast(t('admin.copiedOne'));
+        } catch (e) {
+          toast(t('admin.errorPrefix', { code: 'copy_failed' }), true);
+        }
+      });
+    });
+    list.querySelectorAll('[data-disable]').forEach(btn => {
+      btn.addEventListener('click', async () => {
         if (!global.confirm(t('admin.disableConfirm'))) return;
-        const r2 = await global.TMAPI.call('POST', '/api/admin/codes/' + c.id + '/revoke');
+        const id = btn.getAttribute('data-disable');
+        const r2 = await global.TMAPI.call('POST', '/api/admin/codes/' + id + '/revoke');
         if (r2.ok) { toast(t('admin.disabledOk')); loadCodes(); }
         else toast(t('admin.errorPrefix', { code: r2.code }), true);
       });
-      list.appendChild(row);
-    }
+    });
   }
 
   /* ---------- 初始化 ---------- */
