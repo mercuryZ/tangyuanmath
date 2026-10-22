@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/">
 <link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261021h">
+<link rel="stylesheet" href="/css/site.css?v=20261022">
 </head>
 <body>
 
@@ -18,13 +18,18 @@
     <a class="brand" href="/"><img src="/img/tangyuan_small.png" alt="Tangyuan the mascot"><b>Tangyuan Math</b></a>
     <nav class="site-nav" aria-label="Main">
       <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> Play</a>
-      <a href="/en/tips/">Math Tips</a>
-      <a href="/en/worksheets/">Worksheets</a>
-      <a href="/en/pricing/">Pricing</a>
-      <a href="/en/blog/" aria-current="page">Blog</a>
-      <a href="/en/about/">About</a>
-      <a href="/account/">Parent Center</a>
-      <a class="lang-switch" href="/zh/blog/" hreflang="zh" lang="zh">中文</a>
+      <details class="nav-drawer">
+        <summary aria-label="Menu"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/en/tips/">Math Tips</a>
+          <a href="/en/worksheets/">Worksheets</a>
+          <a href="/en/pricing/">Pricing</a>
+          <a href="/en/blog/" aria-current="page">Blog</a>
+          <a href="/en/about/">About</a>
+          <a href="/account/">Parent Center</a>
+          <a class="lang-switch" href="/zh/blog/" hreflang="zh" lang="zh">中文</a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
@@ -37,6 +42,12 @@
 
       <h2>Latest posts</h2>
       <div class="post-list">
+        <article class="post-card">
+          <p class="post-card-date">October 21, 2026</p>
+          <h3><a href="/en/blog/history-of-mental-math/">The History of Mental Math</a></h3>
+          <p>From counting rods and the abacus to Vedic mathematics, the Trachtenberg system, and China's speed-calculation movement.</p>
+          <a class="post-card-more" href="/en/blog/history-of-mental-math/">Read the history →</a>
+        </article>
         <article class="post-card">
           <p class="post-card-date">October 2026</p>
           <h3><a href="/en/blog/playing-games-with-my-daughter/">How Playing Games with My Daughter Led Me to Build Tangyuan Math</a></h3>
@@ -66,5 +77,6 @@
   </div>
 </footer>
 
+<script src="/js/header.js?v=20261022" defer></script>
 </body>
 </html>

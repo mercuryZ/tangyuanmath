@@ -21,6 +21,7 @@ const {
   buildFamilyRouter, familyInviteLandingHandler, familyInvitePendingHandler
 } = require('./family-routes');
 const { buildOrdersRouter, buildWaffoWebhookHandler } = require('./payment-routes');
+const { buildAdminRouter, buildRedeemHandler } = require('./admin-routes');
 const { attachLiveRace } = require('./race-ws');
 const { startBackupScheduler } = require('./backup');
 
@@ -64,6 +65,8 @@ function createApp(db, opts) {
   api.use('/account', mw.requireAuth, buildAccountRouter(db));
   api.use('/pdf', mw.requireAuth, buildPdfRouter(db));
   api.use('/orders', mw.requireAuth, buildOrdersRouter(db, payments));
+  api.use('/admin', mw.requireAuth, mw.requireAdmin, buildAdminRouter(db));
+  api.post('/redeem', mw.requireAuth, ...buildRedeemHandler(db));
 
   /* 家庭邀请的落地页必须允许未登录访问（Google OAuth 回跳前） */
   api.get('/family/invite/landing', familyInviteLandingHandler(db));

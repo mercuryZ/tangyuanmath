@@ -30,6 +30,15 @@ const waffoEnvironment =
   ['prod', 'production', 'live'].includes(waffoEnvironmentInput) ? 'prod' : 'test';
 const waffoPrivateKey = readWaffoPrivateKey();
 
+/* 管理员邮箱（逗号分隔，小写比对）。配了才有管理后台入口——与 Google 登录同款
+ * 「环境变量启用」模式；变更后需重启服务生效。 */
+const adminEmails = new Set(
+  cleanEnv(process.env.TM_ADMIN_EMAILS)
+    .split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean)
+);
+
 module.exports = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 3000),
@@ -72,7 +81,8 @@ module.exports = {
   waffoProductMonthly: cleanEnv(process.env.WAFFO_PRODUCT_MONTHLY),
   waffoProductYearly: cleanEnv(process.env.WAFFO_PRODUCT_YEARLY),
   waffoProductLifetime: cleanEnv(process.env.WAFFO_PRODUCT_LIFETIME),
-  waffoProductTrial7: cleanEnv(process.env.WAFFO_PRODUCT_TRIAL7)
+  waffoProductTrial7: cleanEnv(process.env.WAFFO_PRODUCT_TRIAL7),
+  adminEmails
 };
 
 function intEnv(name, fallback) {

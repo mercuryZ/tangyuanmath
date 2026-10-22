@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tangyuan Math — Admin</title>
+<meta name="description" content="Operations console for Tangyuan Math (internal).">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="../img/tangyuan_small.png">
+<link rel="stylesheet" href="../css/play.css?v=20261022">
+<link rel="stylesheet" href="../css/account.css?v=20261022">
+</head>
+<body>
+
+<div class="bg-particles" aria-hidden="true"></div>
+
+<header class="app-header">
+  <a class="brand" href="../account/">
+    <span class="mascot"><img src="../img/tangyuan_small.png" alt="Tangyuan"></span>
+    <span class="brand-text">
+      <h1 data-i18n="admin.title">Admin Console</h1>
+      <span class="tag" data-i18n="admin.backToAccount">← Parent Center</span>
+    </span>
+  </a>
+  <div class="header-actions" role="group" aria-label="Language">
+    <button class="chip-btn" id="langEn" type="button" aria-pressed="false">EN</button>
+    <button class="chip-btn" id="langZh" type="button" aria-pressed="false">中文</button>
+  </div>
+</header>
+
+<main class="app" id="app">
+
+  <section class="view active" id="view-gate" aria-live="polite">
+    <h2 class="page-title" data-i18n="admin.checking">Checking access…</h2>
+    <p class="hint" id="gateMsg"></p>
+  </section>
+
+  <!-- 管理主视图：仅 TM_ADMIN_EMAILS 内的家长可见 -->
+  <section class="view" id="view-admin">
+
+    <section class="s-group" id="membersGroup">
+      <h3 data-i18n="admin.membersTitle">Member lookup</h3>
+      <form id="memberSearchForm" class="acct-form" novalidate>
+        <div class="s-row">
+          <input class="acct-input" id="memberQuery" type="email" autocomplete="off"
+                 placeholder="parent@example.com" data-i18n-placeholder="admin.searchPlaceholder" style="flex:1;min-width:200px">
+          <button class="s-btn" id="memberSearchBtn" type="submit" data-i18n="admin.search">Search</button>
+        </div>
+      </form>
+      <p class="hint" id="memberMsg"></p>
+      <div id="memberResults"></div>
+      <div id="memberDetail" hidden>
+        <p class="s-row"><button class="s-btn" id="detailBack" type="button" data-i18n="admin.backToList">← Back to list</button></p>
+        <div id="detailBody"></div>
+      </div>
+    </section>
+
+    <section class="s-group" id="grantGroup">
+      <h3 data-i18n="admin.grantTitle">Manual grant</h3>
+      <form id="grantForm" class="acct-form" novalidate>
+        <div class="s-row">
+          <input class="acct-input" id="grantEmail" type="email" autocomplete="off"
+                 placeholder="parent@example.com" data-i18n-placeholder="admin.emailPlaceholder" style="flex:1;min-width:200px">
+          <select class="acct-select" id="grantSku">
+            <option value="supporter_trial7" data-i18n="admin.skuTrial">7 days</option>
+            <option value="supporter_monthly" data-i18n="admin.skuMonthly">1 month</option>
+            <option value="supporter_yearly" data-i18n="admin.skuYearly">12 months</option>
+            <option value="supporter_lifetime" data-i18n="admin.skuLifetime">Lifetime</option>
+          </select>
+          <button class="s-btn" id="grantBtn" type="submit" data-i18n="admin.grant">Grant</button>
+        </div>
+      </form>
+      <p class="hint" id="grantMsg"></p>
+    </section>
+
+    <section class="s-group" id="codesGroup">
+      <h3 data-i18n="admin.codesTitle">Redeem codes</h3>
+      <form id="codeForm" class="acct-form" novalidate>
+        <div class="s-row">
+          <select class="acct-select" id="codeSku">
+            <option value="supporter_trial7" data-i18n="admin.skuTrial">7 days</option>
+            <option value="supporter_monthly" selected data-i18n="admin.skuMonthly">1 month</option>
+            <option value="supporter_yearly" data-i18n="admin.skuYearly">12 months</option>
+            <option value="supporter_lifetime" data-i18n="admin.skuLifetime">Lifetime</option>
+          </select>
+          <input class="acct-input" id="codeCount" type="number" min="1" max="100" value="10" style="width:80px" aria-label="Count">
+          <input class="acct-input" id="codeExpires" type="number" min="1" placeholder="30" style="width:90px" aria-label="Days valid">
+          <input class="acct-input" id="codeNote" type="text" maxlength="200" autocomplete="off"
+                 placeholder="note" data-i18n-placeholder="admin.notePlaceholder" style="flex:1;min-width:140px">
+          <button class="s-btn" id="codeBtn" type="submit" data-i18n="admin.generate">Generate</button>
+        </div>
+        <p class="hint" data-i18n="admin.codeFormHint">Count 1–100 · days valid is optional · single-use codes, shown only once.</p>
+      </form>
+      <p class="hint" id="codeMsg"></p>
+      <div id="codeResults" hidden>
+        <p class="stats-line"><span data-i18n="admin.codesOnce">Codes are shown only this once — copy them now:</span>
+          <button class="s-btn" id="copyCodesBtn" type="button" data-i18n="admin.copy">Copy</button></p>
+        <textarea id="codeOutput" readonly rows="6" style="width:100%" class="acct-input"></textarea>
+      </div>
+      <h3 data-i18n="admin.codesListTitle">Existing codes</h3>
+      <p class="hint" id="codesListMsg"></p>
+      <div id="codesList"></div>
+    </section>
+
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="../locales/en.js?v=20261022"></script>
+<script src="../locales/zh.js?v=20261022"></script>
+<script src="../js/i18n.js?v=20261022"></script>
+<script src="../js/api.js?v=20261022"></script>
+<script src="../js/admin.js?v=20261022"></script>
+
+</body>
+</html>

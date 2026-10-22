@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/">
 <link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261021h">
+<link rel="stylesheet" href="/css/site.css?v=20261022">
 </head>
 <body>
 
@@ -18,13 +18,18 @@
     <a class="brand" href="/zh/"><img src="/img/tangyuan_small.png" alt="吉祥物汤圆"><b>汤圆数学</b></a>
     <nav class="site-nav" aria-label="主导航">
       <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> 开始玩</a>
-      <a href="/zh/tips/">速算秘籍</a>
-      <a href="/zh/worksheets/">练习卷</a>
-      <a href="/zh/pricing/">定价</a>
-      <a href="/zh/blog/" aria-current="page">博客</a>
-      <a href="/zh/about/">关于</a>
-      <a href="/account/">家长中心</a>
-      <a class="lang-switch" href="/en/blog/" hreflang="en" lang="en">EN</a>
+      <details class="nav-drawer">
+        <summary aria-label="菜单"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/zh/tips/">速算秘籍</a>
+          <a href="/zh/worksheets/">练习卷</a>
+          <a href="/zh/pricing/">定价</a>
+          <a href="/zh/blog/" aria-current="page">博客</a>
+          <a href="/zh/about/">关于</a>
+          <a href="/account/">家长中心</a>
+          <a class="lang-switch" href="/en/blog/" hreflang="en" lang="en">EN</a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
@@ -37,6 +42,12 @@
 
       <h2>最新文章</h2>
       <div class="post-list">
+        <article class="post-card">
+          <p class="post-card-date">2026 年 10 月 21 日</p>
+          <h3><a href="/zh/blog/history-of-mental-math/">速算的历史：从算筹、算盘到速算法</a></h3>
+          <p>从算筹、算盘到吠陀数学、特拉克滕贝格速算法与史丰收速算法——心算方法从哪里来。</p>
+          <a class="post-card-more" href="/zh/blog/history-of-mental-math/">阅读全文 →</a>
+        </article>
         <article class="post-card">
           <p class="post-card-date">2026 年 10 月</p>
           <h3><a href="/zh/blog/playing-games-with-my-daughter/">陪女儿玩游戏，如何让我做出了汤圆数学</a></h3>
@@ -66,5 +77,6 @@
   </div>
 </footer>
 
+<script src="/js/header.js?v=20261022" defer></script>
 </body>
 </html>

@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/faq/">
 <link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/faq/">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261021h">
+<link rel="stylesheet" href="/css/site.css?v=20261022">
 </head>
 <body>
 
@@ -18,12 +18,17 @@
     <a class="brand" href="/"><img src="/img/tangyuan_small.png" alt="Tangyuan the mascot"><b>Tangyuan Math</b></a>
     <nav class="site-nav" aria-label="Main">
       <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> Play</a>
-      <a href="/en/faq/" aria-current="page">FAQ</a>
-      <a href="/en/about/">About</a>
-      <a href="/en/privacy/">Privacy</a>
-      <a href="/en/terms/">Terms</a>
-      <a href="/account/">Parent Center</a>
-      <a class="lang-switch" href="/zh/faq/" hreflang="zh" lang="zh">中文</a>
+      <details class="nav-drawer">
+        <summary aria-label="Menu"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/en/faq/" aria-current="page">FAQ</a>
+          <a href="/en/about/">About</a>
+          <a href="/en/privacy/">Privacy</a>
+          <a href="/en/terms/">Terms</a>
+          <a href="/account/">Parent Center</a>
+          <a class="lang-switch" href="/zh/faq/" hreflang="zh" lang="zh">中文</a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
@@ -112,5 +117,6 @@
   </div>
 </footer>
 
+<script src="/js/header.js?v=20261022" defer></script>
 </body>
 </html>

@@ -61,6 +61,9 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
+      # 管理后台（/admin/）：逗号分隔的管理员邮箱列表；配了才启用。
+      - key: TM_ADMIN_EMAILS
+        sync: false
       # Waffo Pancake 支付。Merchant/Store ID 是公开标识；私钥与商品 ID 只在控制台填写。
       # 2026-10-21 已在生产环境创建并发布商品（$1 7 天尝鲜、$4.99 月付、$49 年付、$149 永久），控制台需同步设置：
       #   WAFFO_PRODUCT_TRIAL7=PROD_5JlW69aOEaD1VtL7PiwYBX

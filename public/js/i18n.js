@@ -42,7 +42,7 @@
     return s;
   }
 
-  /* 将 data-i18n / data-i18n-aria-label / data-i18n-title 应用到 DOM */
+  /* 将 data-i18n / data-i18n-aria-label / data-i18n-title / data-i18n-placeholder 应用到 DOM */
   function applyI18n(root) {
     (root || document).querySelectorAll('[data-i18n]').forEach(function (el) {
       el.textContent = t(el.getAttribute('data-i18n'));
@@ -52,6 +52,9 @@
     });
     (root || document).querySelectorAll('[data-i18n-title]').forEach(function (el) {
       el.title = t(el.getAttribute('data-i18n-title'));
+    });
+    (root || document).querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
     });
   }
 

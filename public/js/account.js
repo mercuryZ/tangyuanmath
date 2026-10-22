@@ -223,6 +223,8 @@
     sup.hidden = !(st.membership && st.membership.active);
     sup.href = worksheetsUrl();
 
+    $('adminLink').hidden = !st.user.isAdmin; // TM_ADMIN_EMAILS 内的家长才显示管理入口
+
     renderMembership(st);
     renderFamily(st);
     renderChildren(st);
@@ -400,6 +402,26 @@
     if (!r.ok) { $('inviteMsg').textContent = errMsg(r); return; }
     $('inviteMsg').textContent = t('acct.inviteSent');
     $('inviteEmail').value = '';
+    renderMain();
+  }
+
+  /* ---------- 优惠码兑换 ---------- */
+  var REDEEM_ERRORS = {
+    code_not_found: 'acct.redeemCodeNotFound',
+    code_used: 'acct.redeemCodeUsed',
+    code_expired: 'acct.redeemCodeExpired'
+  };
+  async function submitRedeem(e) {
+    e.preventDefault();
+    var msg = $('redeemMsg');
+    msg.textContent = '';
+    var code = $('redeemCode').value.trim();
+    if (!code) return;
+    var r = await global.TMAPI.call('POST', '/api/redeem', { code: code });
+    if (!r.ok) { msg.textContent = REDEEM_ERRORS[r.code] ? t(REDEEM_ERRORS[r.code]) : errMsg(r); return; }
+    msg.textContent = t('acct.redeemOk');
+    $('redeemCode').value = '';
+    toast(t('acct.redeemOk'));
     renderMain();
   }
 
@@ -665,6 +687,7 @@
     $('authForm').addEventListener('submit', submitAuth);
     $('studentForm').addEventListener('submit', submitStudent);
     $('inviteForm').addEventListener('submit', submitInvite);
+    $('redeemForm').addEventListener('submit', submitRedeem);
     $('childForm').addEventListener('submit', submitChild);
     $('addChildBtn').addEventListener('click', function () { openChildForm(null); });
     $('childCancel').addEventListener('click', function () { $('childForm').hidden = true; });

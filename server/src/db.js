@@ -411,6 +411,30 @@ const MIGRATIONS = [
         ON orders(provider, provider_order_id)
         WHERE provider_order_id IS NOT NULL;
     `
+  },
+  {
+    /* 优惠码（DESIGN §6 redeem_codes）：库存只存哈希（sha256，与 sessions/invites 同一套），
+     * 明文码仅在创建响应里出现一次。单次使用；兑换写 entitlements source_type='redeem'。
+     * expires_at 双职责：码本身的兑换截止；被管理端禁用时置为当前时间。 */
+    version: 8,
+    name: 'redeem-codes',
+    sql: `
+      CREATE TABLE redeem_codes (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        code_hash       TEXT NOT NULL UNIQUE,
+        sku             TEXT NOT NULL CHECK (sku IN
+                          ('supporter_trial7','supporter_monthly','supporter_yearly',
+                           'supporter_lifetime')),
+        note            TEXT,
+        created_by      INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at      INTEGER NOT NULL,
+        expires_at      INTEGER,
+        used_family_id  INTEGER REFERENCES families(id) ON DELETE SET NULL,
+        used_by         INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        used_at         INTEGER
+      );
+      CREATE INDEX idx_redeem_codes_created ON redeem_codes(created_at DESC);
+    `
   }
 ];
 

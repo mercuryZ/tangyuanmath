@@ -11,13 +11,10 @@
   'use strict';
 
   /* 10 关挑战（第 1–10 关），第 0 关是热身关、不计入 10 关。
-   * 第 1 关 120 秒，第 10 关 20 秒；热身关也给 120 秒。 */
+   * 所有关卡统一 120 秒。 */
   var MAX_LEVEL = 10;
   var TOTAL_LEVELS = 10;
-  var LEVEL_TIME = function (lvl) {
-    if (lvl <= 0) return 120;
-    return Math.round(120 - (lvl - 1) * (100 / (MAX_LEVEL - 1)));
-  };
+  var LEVEL_TIME = function () { return 120; };
 
   var state = null;
 

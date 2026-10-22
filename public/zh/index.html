@@ -15,7 +15,7 @@
 <meta property="og:url" content="https://tangyuanmath.com/zh/">
 <meta property="og:image" content="https://tangyuanmath.com/img/tangyuan_web.png">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261021h">
+<link rel="stylesheet" href="/css/site.css?v=20261022">
 </head>
 <body>
 
@@ -25,13 +25,18 @@
     <a class="brand" href="/zh/"><img src="/img/tangyuan_small.png" alt="吉祥物汤圆"><b>汤圆数学</b></a>
     <nav class="site-nav" aria-label="主导航">
       <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> 开始玩</a>
-      <a href="/zh/tips/">速算秘籍</a>
-      <a href="/zh/worksheets/">练习卷</a>
-      <a href="/zh/pricing/">定价</a>
-      <a href="/zh/blog/">博客</a>
-      <a href="/zh/about/">关于</a>
-      <a href="/account/">家长中心</a>
-      <a class="lang-switch" href="/" hreflang="en" lang="en">EN</a>
+      <details class="nav-drawer">
+        <summary aria-label="菜单"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/zh/tips/">速算秘籍</a>
+          <a href="/zh/worksheets/">练习卷</a>
+          <a href="/zh/pricing/">定价</a>
+          <a href="/zh/blog/">博客</a>
+          <a href="/zh/about/">关于</a>
+          <a href="/account/">家长中心</a>
+          <a class="lang-switch" href="/" hreflang="en" lang="en">EN</a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
@@ -42,7 +47,8 @@
     <img class="hero-mascot" src="/img/tangyuan_web.png" alt="拿着书本、微笑的小汤圆形象">
     <h1>汤圆数学</h1>
     <p class="tagline">一题一题，成为数学小英雄。</p>
-    <p class="sub">汤圆数学是一款免费畅玩的网页游戏，帮助孩子按自己的节奏练习乘法（最高到两位数 × 两位数）。认识汤圆——你的小小数学伙伴：安心练习，准备好了再来挑战计时关卡。练习与挑战无需注册；免费家长账号可云端同步进度并创建子女登录，支持者版为最多 2 位家长和 2 名子女解锁联机对战与自定义练习卷。$1 体验 7 天。</p>
+    <p class="sub">汤圆数学是一款免费畅玩的网页游戏，帮助孩子按自己的节奏练习乘法（最高到两位数 × 两位数）。</p>
+    <p class="sub">认识汤圆——你的小小数学伙伴：安心练习，准备好了再来挑战计时关卡。</p>
     <div class="badges">
       <span class="badge-pill"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-gift"/></svg> 练习免费</span>
       <span class="badge-pill"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-lock"/></svg> 玩游戏无需注册</span>
@@ -66,7 +72,7 @@
       <div class="info-card">
         <svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-timer"/></svg>
         <h3>挑战 — 10 关（含第 0 关热身）</h3>
-        <p>每关 10 题、全对过关。第 1 关有 120 秒，第 10 关只有 20 秒。给学有余力的孩子的可选速度目标。</p>
+        <p>每关 10 题、全对过关。每关都有 120 秒。给学有余力的孩子的可选速度目标。</p>
       </div>
       <div class="info-card">
         <svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-book"/></svg>
@@ -111,14 +117,16 @@
   </section>
 
   <section class="block" id="pricing">
-    <h2>免费畅玩，可选升级</h2>
+    <h2><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-gift"/></svg> 免费畅玩，可选升级</h2>
     <div class="card-grid">
       <div class="info-card">
-        <h3><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-printer"/></svg> 可打印练习卷</h3>
+        <svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-printer"/></svg>
+        <h3>可打印练习卷</h3>
         <p>黑白低墨、打印友好的乘法练习卷——US Letter 与 A4 双纸型，可附答案页。<a href="/zh/worksheets/#free-samples">样卷免费下载</a>；支持者可自定义生成新的题目。</p>
       </div>
       <div class="info-card">
-        <h3><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-heart"/></svg> 支持者版 — $4.99/月起</h3>
+        <svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-heart"/></svg>
+        <h3>支持者版 — $4.99/月起</h3>
         <p>为最多 2 位家长和 2 名子女解锁联机对战与自定义 PDF 练习卷。可按月、按年订阅，或一次买断。$1 体验 7 天。无论是否购买都没有广告。<a href="/zh/pricing/">查看定价 →</a></p>
       </div>
     </div>
@@ -153,5 +161,6 @@
   </div>
 </footer>
 
+<script src="/js/header.js?v=20261022" defer></script>
 </body>
 </html>

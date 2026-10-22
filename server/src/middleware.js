@@ -194,6 +194,15 @@ function requireParentOwner(req, res, next) {
   next();
 }
 
+/* 管理后台：身份来自 TM_ADMIN_EMAILS 环境变量（config.adminEmails），不在库里存角色 */
+function requireAdmin(req, res, next) {
+  if (!req.user) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
+  if (!config.adminEmails.has(String(req.user.email || '').toLowerCase())) {
+    return fail(res, 403, 'admin_required', 'Admin access is required.');
+  }
+  next();
+}
+
 function requireChild(req, res, next) {
   if (!req.child) return fail(res, 401, 'not_logged_in', 'Please sign in first.');
   next();
@@ -222,6 +231,6 @@ module.exports = {
   securityHeaders, rateLimit,
   issueCsrfCookie, csrfProtect,
   sessionCookieName, createSession, createChildSession, resolveSession,
-  attachIdentity, requireAuth, requireParentOwner, requireChild, requirePlayer,
+  attachIdentity, requireAuth, requireParentOwner, requireAdmin, requireChild, requirePlayer,
   parseCookieHeader
 };

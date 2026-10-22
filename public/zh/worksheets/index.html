@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/worksheets/">
 <link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/worksheets/">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261021h">
+<link rel="stylesheet" href="/css/site.css?v=20261022">
 </head>
 <body>
 
@@ -18,13 +18,18 @@
     <a class="brand" href="/zh/"><img src="/img/tangyuan_small.png" alt="汤圆吉祥物"><b>汤圆数学</b></a>
     <nav class="site-nav" aria-label="主导航">
       <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> 开玩</a>
-      <a href="/zh/tips/">速算秘籍</a>
-      <a href="/zh/worksheets/" aria-current="page">练习卷</a>
-      <a href="/zh/pricing/">定价</a>
-      <a href="/zh/blog/">博客</a>
-      <a href="/zh/about/">关于</a>
-      <a href="/account/">家长中心</a>
-      <a class="lang-switch" href="/en/worksheets/" hreflang="en" lang="en">EN</a>
+      <details class="nav-drawer">
+        <summary aria-label="菜单"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/zh/tips/">速算秘籍</a>
+          <a href="/zh/worksheets/" aria-current="page">练习卷</a>
+          <a href="/zh/pricing/">定价</a>
+          <a href="/zh/blog/">博客</a>
+          <a href="/zh/about/">关于</a>
+          <a href="/account/">家长中心</a>
+          <a class="lang-switch" href="/en/worksheets/" hreflang="en" lang="en">EN</a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
@@ -114,7 +119,8 @@
   </div>
 </footer>
 
-<script src="/js/worksheets.js?v=20261021h" defer></script>
+<script src="/js/worksheets.js?v=20261022" defer></script>
 
+<script src="/js/header.js?v=20261022" defer></script>
 </body>
 </html>

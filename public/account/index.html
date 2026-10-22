@@ -7,8 +7,8 @@
 <meta name="description" content="Sign in to sync your child's learning data across devices. The game itself works fully without an account.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="../img/tangyuan_small.png">
-<link rel="stylesheet" href="../css/play.css?v=20261021h">
-<link rel="stylesheet" href="../css/account.css?v=20261021h">
+<link rel="stylesheet" href="../css/play.css?v=20261022">
+<link rel="stylesheet" href="../css/account.css?v=20261022">
 </head>
 <body>
 
@@ -118,6 +118,7 @@
       <div class="s-row">
         <button class="s-btn" id="logoutBtn" type="button" data-i18n="acct.logout">Sign out</button>
         <button class="s-btn" id="logoutAllBtn" type="button" data-i18n="acct.logoutAll">Sign out everywhere</button>
+        <a class="s-btn" id="adminLink" href="/admin/" hidden data-i18n="acct.adminLink">Admin console</a>
       </div>
     </div>
 
@@ -129,6 +130,17 @@
       <button class="s-btn" id="cancelRenewalBtn" type="button" data-i18n="acct.cancelRenewal" hidden>Cancel renewal</button>
       <button class="s-btn" id="billingPortalBtn" type="button" data-i18n="acct.billingPortal" hidden>Manage subscription &amp; refunds</button>
       <p><a id="membershipLink" href="/en/pricing/" data-i18n="acct.seePricing">See membership options →</a></p>
+      <form id="redeemForm" class="acct-form" novalidate>
+        <div class="field">
+          <label class="f-label" for="redeemCode" data-i18n="acct.redeemTitle">Have a redeem code?</label>
+          <div class="s-row">
+            <input class="acct-input" id="redeemCode" type="text" autocomplete="off" maxlength="32"
+                   placeholder="TANGYUAN-XXXXX-XXXXX" data-i18n-placeholder="acct.redeemPlaceholder" style="flex:1;min-width:200px">
+            <button class="s-btn" id="redeemBtn" type="submit" data-i18n="acct.redeemBtn">Redeem</button>
+          </div>
+        </div>
+      </form>
+      <p class="hint" id="redeemMsg"></p>
     </div>
 
     <div class="s-group" id="familyGroup">
@@ -253,13 +265,13 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="../locales/en.js?v=20261021h"></script>
-<script src="../locales/zh.js?v=20261021h"></script>
-<script src="../js/i18n.js?v=20261021h"></script>
-<script src="../js/questions.js?v=20261021h"></script>
-<script src="../js/wrongbook.js?v=20261021h"></script>
-<script src="../js/records.js?v=20261021h"></script>
-<script src="../js/api.js?v=20261021h"></script>
-<script src="../js/account.js?v=20261021h"></script>
+<script src="../locales/en.js?v=20261022"></script>
+<script src="../locales/zh.js?v=20261022"></script>
+<script src="../js/i18n.js?v=20261022"></script>
+<script src="../js/questions.js?v=20261022"></script>
+<script src="../js/wrongbook.js?v=20261022"></script>
+<script src="../js/records.js?v=20261022"></script>
+<script src="../js/api.js?v=20261022"></script>
+<script src="../js/account.js?v=20261022"></script>
 </body>
 </html>

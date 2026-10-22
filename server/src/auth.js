@@ -45,7 +45,8 @@ function publicUser(u) {
     timezone: u.timezone,
     createdAt: u.createdAt,
     familyId: u.familyId,
-    familyRole: u.familyRole
+    familyRole: u.familyRole,
+    isAdmin: config.adminEmails.has(String(u.email || '').toLowerCase())
   };
 }
 

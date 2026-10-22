@@ -83,6 +83,56 @@ a:hover { color: var(--red-dark); }
 .site-nav .play-cta:hover { background: linear-gradient(180deg, #FF7B7B, var(--red)); transform: translateY(-1px); }
 .site-nav .lang-switch { border: 2px solid var(--pink); background: #fff; }
 
+/* 窄屏导航抽屉：头部仅保留 Play 与菜单按钮，其余链接收进 <details> 面板 */
+.nav-drawer > summary { display: none; }
+.nav-drawer > .nav-links { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+@media (max-width: 1024px) {
+  .site-header .wrap { flex-wrap: nowrap; gap: 10px; }
+  .site-header .brand img { width: 38px; height: 38px; }
+  .site-nav { gap: 8px; }
+
+  .nav-drawer > summary {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; padding: 0; cursor: pointer;
+    border: 2px solid var(--pink); border-radius: 999px; background: #fff;
+    list-style: none;
+  }
+  .nav-drawer > summary::-webkit-details-marker { display: none; }
+  .nav-drawer > summary::marker { content: ""; }
+  .nav-drawer > summary:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+  .nav-drawer[open] > summary { background: var(--red-light); }
+
+  .nav-toggle-bars,
+  .nav-toggle-bars::before,
+  .nav-toggle-bars::after {
+    display: block; width: 20px; height: 2px; border-radius: 2px;
+    background: var(--red-deep); transition: transform .18s ease, background .18s ease;
+  }
+  .nav-toggle-bars { position: relative; }
+  .nav-toggle-bars::before, .nav-toggle-bars::after { content: ""; position: absolute; left: 0; }
+  .nav-toggle-bars::before { top: -6px; }
+  .nav-toggle-bars::after { top: 6px; }
+  .nav-drawer[open] .nav-toggle-bars { background: transparent; }
+  .nav-drawer[open] .nav-toggle-bars::before { top: 0; transform: rotate(45deg); }
+  .nav-drawer[open] .nav-toggle-bars::after { top: 0; transform: rotate(-45deg); }
+
+  .nav-drawer > .nav-links {
+    position: absolute; top: 100%; left: 0; right: 0;
+    display: none; flex-direction: column; align-items: stretch; gap: 4px;
+    padding: 10px 24px 18px;
+    background: #fff; border-bottom: 2px solid var(--red-light);
+    box-shadow: 0 18px 32px rgba(217, 59, 71, .14);
+  }
+  .nav-drawer[open] > .nav-links { display: flex; }
+  .nav-drawer .nav-links a { padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.25; }
+  .nav-drawer .nav-links .lang-switch { align-self: flex-start; margin-top: 4px; }
+}
+
+@media (max-width: 420px) {
+  .site-header .brand b { display: none; }
+}
+
 /* ---------- 主体 ---------- */
 main { flex: 1; padding: 40px 0 56px; }
 
