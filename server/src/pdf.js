@@ -30,6 +30,10 @@ const T = {
     title: 'Tangyuan Math — Multiplication Worksheet',
     answersTitle: 'Answers',
     answersNote: 'Answer page — print separately only if you want it.',
+    tableTitle: 'Times Table 1–9',
+    tableSub: 'Free printable practice · tangyuanmath.com',
+    tableAnswersTitle: 'Answer Key · Times Table 1–9',
+    tableAnswersSub: 'Tangyuan Math · tangyuanmath.com',
     name: 'Name', date: 'Date', score: 'Score',
     footerBrand: 'Tangyuan Math · tangyuanmath.com',
     pageOf: (n, m) => `Page ${n} of ${m}`,
@@ -44,6 +48,10 @@ const T = {
     title: '汤圆数学 · 乘法练习卷',
     answersTitle: '答案',
     answersNote: '答案页 —— 可单独选印。',
+    tableTitle: '九九乘法表',
+    tableSub: '1–9 · 免费打印 · tangyuanmath.com',
+    tableAnswersTitle: '九九乘法表 · 答案',
+    tableAnswersSub: '汤圆数学 · tangyuanmath.com',
     name: '姓名', date: '日期', score: '得分',
     footerBrand: '汤圆数学 · tangyuanmath.com',
     pageOf: (n, m) => `第 ${n} 页 / 共 ${m} 页`,
@@ -260,6 +268,158 @@ async function renderWorksheetPdf(params) {
   return { bytes, pageCount: totalPages, paper, locale, difficulty, count, answers };
 }
 
+/* ---------- 免费样张：1–9 九九乘法表 ---------- */
+/* 按列排列的三角口诀表：第 1 列 9 个算式，第 2 列 8 个……第 9 列 1 个，共 45 个。 */
+function multiplicationTableColumns(max) {
+  const n = Number.isInteger(max) && max > 0 ? max : 9;
+  const cols = [];
+  for (let base = 1; base <= n; base++) {
+    const facts = [];
+    for (let b = base; b <= n; b++) facts.push({ a: base, b, answer: base * b });
+    cols.push({ base, facts });
+  }
+  return cols;
+}
+
+/* 参考儿童乘法表海报：每列一个彩色数字徽章，白卡片 + 浅色行带。 */
+const TABLE_COLORS = [
+  rgb(0.894, 0.341, 0.180), // 珊瑚
+  rgb(0.949, 0.557, 0.169), // 橙
+  rgb(0.788, 0.635, 0.153), // 芥黄
+  rgb(0.306, 0.624, 0.239), // 绿
+  rgb(0.165, 0.616, 0.561), // 青绿
+  rgb(0.227, 0.525, 0.784), // 蓝
+  rgb(0.357, 0.420, 0.753), // 靛蓝
+  rgb(0.557, 0.357, 0.710), // 紫
+  rgb(0.831, 0.365, 0.475)  // 粉
+];
+const TABLE_BG = rgb(1, 0.976, 0.957);
+const TABLE_INK = rgb(0.23, 0.16, 0.16);
+const TABLE_TITLE = rgb(0.690, 0.165, 0.216);
+
+function fillRoundedRect(page, x, y, w, h, r, color, opacity) {
+  const opts = { color, opacity };
+  page.drawRectangle({ ...opts, x: x + r, y, width: w - 2 * r, height: h });
+  page.drawRectangle({ ...opts, x, y: y + r, width: w, height: h - 2 * r });
+  page.drawEllipse({ ...opts, x: x + r, y: y + r, xScale: r, yScale: r });
+  page.drawEllipse({ ...opts, x: x + w - r, y: y + r, xScale: r, yScale: r });
+  page.drawEllipse({ ...opts, x: x + r, y: y + h - r, xScale: r, yScale: r });
+  page.drawEllipse({ ...opts, x: x + w - r, y: y + h - r, xScale: r, yScale: r });
+}
+
+function drawCenteredText(page, text, cx, baseline, size, font, color) {
+  const w = font.widthOfTextAtSize(text, size);
+  page.drawText(text, { x: cx - w / 2, y: baseline, size, font, color });
+}
+
+function tintColor(color, amount) {
+  return rgb(
+    color.red + (1 - color.red) * amount,
+    color.green + (1 - color.green) * amount,
+    color.blue + (1 - color.blue) * amount
+  );
+}
+
+function drawTablePage(page, { size, fonts, cols, showAnswers, title, sub, pageNo, totalPages, L, mascot }) {
+  page.drawRectangle({ x: 0, y: 0, width: size.width, height: size.height, color: TABLE_BG });
+  page.drawText(title, { x: MARGIN, y: size.height - 58, size: 28, font: fonts.bold, color: TABLE_TITLE });
+  page.drawText(sub, { x: MARGIN, y: size.height - 82, size: 10.5, font: fonts.font, color: GRAY });
+  for (let i = 0; i < 9; i++) {
+    page.drawEllipse({ x: MARGIN + 4 + i * 14, y: size.height - 104, xScale: 3.5, yScale: 3.5, color: TABLE_COLORS[i] });
+  }
+  if (mascot) {
+    const h = 56;
+    const w = h * (mascot.width / mascot.height);
+    page.drawImage(mascot, { x: size.width - MARGIN - w, y: size.height - 112, width: w, height: h, opacity: 0.95 });
+  }
+
+  const gap = 4;
+  const cardW = (size.width - MARGIN * 2 - gap * 8) / 9;
+  const headerH = 50;
+  const rowH = 38;
+  const cardH = headerH + rowH * 9 + 10;
+  const tableTop = size.height - 140;
+  const tableBottom = tableTop - cardH;
+  const factSize = cardW >= 78 ? 12 : 11.5;
+  const badge = 36;
+
+  for (let c = 0; c < cols.length; c++) {
+    const color = TABLE_COLORS[c];
+    const x = MARGIN + c * (cardW + gap);
+    fillRoundedRect(page, x, tableBottom, cardW, cardH, 14, rgb(1, 1, 1));
+
+    /* 交错浅色行带（只画有算式的行） */
+    for (let i = 1; i < cols[c].facts.length; i += 2) {
+      page.drawRectangle({
+        x: x + 3, y: tableTop - headerH - (i + 1) * rowH + 2,
+        width: cardW - 6, height: rowH - 4, color, opacity: 0.07
+      });
+    }
+
+    /* 彩色数字徽章：数字在方格内水平、垂直居中 */
+    const badgeTop = tableTop - 45;
+    fillRoundedRect(page, x + (cardW - badge) / 2, badgeTop, badge, badge, 12, color);
+    drawCenteredText(page, String(cols[c].base), x + cardW / 2, badgeTop + badge / 2 - 19 * 0.35, 19, fonts.bold, rgb(1, 1, 1));
+
+    for (let i = 0; i < cols[c].facts.length; i++) {
+      const item = cols[c].facts[i];
+      const centerY = tableTop - headerH - (i + 0.5) * rowH;
+      const baseline = centerY - factSize * 0.35;
+      if (showAnswers) {
+        drawCenteredText(page, `${item.a} × ${item.b} = ${item.answer}`, x + cardW / 2, baseline, factSize, fonts.font, TABLE_INK);
+      } else {
+        const expr = `${item.a} × ${item.b} =`;
+        const exprW = fonts.font.widthOfTextAtSize(expr, factSize);
+        const tx = x + 7;
+        page.drawText(expr, { x: tx, y: baseline, size: factSize, font: fonts.font, color: TABLE_INK });
+        page.drawLine({
+          start: { x: tx + exprW + 3, y: baseline - 2 },
+          end: { x: x + cardW - 6, y: baseline - 2 },
+          thickness: 0.6, color: tintColor(color, 0.55)
+        });
+      }
+    }
+  }
+
+  drawFooter(page, { fonts, L, pageNo, totalPages });
+}
+
+async function renderMultiplicationTablePdf(params) {
+  const q = params || {};
+  const locale = q.locale === 'zh' ? 'zh' : 'en';
+  const paper = q.paper === 'a4' ? 'a4' : 'letter';
+  const L = T[locale];
+  const cols = multiplicationTableColumns(9);
+
+  const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
+  const fonts = await loadFonts(doc, locale);
+  /* 横向纸张：给 9 列口诀表更多横向空间 */
+  const base = PAPER[paper];
+  const size = { width: Math.max(base.width, base.height), height: Math.min(base.width, base.height) };
+
+  let mascot = null;
+  try {
+    mascot = await doc.embedPng(fs.readFileSync(MASCOT_PNG));
+  } catch (e) { /* 图片缺失不阻断生成 */ }
+
+  const pages = [
+    { title: L.tableTitle, sub: L.tableSub, answers: false },
+    { title: L.tableAnswersTitle, sub: L.tableAnswersSub, answers: true }
+  ];
+  pages.forEach((p, i) => {
+    const page = doc.addPage([size.width, size.height]);
+    drawTablePage(page, {
+      size, fonts, cols, showAnswers: p.answers,
+      title: p.title, sub: p.sub,
+      pageNo: i + 1, totalPages: pages.length, L, mascot
+    });
+  });
+
+  const bytes = await doc.save();
+  return { bytes, pageCount: pages.length, paper, locale, kind: 'table', count: cols.reduce((n, col) => n + col.facts.length, 0) };
+}
+
 /* ---------- 路由 ---------- */
 /* 进程内并发上限：pdf-lib 渲染是同步 CPU 且输入有界（≤100 题、≤ ~8 页，单次毫秒级），
  * 无需额外超时——这里只防止并发请求在事件循环里堆叠（DESIGN 9.2 限制并发）。 */
@@ -318,6 +478,8 @@ function buildPdfRouter(db) {
 module.exports = {
   buildPdfRouter,
   renderWorksheetPdf,
+  renderMultiplicationTablePdf,
+  multiplicationTableColumns,
   generateQuestions,
   normalizeParams,
   DIFFICULTY_KEYS,

@@ -7,21 +7,23 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const { renderWorksheetPdf } = require('../src/pdf');
+const { renderWorksheetPdf, renderMultiplicationTablePdf } = require('../src/pdf');
 const config = require('../src/config');
 
 const SAMPLES = [
-  { locale: 'en', difficulty: 'times_tables_10', count: 20, paper: 'letter', file: 'times-tables-1-10-letter.pdf' },
-  { locale: 'en', difficulty: 'two_by_one', count: 20, paper: 'a4', file: 'two-digit-by-one-digit-a4.pdf' },
-  { locale: 'zh', difficulty: 'times_tables_10', count: 20, paper: 'letter', file: 'times-tables-1-10-letter.pdf' },
-  { locale: 'zh', difficulty: 'two_by_one', count: 20, paper: 'a4', file: 'two-digit-by-one-digit-a4.pdf' }
+  { kind: 'table', locale: 'en', paper: 'letter', file: 'multiplication-table-1-9-letter-landscape.pdf' },
+  { kind: 'worksheet', locale: 'en', difficulty: 'two_by_one', count: 20, paper: 'a4', file: 'two-digit-by-one-digit-a4.pdf' },
+  { kind: 'table', locale: 'zh', paper: 'letter', file: 'multiplication-table-1-9-letter-landscape.pdf' },
+  { kind: 'worksheet', locale: 'zh', difficulty: 'two_by_one', count: 20, paper: 'a4', file: 'two-digit-by-one-digit-a4.pdf' }
 ];
 
 (async () => {
   for (const s of SAMPLES) {
-    const out = await renderWorksheetPdf({
-      locale: s.locale, difficulty: s.difficulty, count: s.count, paper: s.paper, answers: 1
-    });
+    const out = s.kind === 'table'
+      ? await renderMultiplicationTablePdf({ locale: s.locale, paper: s.paper })
+      : await renderWorksheetPdf({
+        locale: s.locale, difficulty: s.difficulty, count: s.count, paper: s.paper, answers: 1
+      });
     const dir = path.resolve(__dirname, '..', '..', 'public', s.locale, 'worksheets', 'samples');
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, s.file), Buffer.from(out.bytes));

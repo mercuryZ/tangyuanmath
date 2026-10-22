@@ -13,7 +13,7 @@ const fs = require('node:fs');
 
 const { initDb } = require('../server/src/db');
 const { createApp } = require('../server/src/index');
-const { renderWorksheetPdf, generateQuestions, normalizeParams, DIFFICULTY_KEYS, ZH_STRINGS } = require('../server/src/pdf');
+const { renderWorksheetPdf, renderMultiplicationTablePdf, multiplicationTableColumns, generateQuestions, normalizeParams, DIFFICULTY_KEYS, ZH_STRINGS } = require('../server/src/pdf');
 const { grantFamilyEntitlement, revokeFamilySource, activeFamilyFeatureKeys } = require('../server/src/entitlements');
 
 let base, jar, csrfToken, mailCapture, serverRef, dbRef;
@@ -192,6 +192,34 @@ test('renderWorksheetPdf：en=Letter 宽 612、zh=A4 宽 595.28；answers=1 追�
     const doc = await PDFDocument.load(out.bytes);
     assert.ok(doc.getPageCount() >= 5, '100 题跨页 + 答案页');
     assert.ok(out.bytes.length < 300 * 1024, 'PDF 体积应保持在几十 KB 量级');
+  }
+});
+
+/* ---------- 免费样张：1–9 九九乘法表 ---------- */
+
+test('multiplicationTableColumns：1–9 按列三角排列，9+8+…+1=45 个算式', () => {
+  const cols = multiplicationTableColumns(9);
+  assert.strictEqual(cols.length, 9);
+  assert.deepStrictEqual(cols.map(c => c.facts.length), [9, 8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.deepStrictEqual(cols[0].facts.map(x => x.answer), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepStrictEqual(cols[1].facts.map(x => x.answer), [4, 6, 8, 10, 12, 14, 16, 18]);
+  assert.deepStrictEqual(cols[8].facts.map(x => x.answer), [81]);
+  assert.strictEqual(cols.reduce((n, c) => n + c.facts.length, 0), 45);
+});
+
+test('renderMultiplicationTablePdf：横向 Letter/A4，练习页 + 答案页共两页', async () => {
+  const { PDFDocument } = require('../server/node_modules/pdf-lib');
+  for (const [locale, paper, width, height] of [
+    ['en', 'letter', 792, 612],
+    ['zh', 'a4', 841.89, 595.28]
+  ]) {
+    const out = await renderMultiplicationTablePdf({ locale, paper });
+    const doc = await PDFDocument.load(out.bytes);
+    assert.strictEqual(doc.getPageCount(), 2, `${locale} 两页`);
+    const p = doc.getPage(0).getSize();
+    assert.ok(Math.abs(p.width - width) < 0.5, `${locale} 横向宽度`);
+    assert.ok(Math.abs(p.height - height) < 0.5, `${locale} 横向高度`);
+    assert.ok(out.bytes.length < 150 * 1024, 'PDF 体积应保持在几十 KB 量级');
   }
 });
 
