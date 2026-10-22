@@ -362,7 +362,7 @@ const MIGRATIONS = [
     `
   },
   {
-    /* $1 尝鲜（7 天）：orders.sku 的 CHECK 枚举需要纳入 supporter_trial7。
+    /* $1 尝鲜（3 天）：orders.sku 的 CHECK 枚举需要纳入 supporter_trial7。
      * SQLite 不能直接改 CHECK，按「建新表 → 拷贝 → 删旧表 → 改名」重建（同 v3 做法）。
      * 迁移期间外键关闭（见 initDb），DROP 不会级联；payment_events.order_no 只是文本无外键。 */
     version: 7,

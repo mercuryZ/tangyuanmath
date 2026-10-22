@@ -378,6 +378,7 @@
   function syncFooterLinks() {
     var zh = TMI18N.lang() === 'zh';
     $('footHome').setAttribute('href', zh ? '/zh/' : '/');
+    $('footPricing').setAttribute('href', zh ? '/zh/pricing/' : '/en/pricing/');
     $('btnWorksheets').setAttribute('href', zh ? '/zh/worksheets/' : '/en/worksheets/');
     $('btnBlog').setAttribute('href', zh ? '/zh/blog/' : '/en/blog/');
     $('footFaq').setAttribute('href', zh ? '/zh/faq/' : '/en/faq/');

@@ -326,7 +326,7 @@
 - 一位家长（owner）可通过邮箱邀请另一位家长加入家庭；
 - 加入后两位家长共享同一份会员与子女账号；
 - 每个家庭最多 2 位家长；邀请需要有效会员。
-- 新注册不赠送免费会员；付费入口为 $1 体验 7 天，以及月付/年付/永久版。
+- 新注册不赠送免费会员；付费入口为 $1 体验 3 天，以及月付/年付/永久版。
 
 “家长入口”或成年确认本身不能替代适用法律要求的家长同意程序。
 儿童数据的云端保存须通过第 10 节的上线门禁。
@@ -474,7 +474,7 @@ Challenge 倒计时使用绝对截止时刻计算，不依赖每秒递减计数�
 | 版本 | 价格 |
 |---|---|
 | Free | 免费练习、挑战、错误重练与基础统计（不含联机对战/自定义练习卷） |
-| 尝鲜体验 | US$1 一次性获得 7 天完整 Supporter 权益；不自动续费，每家庭限一次 |
+| 尝鲜体验 | US$1 一次性获得 3 天完整 Supporter 权益；不自动续费，每家庭限一次 |
 | Supporter 月付 | US$4.99/月，自动续费，可随时取消 |
 | Supporter 年付 | US$49/年（约 US$4.08/月），自动续费，可随时取消 |
 | Supporter 永久版 | US$149，一次性购买，不续费 |
@@ -501,7 +501,7 @@ Challenge 倒计时使用绝对截止时刻计算，不依赖每秒递减计数�
 
 购买页明确：
 - 当前权益和账号范围（最多 2 位家长 + 2 名子女，一份会员全家共享）；
-- $1 尝鲜：一次性付款，7 天完整权益，不自动续费，每家庭限一次；到期付费功能锁定、不扣费；
+- $1 尝鲜：一次性付款，3 天完整权益，不自动续费，每家庭限一次；到期付费功能锁定、不扣费；
 - 子女账号由家长创建、可重置密码或删除，不收集儿童邮箱；
 - 各方案的计费周期与自动续费规则（月付/年付可随时取消，永久版不续费）；
 - 下载限制或合理使用规则；
@@ -872,7 +872,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 ## 14. 里程碑与验收
 
 > 状态快照（2026-10-22）：M0、M1 的代码与自动化测试部分已完成，剩余事项均为外部核查/运营；
-> M1.5 功能完成，待真实多人压测；M2 进行中（PDF、entitlements、每日加密备份已上线；Waffo Pancake 已切换生产环境，$1/7 天尝鲜与客户门户已上线；§6 redeem_codes 与管理后台（TM_ADMIN_EMAILS + /admin/，会员查询/手动授予/优惠码）已实现；受控真实交易/退款验收待完成）；
+> M1.5 功能完成，待真实多人压测；M2 进行中（PDF、entitlements、每日加密备份已上线；Waffo Pancake 已切换生产环境，$1/3 天尝鲜与客户门户已上线；§6 redeem_codes 与管理后台（TM_ADMIN_EMAILS + /admin/，会员查询/手动授予/优惠码）已实现；受控真实交易/退款验收待完成）；
 > M3 进行中（Math Tips 与 Blog 栏目已上线）。
 
 ### M0：免费海外试玩
@@ -921,7 +921,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 ### M1.6：家庭会员、子女登录与共同家长
 
 - [x] 家庭 / 家庭成员模型（2 位家长 + 2 名子女）
-- [x] 新注册不赠送会员（2026-10-21 取消 3 个月免费试用，改用 $1/7 天尝鲜）
+- [x] 新注册不赠送会员（2026-10-21 取消 3 个月免费试用，改用 $1/3 天尝鲜）
 - [x] 子女用户名 + 密码登录（与家长共用会话 Cookie，路由按身份隔离）
 - [x] 共同家长邮箱邀请、令牌校验与空家庭合并
 - [x] 家长中心：会员状态、家庭席位、子女账号、密码重置
@@ -935,7 +935,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 - [x] 支付主体和渠道确认（Waffo Pancake，Merchant of Record；2026-10-21 已切换生产环境）
 - [x] 服务端 SKU 与托管结账（`checkout.authenticated.create()`，前端只拿 `checkoutUrl`）
-- [x] $1/7 天尝鲜 SKU（一次性、不续费、每家庭一次；迁移 7 扩展 `orders.sku`）
+- [x] $1/3 天尝鲜 SKU（一次性、不续费、每家庭一次；迁移 7 扩展 `orders.sku`）
 - [ ] 验签、重试、乱序与对账（验签、事件去重、终态后禁止复活已完成；平台对账与补偿任务待做）
 - [x] USD 金额和税费映射（金额以 USD 最小单位入库；销售税由 Waffo 作为 MoR 计算）
 - [x] PDF Letter / A4 与答案页（2026-10-19：entitlements 权益门禁 + pdf-lib 生成已上线并通过测试）
@@ -944,7 +944,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 - [x] 清晰价格与售后说明
 - [ ] 上线前完成受控真实交易与退款测试
 
-**实施记录（2026-10-20）**：Waffo Pancake 托管结账已接入。迁移 6 新增 `orders` / `payment_events`；`server/src/waffo.js` 封装 SDK 与商品配置，`server/src/order-store.js` 负责订单与 webhook 事件，`server/src/payment-routes.js` 提供 `/api/orders`、取消续费与 `/api/payments/waffo/webhook`。webhook 使用原始 body 验签，按 `(provider, event_id)` 去重，并核对店铺、环境、币种、SKU 与金额后才写入权益；success URL 不授予权益。家长中心显示订阅状态、支持取消续费，并可通过 `/api/orders/portal` 打开 Waffo 客户门户（取消订阅、更新支付方式、查看账单、提交退款申请）；门户链接用 `auth.createCustomerPortalLink` 每次点击即时签发，带 bearer token，响应 `Cache-Control: no-store`。`tests/waffo.test.js` 覆盖 16 项（含 $1/7 天尝鲜的开通、到期与每家庭一次守卫）。商品与 webhook 通过 `server/scripts/waffo-setup.js` 一次性配置。新注册不再自动发放免费会员；历史上已发放的 `promo` 权益仍按原到期时间有效。
+**实施记录（2026-10-20）**：Waffo Pancake 托管结账已接入。迁移 6 新增 `orders` / `payment_events`；`server/src/waffo.js` 封装 SDK 与商品配置，`server/src/order-store.js` 负责订单与 webhook 事件，`server/src/payment-routes.js` 提供 `/api/orders`、取消续费与 `/api/payments/waffo/webhook`。webhook 使用原始 body 验签，按 `(provider, event_id)` 去重，并核对店铺、环境、币种、SKU 与金额后才写入权益；success URL 不授予权益。家长中心显示订阅状态、支持取消续费，并可通过 `/api/orders/portal` 打开 Waffo 客户门户（取消订阅、更新支付方式、查看账单、提交退款申请）；门户链接用 `auth.createCustomerPortalLink` 每次点击即时签发，带 bearer token，响应 `Cache-Control: no-store`。`tests/waffo.test.js` 覆盖 16 项（含 $1/3 天尝鲜的开通、到期与每家庭一次守卫）。商品与 webhook 通过 `server/scripts/waffo-setup.js` 一次性配置。新注册不再自动发放免费会员；历史上已发放的 `promo` 权益仍按原到期时间有效。
 
 验收：success URL 不能伪造权益；重复回调不重复开通；非会员不能生成付费 PDF；图片不产生上传请求。
 

@@ -214,7 +214,7 @@ test('兑换时长：四档 SKU 与自然月语义一致（领域层）', () => 
   try {
     const now = Date.parse('2026-10-31T12:00:00Z'); // 月末边界：+1 自然月 = 11-30
     for (const [sku, expect] of [
-      ['supporter_trial7', now + 7 * DAY],
+      ['supporter_trial7', now + 3 * DAY],
       ['supporter_monthly', addCalendarMonths(now, 1)],
       ['supporter_yearly', addCalendarMonths(now, 12)],
       ['supporter_lifetime', null]

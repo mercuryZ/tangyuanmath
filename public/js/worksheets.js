@@ -11,9 +11,9 @@
       network: 'Could not reach the server — please try again.',
       fallback: 'Download failed — please try again.',
       downloading: 'Generating…',
-      signIn: 'Custom worksheets are part of a family Supporter membership. <a href="/account/">Sign in or create a free parent account</a> — you can try Supporter for 7 days for $1. The free samples above work for everyone.',
+      signIn: 'Custom worksheets are part of a family Supporter membership. <a href="/account/">Sign in or create a free parent account</a> — you can try Supporter for 3 days for $1. The free samples above work for everyone.',
       childSignIn: 'Custom worksheets are a parent tool. Ask a parent to sign in on this device.',
-      upsell: '<b>Supporter family membership · from US$4.99/month</b><br>Custom worksheets and Live Race are included in one family membership covering up to 2 parents and 2 children. Try it for 7 days for $1. <a href="/en/pricing/">See membership →</a>',
+      upsell: '<b>Supporter family membership · from US$4.99/month</b><br>Custom worksheets and Live Race are included in one family membership covering up to 2 parents and 2 children. Try it for 3 days for $1. <a href="/en/pricing/">See membership →</a>',
       errors: {
         not_logged_in: 'Please sign in first.',
         parent_only: 'Custom worksheets are a parent tool.',
@@ -26,9 +26,9 @@
       network: '无法连接服务器，请稍后再试。',
       fallback: '下载失败，请重试。',
       downloading: '正在生成…',
-      signIn: '自定义练习卷属于家庭支持者会员。请先到<a href="/account/">家长中心</a>登录或免费注册——可以 $1 体验 7 天。上面的免费样卷无需账号。',
+      signIn: '自定义练习卷属于家庭支持者会员。请先到<a href="/account/">家长中心</a>登录或免费注册——可以 $1 体验 3 天。上面的免费样卷无需账号。',
       childSignIn: '自定义练习卷是家长工具。请让家长在这台设备上登录。',
-      upsell: '<b>家庭支持者会员 · US$4.99/月起</b><br>自定义练习卷与联机对战包含在同一份家庭会员里，最多覆盖 2 位家长和 2 名子女。可以 $1 体验 7 天。<a href="/zh/pricing/">查看会员方案 →</a>',
+      upsell: '<b>家庭支持者会员 · US$4.99/月起</b><br>自定义练习卷与联机对战包含在同一份家庭会员里，最多覆盖 2 位家长和 2 名子女。可以 $1 体验 3 天。<a href="/zh/pricing/">查看会员方案 →</a>',
       errors: {
         not_logged_in: '请先登录。',
         parent_only: '自定义练习卷是家长工具。',

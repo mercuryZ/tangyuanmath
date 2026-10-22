@@ -532,7 +532,7 @@ test('verifyWebhook 包装：无效签名抛 invalid_signature', () => {
   );
 });
 
-test('尝鲜 $1/7天：order.completed 开通 7 天到期权益，重复事件幂等', () => {
+test('尝鲜 $1/3天：order.completed 开通 3 天到期权益，重复事件幂等', () => {
   const f = fixture();
   try {
     const order = orderStore.createPendingOrder(f.db, {
@@ -547,14 +547,14 @@ test('尝鲜 $1/7天：order.completed 开通 7 天到期权益，重复事件�
     assert.strictEqual(process(f.db, event).status, 'processed');
     const paid = orderStore.getOrderByNo(f.db, order.order_no);
     assert.strictEqual(paid.status, 'paid');
-    assert.ok(paid.current_period_end > ts + 6.9 * 86400000, '订单周期 ≈ 7 天');
+    assert.ok(paid.current_period_end > ts + 2.9 * 86400000, '订单周期 ≈ 3 天');
 
     const rows = orderEntitlements(f.db, f.familyId);
     assert.strictEqual(rows.length, 3);
     for (const r of rows) {
       assert.strictEqual(r.revoked_at, null);
       const days = (r.expires_at - ts) / 86400000;
-      assert.ok(Math.abs(days - 7) < 0.01, '权益 7 天后到期，实际 ' + days);
+      assert.ok(Math.abs(days - 3) < 0.01, '权益 3 天后到期，实际 ' + days);
     }
 
     assert.strictEqual(process(f.db, event).status, 'duplicate');

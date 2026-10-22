@@ -191,7 +191,7 @@ function markPaid(db, order, data, ts, periodEnd) {
 function expiryFor(order, data, at) {
   const spec = waffo.SKUS[order.sku];
   if (!spec) return null;
-  /* 尝鲜价（如 $1/7天）：从事件时间起算固定天数，一次性到期不续费 */
+  /* 尝鲜价（如 $1/3天）：从事件时间起算固定天数，一次性到期不续费 */
   if (spec.trialDays) return at + spec.trialDays * 24 * 3600 * 1000;
   if (spec.kind === 'onetime') return null;
   const periodEnd = parseDate(data.currentPeriodEnd);

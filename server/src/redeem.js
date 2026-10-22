@@ -1,7 +1,7 @@
 /* 优惠码（DESIGN §6 redeem_codes、§7.1 POST /api/redeem）
  * - 明文码只在创建响应里出现一次，库存只存 sha256 哈希（hashToken，与 sessions/invites 同一套）；
  * - 单次使用：占用用带条件的 UPDATE 改动行数保证并发安全；
- * - 兑换时长与 SKU 语义一致（trial7→+7天 / monthly→+1自然月 / yearly→+12自然月 / lifetime→永久），
+ * - 兑换时长与 SKU 语义一致（trial7→+3天 / monthly→+1自然月 / yearly→+12自然月 / lifetime→永久），
  *   与现有权益自然叠加（不同来源的有效权益取并集，会员到期取决于最晚一条）。
  */
 'use strict';

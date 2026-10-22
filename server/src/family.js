@@ -2,7 +2,7 @@
  * - 一个家庭最多 2 位家长 + 2 名子女；
  * - 家长邮箱/Google 登录；子女由家长创建，用用户名 + 密码登录；
  * - 会员权益按家庭计算，家庭成员共享；
- * - 新注册不再赠送免费会员；付费入口是 $1/7 天尝鲜与月付/年付/永久版。
+ * - 新注册不再赠送免费会员；付费入口是 $1/3 天尝鲜与月付/年付/永久版。
  */
 'use strict';
 
@@ -57,7 +57,7 @@ function ensureFamilyForUser(db, userId, now) {
 }
 
 /* 注册 / 新建 Google 账号时调用：创建家庭，不赠送任何权益。
- * 付费会员必须通过 $1/7 天尝鲜或订阅/永久版订单开通。 */
+ * 付费会员必须通过 $1/3 天尝鲜或订阅/永久版订单开通。 */
 function initFamilyForNewUser(db, userId, now) {
   return ensureFamilyForUser(db, userId, now);
 }

@@ -15,10 +15,10 @@ const CURRENCY = 'USD';
 
 /* SKU 是本站自己的商品标识；Waffo 商品 ID 通过环境变量映射，不写死。 */
 const SKUS = {
-  /* 尝鲜价：$1 体验 7 天完整会员。一次性付款、不续费；每家庭限购一次（路由层守卫）。 */
+  /* 尝鲜价：$1 体验 3 天完整会员。一次性付款、不续费；每家庭限购一次（路由层守卫）。 */
   supporter_trial7: {
-    kind: 'onetime', months: null, trialDays: 7, amountMinor: 100, currency: CURRENCY,
-    name: 'Tangyuan Math Supporter — 7-Day Trial'
+    kind: 'onetime', months: null, trialDays: 3, amountMinor: 100, currency: CURRENCY,
+    name: 'Tangyuan Math Supporter — 3-Day Trial'
   },
   supporter_monthly: {
     kind: 'subscription', months: 1, amountMinor: 499, currency: CURRENCY,
