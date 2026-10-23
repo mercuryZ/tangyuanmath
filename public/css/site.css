@@ -418,20 +418,32 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 .ws-field { display: flex; flex-direction: column; gap: 5px; }
 .ws-field label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 .ws-field select {
-  padding: 9px 38px 9px 14px;
+  display: inline-flex; align-items: center;
+  width: 160px; /* 固定宽度：切换选项时按钮不会随文字长短伸缩 */
+  padding: 9px 14px;
   border: 2px solid var(--pink); border-radius: 14px;
-  background: #fff; color: var(--red-deep); min-width: 160px;
+  background: #fff; color: var(--red-deep);
   font-family: inherit; font-size: 15px; font-weight: 800;
   cursor: pointer;
   appearance: base-select; /* 支持时整块定制弹出列表；不支持则退回原生 */
 }
+/* 题型最长文案为 “Times tables 11–19” / “乘法口诀（11–19）” */
+#wsDifficulty { width: 200px; }
 .ws-field select:hover { border-color: var(--red); }
 .ws-field select:focus-visible {
   outline: 3px solid var(--red-light); outline-offset: 2px; border-color: var(--red);
 }
-.ws-field select::picker-icon { color: var(--red-deep); font-size: 12px; }
+/* 箭头始终贴右 */
+.ws-field select::picker-icon {
+  margin-inline-start: auto;
+  color: var(--red-deep); font-size: 12px;
+}
+/* 弹出列表与选择框同宽（默认 min-inline-size 会按最长选项撑宽） */
 .ws-field select::picker(select) {
   appearance: base-select;
+  box-sizing: border-box;
+  width: anchor-size(self-inline);
+  min-inline-size: 0;
   margin-top: 8px; padding: 6px;
   background: #fff; border: 2px solid var(--pink); border-radius: 16px;
   box-shadow: 0 12px 30px rgba(176, 42, 55, .18);
@@ -443,6 +455,21 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 .ws-field select option:hover,
 .ws-field select option:focus-visible { background: var(--red-light); outline: none; }
 .ws-field select option:checked { background: var(--red); color: #fff; }
+/* 自定义范围：选中「自定义」后展开的两组 min–max 输入 */
+.ws-custom { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 14px; }
+.ws-custom[hidden] { display: none; }
+.ws-range { display: flex; align-items: center; gap: 8px; }
+.ws-range span { color: var(--ink-soft); font-weight: 800; }
+.ws-field input[type="number"] {
+  width: 82px; padding: 9px 10px;
+  border: 2px solid var(--pink); border-radius: 14px;
+  background: #fff; color: var(--red-deep); text-align: center;
+  font-family: inherit; font-size: 15px; font-weight: 800;
+}
+.ws-field input[type="number"]:hover { border-color: var(--red); }
+.ws-field input[type="number"]:focus-visible {
+  outline: 3px solid var(--red-light); outline-offset: 2px; border-color: var(--red);
+}
 .ws-check { flex-direction: row; align-items: center; gap: 8px; padding-top: 22px; }
 .ws-check input { width: 18px; height: 18px; accent-color: var(--red); }
 .ws-error { color: var(--red-deep); font-weight: 700; margin: 12px 0 0; }

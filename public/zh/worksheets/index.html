@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/worksheets/">
 <link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/worksheets/">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261023a">
+<link rel="stylesheet" href="/css/site.css?v=20261023c">
 </head>
 <body>
 
@@ -70,10 +70,11 @@
         <div class="ws-field">
           <label for="wsDifficulty">题型</label>
           <select id="wsDifficulty">
-            <option value="times_tables_10" selected>乘法口诀（1–10）</option>
-            <option value="times_tables_12">乘法口诀（1–12）</option>
+            <option value="times_tables_9" selected>乘法口诀（1–9）</option>
+            <option value="times_tables_11_19">乘法口诀（11–19）</option>
             <option value="two_by_one">两位数 × 一位数</option>
             <option value="two_by_two">两位数 × 两位数</option>
+            <option value="custom">自定义范围</option>
           </select>
         </div>
         <div class="ws-field">
@@ -95,6 +96,24 @@
         <div class="ws-field ws-check">
           <label for="wsAnswers">包含答案页</label>
           <input type="checkbox" id="wsAnswers" checked>
+        </div>
+      </div>
+      <div class="ws-custom" id="wsCustom" hidden>
+        <div class="ws-field">
+          <label for="wsAMin">第一个数</label>
+          <div class="ws-range">
+            <input type="number" id="wsAMin" min="1" max="99" step="1" inputmode="numeric" value="2">
+            <span aria-hidden="true">–</span>
+            <input type="number" id="wsAMax" min="1" max="99" step="1" inputmode="numeric" value="9" aria-label="第一个数的最大值">
+          </div>
+        </div>
+        <div class="ws-field">
+          <label for="wsBMin">第二个数</label>
+          <div class="ws-range">
+            <input type="number" id="wsBMin" min="1" max="99" step="1" inputmode="numeric" value="2">
+            <span aria-hidden="true">–</span>
+            <input type="number" id="wsBMax" min="1" max="99" step="1" inputmode="numeric" value="9" aria-label="第二个数的最大值">
+          </div>
         </div>
       </div>
       <button type="submit" class="btn btn-primary" id="wsDownload"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-download-simple"/></svg> 下载 PDF</button>
@@ -119,7 +138,7 @@
   </div>
 </footer>
 
-<script src="/js/worksheets.js?v=20261022s" defer></script>
+<script src="/js/worksheets.js?v=20261023a" defer></script>
 
 <script src="/js/header.js?v=20261022s" defer></script>
 </body>

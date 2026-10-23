@@ -102,8 +102,8 @@ test.after(async () => {
 
 test('生成器：题数守恒、答案正确、因子在范围内、按规范化键去重', () => {
   const RANGES = {
-    times_tables_10: { a: [1, 10], b: [1, 10] },
-    times_tables_12: { a: [1, 12], b: [1, 12] },
+    times_tables_9: { a: [1, 9], b: [1, 9] },
+    times_tables_11_19: { a: [11, 19], b: [11, 19] },
     two_by_one: { a: [10, 99], b: [2, 9] },
     two_by_two: { a: [10, 99], b: [10, 99] }
   };
@@ -127,17 +127,27 @@ test('生成器：题数守恒、答案正确、因子在范围内、按规范�
 
 test('生成器：可注入 rng（确定性）', () => {
   const seq = [0.001, 0.999, 0.5, 0.5];
-  const qs = generateQuestions('times_tables_10', 2, () => seq.shift());
-  assert.deepStrictEqual(qs.map(q => [q.a, q.b]), [[1, 10], [6, 6]]);
+  const qs = generateQuestions('times_tables_9', 2, () => seq.shift());
+  assert.deepStrictEqual(qs.map(q => [q.a, q.b]), [[1, 9], [5, 5]]);
+});
+
+test('生成器：自定义范围生效', () => {
+  const qs = generateQuestions('custom', 100, undefined, { a: [11, 19], b: [2, 9] });
+  assert.strictEqual(qs.length, 100);
+  for (const q of qs) {
+    assert.ok(q.a >= 11 && q.a <= 19, `a 越界: ${q.a}`);
+    assert.ok(q.b >= 2 && q.b <= 9, `b 越界: ${q.b}`);
+    assert.strictEqual(q.answer, q.a * q.b);
+  }
 });
 
 /* ---------- 参数校验 ---------- */
 
 test('normalizeParams：默认值随 locale（en→letter，zh→a4）+ 越界拒绝', () => {
   assert.deepStrictEqual(normalizeParams({ userLocale: 'en' }),
-    { count: 20, difficulty: 'times_tables_10', paper: 'letter', answers: 0, locale: 'en' });
+    { count: 20, difficulty: 'times_tables_9', paper: 'letter', answers: 0, locale: 'en' });
   assert.deepStrictEqual(normalizeParams({ userLocale: 'zh' }),
-    { count: 20, difficulty: 'times_tables_10', paper: 'a4', answers: 0, locale: 'zh' });
+    { count: 20, difficulty: 'times_tables_9', paper: 'a4', answers: 0, locale: 'zh' });
   assert.deepStrictEqual(normalizeParams({ userLocale: 'zh', paper: 'letter', answers: '1', count: '50', difficulty: 'two_by_two' }),
     { count: 50, difficulty: 'two_by_two', paper: 'letter', answers: 1, locale: 'zh' });
 
@@ -149,6 +159,28 @@ test('normalizeParams：默认值随 locale（en→letter，zh→a4）+ 越界�
   }
   for (const bad of [{ paper: 'a5' }, { answers: '2' }, { locale: 'fr' }]) {
     assert.throws(() => normalizeParams({ ...bad }), e => /^invalid_/.test(e.code));
+  }
+});
+
+test('normalizeParams：自定义范围解析与非法值拒绝', () => {
+  assert.deepStrictEqual(
+    normalizeParams({ locale: 'en', difficulty: 'custom', aMin: '2', aMax: '9', bMin: '11', bMax: '19' }),
+    {
+      count: 20, difficulty: 'custom', paper: 'letter', answers: 0, locale: 'en',
+      range: { a: [2, 9], b: [11, 19] }
+    }
+  );
+  for (const bad of [
+    { aMin: '0', aMax: '9', bMin: '1', bMax: '9' },
+    { aMin: '1', aMax: '100', bMin: '1', bMax: '9' },
+    { aMin: '9', aMax: '2', bMin: '1', bMax: '9' },
+    { aMin: '1', aMax: '9', bMin: '1' },
+    { aMin: '1', aMax: '9.5', bMin: '1', bMax: '9' }
+  ]) {
+    assert.throws(
+      () => normalizeParams({ locale: 'en', difficulty: 'custom', ...bad }),
+      e => e.code === 'invalid_range'
+    );
   }
 });
 
@@ -188,7 +220,7 @@ test('renderWorksheetPdf：en=Letter 宽 612、zh=A4 宽 595.28；answers=1 追�
     assert.ok(Buffer.from(out.bytes.slice(0, 5)).toString() === '%PDF-');
   }
   {
-    const out = await renderWorksheetPdf({ locale: 'en', count: 100, difficulty: 'times_tables_12', answers: 1 });
+    const out = await renderWorksheetPdf({ locale: 'en', count: 100, difficulty: 'times_tables_11_19', answers: 1 });
     const doc = await PDFDocument.load(out.bytes);
     assert.ok(doc.getPageCount() >= 5, '100 题跨页 + 答案页');
     assert.ok(out.bytes.length < 300 * 1024, 'PDF 体积应保持在几十 KB 量级');

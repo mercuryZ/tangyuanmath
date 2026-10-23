@@ -1,6 +1,6 @@
 /* PDF 练习卷生成与下载（DESIGN §9，M2 首期）
  * - 纯渲染函数 renderWorksheetPdf 与路由解耦，样张脚本与测试复用；
- * - 题型与因子范围复用 public/js/questions.js（UMD，Node 可 require），服务端自带去重生成；
+ * - 题型与因子范围由本文件维护（练习卷可用 1–9 / 11–19 表与自定义范围），服务端自带去重生成；
  * - 门禁：entitlements 表的 pdf_worksheet 权益（M2 验收「非会员不能生成付费 PDF」）；
  * - 防滥用：PDF 专用限流 + 进程内并发上限（DESIGN 9.2）。
  */
@@ -13,13 +13,21 @@ const express = require('express');
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 
-const config = require('./config');
 const mw = require('./middleware');
 const { hasFamilyEntitlement } = require('./entitlements');
 
-const TMQuestions = require(path.resolve(__dirname, '..', config.publicDir, 'js', 'questions.js'));
-const DIFFICULTIES = TMQuestions.DIFFICULTIES; // 与游戏端同一份因子范围（DESIGN 2.2）
+/* 练习卷专用题型与因子范围（与游戏端的 DIFFICULTIES 解耦：
+ * 练习卷需要 1–9 / 11–19 表，且支持自定义范围，而游戏难度仍沿用原枚举）。 */
+const DIFFICULTIES = {
+  times_tables_9:     { a: [1, 9],   b: [1, 9] },
+  times_tables_11_19: { a: [11, 19], b: [11, 19] },
+  two_by_one:         { a: [10, 99], b: [2, 9] }, // 一位数不含 1
+  two_by_two:         { a: [10, 99], b: [10, 99] }
+};
 const DIFFICULTY_KEYS = Object.keys(DIFFICULTIES);
+const CUSTOM_DIFFICULTY = 'custom';
+const CUSTOM_MIN = 1;
+const CUSTOM_MAX = 99;
 
 const FONT_ZH = path.resolve(__dirname, '../fonts/NotoSansSC-Subset.ttf'); // OFL 许可，允许嵌入分发（见 fonts/OFL.txt）
 const MASCOT_PNG = path.resolve(__dirname, '../assets/tangyuan-pdf.png'); // 打印尺寸小图，控制 PDF 体积
@@ -38,11 +46,12 @@ const T = {
     footerBrand: 'Tangyuan Math · tangyuanmath.com',
     pageOf: (n, m) => `Page ${n} of ${m}`,
     difficulty: {
-      times_tables_10: 'Times tables 1–10',
-      times_tables_12: 'Times tables 1–12',
+      times_tables_9: 'Times tables 1–9',
+      times_tables_11_19: 'Times tables 11–19',
       two_by_one: '2-digit × 1-digit',
       two_by_two: '2-digit × 2-digit'
-    }
+    },
+    custom: 'Custom'
   },
   zh: {
     title: '汤圆数学 · 乘法练习卷',
@@ -56,11 +65,12 @@ const T = {
     footerBrand: '汤圆数学 · tangyuanmath.com',
     pageOf: (n, m) => `第 ${n} 页 / 共 ${m} 页`,
     difficulty: {
-      times_tables_10: '乘法口诀（1–10）',
-      times_tables_12: '乘法口诀（1–12）',
+      times_tables_9: '乘法口诀（1–9）',
+      times_tables_11_19: '乘法口诀（11–19）',
       two_by_one: '两位数 × 一位数',
       two_by_two: '两位数 × 两位数'
-    }
+    },
+    custom: '自定义'
   }
 };
 
@@ -71,6 +81,26 @@ const PAPER = {
 };
 
 /* ---------- 参数校验（纯函数，供路由与测试复用） ---------- */
+/* 自定义范围：四个 1–99 的整数，且 min ≤ max */
+function parseCustomRange(q) {
+  const out = {};
+  for (const name of ['aMin', 'aMax', 'bMin', 'bMax']) {
+    const raw = q[name];
+    if (raw === undefined || !/^\d{1,2}$/.test(String(raw))) {
+      throw { code: 'invalid_range', msg: `${name} must be an integer between ${CUSTOM_MIN} and ${CUSTOM_MAX}.` };
+    }
+    const n = Number(raw);
+    if (n < CUSTOM_MIN || n > CUSTOM_MAX) {
+      throw { code: 'invalid_range', msg: `${name} must be between ${CUSTOM_MIN} and ${CUSTOM_MAX}.` };
+    }
+    out[name] = n;
+  }
+  if (out.aMin > out.aMax || out.bMin > out.bMax) {
+    throw { code: 'invalid_range', msg: 'Each range minimum must not be greater than its maximum.' };
+  }
+  return { a: [out.aMin, out.aMax], b: [out.bMin, out.bMax] };
+}
+
 function normalizeParams(input) {
   const q = input || {};
   const locale = q.locale === undefined
@@ -85,10 +115,14 @@ function normalizeParams(input) {
     if (count < 5 || count > 100) throw { code: 'invalid_count', msg: 'count must be between 5 and 100.' };
   }
 
-  const difficulty = q.difficulty === undefined ? 'times_tables_10' : q.difficulty;
-  if (!DIFFICULTY_KEYS.includes(difficulty)) {
-    throw { code: 'invalid_difficulty', msg: 'difficulty must be one of: ' + DIFFICULTY_KEYS.join(', ') + '.' };
+  const difficulty = q.difficulty === undefined ? 'times_tables_9' : q.difficulty;
+  if (difficulty !== CUSTOM_DIFFICULTY && !DIFFICULTY_KEYS.includes(difficulty)) {
+    throw {
+      code: 'invalid_difficulty',
+      msg: 'difficulty must be one of: ' + DIFFICULTY_KEYS.concat(CUSTOM_DIFFICULTY).join(', ') + '.'
+    };
   }
+  const range = difficulty === CUSTOM_DIFFICULTY ? parseCustomRange(q) : undefined;
 
   const paper = q.paper === undefined ? (locale === 'zh' ? 'a4' : 'letter') : q.paper;
   if (paper !== 'letter' && paper !== 'a4') throw { code: 'invalid_paper', msg: 'paper must be letter or a4.' };
@@ -101,7 +135,9 @@ function normalizeParams(input) {
     answers = Number(q.answers);
   }
 
-  return { count, difficulty, paper, answers, locale };
+  const params = { count, difficulty, paper, answers, locale };
+  if (range) params.range = range;
+  return params;
 }
 
 /* ---------- 题目生成：与游戏端同款去重逻辑，count 放宽到 5–100（DESIGN 9.1） ---------- */
@@ -110,8 +146,8 @@ function randInt(rng, min, max) {
   return crypto.randomInt(min, max + 1);
 }
 
-function generateQuestions(difficulty, count, rng) {
-  const def = DIFFICULTIES[difficulty];
+function generateQuestions(difficulty, count, rng, range) {
+  const def = range || DIFFICULTIES[difficulty];
   if (!def) throw new Error('unknown difficulty: ' + difficulty);
   const seen = Object.create(null);
   const out = [];
@@ -203,10 +239,16 @@ function drawFooter(page, { fonts, L, pageNo, totalPages }) {
 }
 
 /* ---------- 渲染主入口：返回 PDF 字节 ---------- */
-async function renderWorksheetPdf(params) {
-  const { count, difficulty, paper, answers, locale } = normalizeParams(params);
+function difficultyLabel(locale, difficulty, range) {
   const L = T[locale];
-  const questions = generateQuestions(difficulty, count);
+  if (difficulty !== CUSTOM_DIFFICULTY || !range) return L.difficulty[difficulty];
+  return `${L.custom} ${range.a[0]}–${range.a[1]} × ${range.b[0]}–${range.b[1]}`;
+}
+
+async function renderWorksheetPdf(params) {
+  const { count, difficulty, paper, answers, locale, range } = normalizeParams(params);
+  const L = T[locale];
+  const questions = generateQuestions(difficulty, count, undefined, range);
 
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit); // 自定义字体（中文子集）必须先注册 fontkit
@@ -228,7 +270,7 @@ async function renderWorksheetPdf(params) {
 
   /* 首页页眉：标题 + 题型/纸张信息 + 留空姓名/日期/得分（不要求填写儿童姓名，DESIGN 9.2） */
   const first = doc.addPage([size.width, size.height]);
-  const meta = `${L.difficulty[difficulty]} · ${paper === 'letter' ? 'US Letter' : 'A4'} · ${count}`;
+  const meta = `${difficultyLabel(locale, difficulty, range)} · ${paper === 'letter' ? 'US Letter' : 'A4'} · ${count}`;
   first.drawText(L.title, { x: MARGIN, y: size.height - 56, size: 18, font: fonts.bold, color: INK });
   first.drawText(meta, { x: MARGIN, y: size.height - 78, size: 10.5, font: fonts.font, color: GRAY });
   const line = `${L.name} ______________    ${L.date} ____________    ${L.score} ________`;
@@ -462,7 +504,10 @@ function buildPdfRouter(db) {
         console.error('[pdf-error]', e && e.message ? e.message : e);
         return mw.fail(res, 500, 'internal', 'Could not generate the worksheet.');
       }
-      const name = `tangyuan-multiplication-${params.difficulty}-${params.count}-${params.paper}` +
+      const rangePart = params.difficulty === 'custom' && params.range
+        ? `-${params.range.a[0]}-${params.range.a[1]}x${params.range.b[0]}-${params.range.b[1]}`
+        : '';
+      const name = `tangyuan-multiplication-${params.difficulty}${rangePart}-${params.count}-${params.paper}` +
         (params.answers ? '-answers' : '') + '.pdf';
       res.set({
         'Content-Type': 'application/pdf',

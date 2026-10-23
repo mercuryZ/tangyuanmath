@@ -565,7 +565,8 @@ webhook：
 `/api/pdf/worksheet?count=20&difficulty=two_by_two&paper=letter&answers=1&locale=en`
 
 - count：允许列表或 5–100 的有界整数；
-- difficulty：已实现题型枚举；
+- difficulty：`times_tables_9`（1–9）、`times_tables_11_19`（11–19）、`two_by_one`（10–99 × 2–9）、`two_by_two`（10–99 × 10–99）或 `custom`；
+- 自定义范围（`difficulty=custom`）：`aMin`、`aMax`、`bMin`、`bMax`，均为 1–99 的整数且 min ≤ max；
 - paper：letter 或 a4；
 - answers：0 或 1；
 - locale：en 或 zh。

@@ -9,7 +9,7 @@
 <link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/worksheets/">
 <link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/worksheets/">
 <link rel="icon" href="/img/tangyuan_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261023a">
+<link rel="stylesheet" href="/css/site.css?v=20261023c">
 </head>
 <body>
 
@@ -70,10 +70,11 @@
         <div class="ws-field">
           <label for="wsDifficulty">Difficulty</label>
           <select id="wsDifficulty">
-            <option value="times_tables_10" selected>Times tables 1–10</option>
-            <option value="times_tables_12">Times tables 1–12</option>
+            <option value="times_tables_9" selected>Times tables 1–9</option>
+            <option value="times_tables_11_19">Times tables 11–19</option>
             <option value="two_by_one">2-digit × 1-digit</option>
             <option value="two_by_two">2-digit × 2-digit</option>
+            <option value="custom">Custom range</option>
           </select>
         </div>
         <div class="ws-field">
@@ -95,6 +96,24 @@
         <div class="ws-field ws-check">
           <label for="wsAnswers">Include answer page</label>
           <input type="checkbox" id="wsAnswers" checked>
+        </div>
+      </div>
+      <div class="ws-custom" id="wsCustom" hidden>
+        <div class="ws-field">
+          <label for="wsAMin">First number</label>
+          <div class="ws-range">
+            <input type="number" id="wsAMin" min="1" max="99" step="1" inputmode="numeric" value="2">
+            <span aria-hidden="true">–</span>
+            <input type="number" id="wsAMax" min="1" max="99" step="1" inputmode="numeric" value="9" aria-label="First number, maximum">
+          </div>
+        </div>
+        <div class="ws-field">
+          <label for="wsBMin">Second number</label>
+          <div class="ws-range">
+            <input type="number" id="wsBMin" min="1" max="99" step="1" inputmode="numeric" value="2">
+            <span aria-hidden="true">–</span>
+            <input type="number" id="wsBMax" min="1" max="99" step="1" inputmode="numeric" value="9" aria-label="Second number, maximum">
+          </div>
         </div>
       </div>
       <button type="submit" class="btn btn-primary" id="wsDownload"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-download-simple"/></svg> Download PDF</button>
@@ -119,7 +138,7 @@
   </div>
 </footer>
 
-<script src="/js/worksheets.js?v=20261022s" defer></script>
+<script src="/js/worksheets.js?v=20261023a" defer></script>
 
 <script src="/js/header.js?v=20261022s" defer></script>
 </body>
