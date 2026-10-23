@@ -804,6 +804,26 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 }
 .lesson-mixups img { width: 26px; height: 26px; flex-shrink: 0; margin-top: 2px; }
 .lesson-mixups b { color: var(--red-deep); }
+
+/* 第 5 课「免费事实」翻牌卡（原生 details，零 JS） */
+.lw-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+.lw-fact { background: #fff; border: 2px solid var(--pink); border-radius: 16px; overflow: hidden; }
+.lw-fact summary {
+  list-style: none; cursor: pointer; text-align: center;
+  padding: 16px 12px 14px; font-size: 20px; font-weight: 900; color: var(--red-deep);
+  position: relative;
+}
+.lw-fact summary::-webkit-details-marker { display: none; }
+.lw-fact summary::marker { content: ""; }
+.lw-fact summary::after {
+  content: "tap"; display: block; margin-top: 5px;
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.lw-fact[open] summary::after { content: ""; margin-top: 0; }
+.lw-fact-body { padding: 0 14px 14px; font-size: 14px; line-height: 1.6; text-align: center; }
+.lw-fact-body b { color: var(--red-deep); font-size: 17px; }
+.lw-fact-body p { margin: 6px 0 0; }
 .lesson-tip {
   display: flex; gap: 10px; align-items: flex-start;
   border: 2px dashed var(--pink); border-radius: 14px; padding: 12px 16px;
