@@ -213,6 +213,8 @@ section.block > h1, section.block > h2 {
 .tip-eg b { color: var(--red-dark); }
 
 /* 博客列表与文章 */
+/* 文章页：标题、元信息与正文卡片作为一个整体居中 */
+section.block.post-page { max-width: 860px; margin-left: auto; margin-right: auto; }
 .post-title { font-size: 30px; line-height: 1.3; font-weight: 900; color: var(--red-deep); margin: 6px 0 10px; }
 .post-subtitle { font-size: 16px; line-height: 1.6; color: var(--ink-soft); font-weight: 600; font-style: italic; margin-bottom: 8px; }
 .post-meta, .post-card-date { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
@@ -220,6 +222,29 @@ section.block > h1, section.block > h2 {
 .post-back { margin: 0 0 10px; font-size: 13.5px; font-weight: 800; }
 .post-back a, .post-card-more { color: var(--red-deep); font-weight: 800; text-underline-offset: 2px; }
 .post-back-bottom { margin: 22px 0 0; }
+
+/* 返回博客：汤圆头像药丸按钮，悬停时汤圆打滚、箭头左移 */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  background: #fff; border: 2px solid var(--pink); border-radius: 999px;
+  padding: 7px 18px 7px 8px;
+  font-weight: 800; font-size: 14px; color: var(--red-deep);
+  text-decoration: none;
+  transition: background .15s, border-color .15s, transform .15s;
+}
+.back-btn:hover {
+  background: var(--red-light); border-color: var(--red);
+  transform: translateY(-1px); text-decoration: none;
+}
+.back-avatar {
+  width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+  border: 2px solid #fff; box-shadow: 0 0 0 2px var(--pink); background: #fff;
+}
+.back-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.back-btn:hover .back-avatar { animation: tangyuan-roll .55s ease; }
+@keyframes tangyuan-roll { to { transform: rotate(360deg); } }
+.back-arrow { display: inline-block; transition: transform .15s; }
+.back-btn:hover .back-arrow { transform: translateX(-3px); }
 
 .prose a { color: var(--red-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 .prose a:hover { color: var(--red-dark); }
@@ -321,6 +346,7 @@ section.block > h1, section.block > h2 {
 
 @media (prefers-reduced-motion: reduce) {
   .btn, .lang-card, .site-nav a { transition: none !important; }
+  .back-btn:hover .back-avatar { animation: none; }
 }
 
 .icon-sprite { position: absolute; }
