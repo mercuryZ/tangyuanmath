@@ -40,7 +40,7 @@
   var lastFocus = null;
   var confirmOpen = false; // 确认弹窗同一时间只允许一个
   // 确认弹窗默认头像（相对 /play/ 解析），单次调用可用 opts.img 覆盖
-  var CONFIRM_AVATAR = '../img/tangyuan_web.png';
+  var CONFIRM_AVATAR = '../img/tangyuan_web.webp';
 
   /* 弹窗角标 emoji → Phosphor 图标 id（去 FE0F 变体选择符归一化） */
   var EMOTE_ICONS = { '\u{1F389}': 'ico-confetti', '\u{1F3C6}': 'ico-trophy', '⏰': 'ico-alarm', '\u{1F914}': 'ico-question', '⚠': 'ico-warning' };

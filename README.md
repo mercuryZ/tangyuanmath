@@ -156,6 +156,27 @@ Restore:
 
 Backups live **on the same persistent disk** by default, so they protect against corruption, a bad migration or an accidental delete — not against losing the disk itself. Copy them off the server for disaster recovery and keep the encryption key separate. A backup can contain records that were deleted later; those records disappear when the backup holding them expires. Re-apply any deletion requests made after the restored backup's timestamp.
 
+### CDN caching (Cloudflare)
+
+The site is served behind Cloudflare. The origin sets these headers for static files (`server/src/index.js`):
+
+| File type | `Cache-Control` | Effect |
+|---|---|---|
+| `*.html` | `public, max-age=0, s-maxage=300, stale-while-revalidate=60` | Browsers revalidate; the edge may hold the page for 5 minutes |
+| `*.css`, `*.js` | `no-cache` | Existing Cloudflare rule caches them for 4 hours; `?v=` on the URL switches versions |
+| images, PDFs | `max-age=3600` | Edge/browser cache for 1 hour |
+
+To actually keep HTML off the Render instance, add a Cloudflare **Cache Rule** (Rules → Cache Rules) that matches public pages, for example:
+
+```
+(ends_with(http.request.uri.path, "/") or ends_with(http.request.uri.path, ".html"))
+and not starts_with(http.request.uri.path, "/api/")
+```
+
+Settings: **Cache eligibility: Eligible for cache**, **Edge TTL: Use cache-control header if present, use default Cloudflare caching behavior if not**, **Browser TTL: Respect origin TTL**. Do **not** apply the 4-hour asset rule to HTML, and never cache `/api/*` — those responses are authenticated and personalized.
+
+After a deploy, cached HTML may lag by up to 5 minutes. To publish immediately, purge the zone (Caching → Configuration → Purge Everything, or purge the changed URLs). API responses and the 404 fallback are not affected.
+
 ### Option 2: static-only (guest mode)
 
 ```bash

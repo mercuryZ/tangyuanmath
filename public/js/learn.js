@@ -319,7 +319,7 @@
     var track = el('div', 'lw-numline');
     var hopper = el('span', 'lw-hopper');
     var hopperImg = el('img');
-    hopperImg.src = cfg.img || '/img/happy.png';
+    hopperImg.src = cfg.img || '/img/happy.webp';
     hopperImg.alt = '';
     hopper.appendChild(hopperImg);
     var eq = el('div');

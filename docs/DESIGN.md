@@ -727,6 +727,8 @@ PDF 服务端鉴权、限流、限制并发和超时。
 中国大陆服务器部署涉及的备案要求另行核查。
 不能把“海外用户”“使用 .com”当作免除相关义务的依据，也不把 ICP 写成所有海外部署的固定前置条件。
 
+**实施记录（2026-10-23，Render Starter 容量优化）**：`server/src/index.js` 对 HTML 返回 `public, max-age=0, s-maxage=300, stale-while-revalidate=60`，配合 Cloudflare Cache Rule 把页面访问挡在边缘（规则与清理方式见 README「CDN caching / CDN 缓存」；未配置规则时 HTML 仍每次回源）。公开页面的插图转为 WebP：`confused.png` 885KB→4.7KB、`happy.png` 938KB→8.2KB、`tangyuan_web.png` 345KB→16.3KB（OG/JSON-LD 图片仍保留 PNG）；`tangyuan_small.png` 从 240px 降到 128px。密码哈希由 bcryptjs 换成原生 `bcrypt`（N-API 预编译，async 走 libuv 线程池），注册/登录/重置/子女账号等路由改为异步；令牌消费改为事务内条件更新，子女座位上限在事务内复查，避免异步化带来的并发竞态。
+
 ### 12.2 备份
 
 - 使用 SQLite 安全备份接口或 `.backup`；

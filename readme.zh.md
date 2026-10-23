@@ -199,6 +199,27 @@ npm run backup:prune              # 立即按保留期清理
 
 备份默认与数据库在**同一块持久盘**上，能防误删、损坏和错误迁移，但防不了整块盘丢失。灾难恢复需要把备份复制到异地，并把加密密钥分开保存。备份可能仍包含之后被删除的数据，等该备份过期后才会彻底清除；恢复旧备份后，请重新执行备份时间点之后收到的删除请求。
 
+### CDN 缓存（Cloudflare）
+
+站点通过 Cloudflare 对外提供服务。源站对静态文件的响应头（`server/src/index.js`）：
+
+| 文件类型 | `Cache-Control` | 效果 |
+|---|---|---|
+| `*.html` | `public, max-age=0, s-maxage=300, stale-while-revalidate=60` | 浏览器每次协商；边缘最多缓存 5 分钟 |
+| `*.css`、`*.js` | `no-cache` | 由现有 Cloudflare 规则缓存 4 小时，靠 URL 上的 `?v=` 切换版本 |
+| 图片、PDF | `max-age=3600` | 边缘/浏览器缓存 1 小时 |
+
+要让 HTML 真正不落到 Render 上，需要在 Cloudflare 添加一条 **Cache Rule**（Rules → Cache Rules），匹配公开页面，例如：
+
+```
+(ends_with(http.request.uri.path, "/") or ends_with(http.request.uri.path, ".html"))
+and not starts_with(http.request.uri.path, "/api/")
+```
+
+设置：**Cache eligibility: Eligible for cache**、**Edge TTL: Use cache-control header if present, use default Cloudflare caching behavior if not**、**Browser TTL: Respect origin TTL**。**不要**把 4 小时的静态资源规则套到 HTML 上，也**绝不能**缓存 `/api/*`——那些响应带鉴权且因人而异。
+
+部署后边缘缓存最多滞后 5 分钟；要立即生效，在 Cloudflare 清除缓存（Caching → Configuration → Purge Everything，或按 URL 清除）。API 响应与 404 兜底页不受影响。
+
 ## 路线图
 
 里程碑详见 [docs/DESIGN.md](docs/DESIGN.md)（v3.0 合并版：海外优先、家长账号、永不投放广告）。

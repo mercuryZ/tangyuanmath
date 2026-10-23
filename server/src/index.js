@@ -118,10 +118,15 @@ function createApp(db, opts) {
     extensions: ['html'],
     maxAge: config.isProd ? '1h' : 0,
     setHeaders(res, filePath) {
-      /* HTML 与 CSS/JS 必须和最新部署保持一致（CDN 前置会把可缓存资源放大到 4 小时），
-       * 用 no-cache 走 304 协商：始终新鲜，代价只是一次再验证请求。
+      /* 公开 HTML 是纯静态、无个性化的：允许 CDN 边缘缓存 5 分钟，把绝大多数页面
+       * 访问挡在 Render 之外（部署后最多 5 分钟收敛；需要立即生效就在 Cloudflare 清缓存）。
+       * 浏览器端 max-age=0，仍通过 Last-Modified 协商，始终拿到最新版本。
+       * 生效前提：Cloudflare 有一条对 HTML 的 Cache Rule（见 README「CDN 缓存」）。
+       * CSS/JS 继续 no-cache：由现有 CDN 规则按 4 小时缓存，文件名上的 ?v= 负责版本切换。
        * 图片/PDF 等内容型资源保留 1 小时缓存。 */
-      if (filePath.endsWith('.html') || filePath.endsWith('.css') || filePath.endsWith('.js')) {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=60');
+      } else if (filePath.endsWith('.css') || filePath.endsWith('.js')) {
         res.setHeader('Cache-Control', 'no-cache');
       }
     }

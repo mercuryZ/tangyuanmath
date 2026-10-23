@@ -12,6 +12,13 @@ const family = require('./family');
 
 const MAX_PROFILES = family.MAX_CHILDREN;
 
+/* Express 4 不会捕获 async 处理器的 rejection；统一转交错误中间件。 */
+function asyncHandler(fn) {
+  return function (req, res, next) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
+
 function profileRow(db, id) {
   const p = db.prepare(
     `SELECT id, nickname, avatar_key AS avatarKey, username,
@@ -72,7 +79,7 @@ function buildProfilesRouter(db) {
     });
   });
 
-  r.post('/', csrfProtect, (req, res) => {
+  r.post('/', csrfProtect, asyncHandler(async (req, res) => {
     const { nickname, avatarKey, username, password } = req.body || {};
     if (!req.user.emailVerified) {
       return fail(res, 403, 'email_unverified', 'Verify your email before adding a child account.');
@@ -84,7 +91,7 @@ function buildProfilesRouter(db) {
     if (family.familyChildCount(db, req.user.familyId) >= MAX_PROFILES) {
       return fail(res, 409, 'profile_limit', 'A family can have up to 2 child accounts.');
     }
-    const created = family.createChild(db, {
+    const created = await family.createChild(db, {
       familyId: req.user.familyId,
       creatorUserId: req.user.id,
       nickname,
@@ -93,18 +100,20 @@ function buildProfilesRouter(db) {
       password
     });
     if (created.error) {
-      const status = created.error === 'username_taken' ? 409 : 400;
+      const status = created.error === 'username_taken' || created.error === 'profile_limit' ? 409 : 400;
       const msg = created.error === 'username_taken'
         ? 'That username is already taken.'
-        : created.error === 'weak_password'
-          ? 'Password must be at least 8 characters.'
-          : created.error === 'invalid_username'
-            ? 'Username must be 3–20 characters using letters, numbers, dots, dashes or underscores.'
-            : 'Please check the child details.';
+        : created.error === 'profile_limit'
+          ? 'A family can have up to 2 child accounts.'
+          : created.error === 'weak_password'
+            ? 'Password must be at least 8 characters.'
+            : created.error === 'invalid_username'
+              ? 'Username must be 3–20 characters using letters, numbers, dots, dashes or underscores.'
+              : 'Please check the child details.';
       return fail(res, status, created.error, msg);
     }
     ok(res, { profile: profileRow(db, created.profile.id) });
-  });
+  }));
 
   r.patch('/:id', csrfProtect, loadOwnProfile(db), (req, res) => {
     const { nickname, avatarKey } = req.body || {};
@@ -125,9 +134,9 @@ function buildProfilesRouter(db) {
   });
 
   /* 家长设置 / 重置子女登录用户名与密码 */
-  r.put('/:id/credentials', csrfProtect, loadOwnProfile(db), (req, res) => {
+  r.put('/:id/credentials', csrfProtect, loadOwnProfile(db), asyncHandler(async (req, res) => {
     const { username, password } = req.body || {};
-    const result = family.setChildCredentials(db, req.profile.id, { username, password });
+    const result = await family.setChildCredentials(db, req.profile.id, { username, password });
     if (result.error) {
       const status = result.error === 'username_taken' ? 409 : 400;
       const msg = result.error === 'username_taken'
@@ -138,7 +147,7 @@ function buildProfilesRouter(db) {
       return fail(res, status, result.error, msg);
     }
     ok(res, { profile: profileRow(db, req.profile.id) });
-  });
+  }));
 
   r.delete('/:id', csrfProtect, loadOwnProfile(db), (req, res) => {
     // 级联删除 attempts / attempt_questions / wrong_questions / sessions（外键 ON DELETE CASCADE）

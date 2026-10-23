@@ -6,7 +6,7 @@
  */
 'use strict';
 
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const config = require('./config');
 const U = require('./util');
 const {
@@ -171,7 +171,7 @@ function isUniqueViolation(err) {
 
 /* 创建子女（可同时设置登录用户名与密码）。
  * 返回 { profile } 或 { error }。座位与会员检查由调用方先做。 */
-function createChild(db, { familyId, creatorUserId, nickname, avatarKey, username, password, now }) {
+async function createChild(db, { familyId, creatorUserId, nickname, avatarKey, username, password, now }) {
   const nick = U.cleanNickname(nickname);
   if (!nick) return { error: 'invalid_nickname' };
   const av = avatarKey && U.AVATAR_KEYS.includes(avatarKey) ? avatarKey : 'tangyuan';
@@ -182,21 +182,27 @@ function createChild(db, { familyId, creatorUserId, nickname, avatarKey, usernam
     uname = normalizeUsername(username);
     if (!isValidUsername(uname)) return { error: 'invalid_username' };
     if (!U.isValidPassword(password)) return { error: 'weak_password' };
-    hash = bcrypt.hashSync(password, config.bcryptRounds);
+    hash = await bcrypt.hash(password, config.bcryptRounds);
   } else if (password !== undefined && password !== null && password !== '') {
     return { error: 'username_required' };
   }
 
   try {
-    const info = db.prepare(
-      `INSERT INTO child_profiles
-         (user_id, family_id, nickname, avatar_key, username, username_normalized, password_hash, created_at)
-       VALUES (?,?,?,?,?,?,?,?)`
-    ).run(creatorUserId, familyId, nick, av, uname, uname, hash, now === undefined ? Date.now() : now);
+    // 哈希是 async 的：在事务内复查座位数，避免并发创建绕过 2 名子女上限
+    const created = db.transaction(() => {
+      if (familyChildCount(db, familyId) >= MAX_CHILDREN) return { error: 'profile_limit' };
+      const info = db.prepare(
+        `INSERT INTO child_profiles
+           (user_id, family_id, nickname, avatar_key, username, username_normalized, password_hash, created_at)
+         VALUES (?,?,?,?,?,?,?,?)`
+      ).run(creatorUserId, familyId, nick, av, uname, uname, hash, now === undefined ? Date.now() : now);
+      return { id: info.lastInsertRowid };
+    })();
+    if (created.error) return created;
     return { profile: db.prepare(
       `SELECT id, nickname, avatar_key, username, password_hash, created_at
        FROM child_profiles WHERE id = ?`
-    ).get(info.lastInsertRowid) };
+    ).get(created.id) };
   } catch (e) {
     if (isUniqueViolation(e)) return { error: 'username_taken' };
     throw e;
@@ -204,11 +210,11 @@ function createChild(db, { familyId, creatorUserId, nickname, avatarKey, usernam
 }
 
 /* 家长设置/重置子女用户名与密码。成功后撤销该子女的全部会话。 */
-function setChildCredentials(db, profileId, { username, password }) {
+async function setChildCredentials(db, profileId, { username, password }) {
   const uname = normalizeUsername(username);
   if (!isValidUsername(uname)) return { error: 'invalid_username' };
   if (!U.isValidPassword(password)) return { error: 'weak_password' };
-  const hash = bcrypt.hashSync(password, config.bcryptRounds);
+  const hash = await bcrypt.hash(password, config.bcryptRounds);
   try {
     const tx = db.transaction(() => {
       db.prepare(

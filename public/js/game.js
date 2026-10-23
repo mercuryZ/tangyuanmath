@@ -415,7 +415,7 @@
     var hasAnswers = !state.ended && inputs().some(function (i) { return i.value.trim() !== ''; });
     if (!hasAnswers) { finishExit(); return; } // 没填答案就直接退出，不必确认
     // 半途离开：用困惑的汤圆，比默认头像更贴合「你确定要走吗」
-    global.TMUI.confirm(t('round.confirmExit'), { img: '../img/confused.png' }).then(function (ok) {
+    global.TMUI.confirm(t('round.confirmExit'), { img: '../img/confused.webp' }).then(function (ok) {
       if (ok && state) finishExit(); // 等待期间状态可能已被清空
     });
   }

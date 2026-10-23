@@ -9,7 +9,7 @@
 'use strict';
 
 const express = require('express');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt'); // 原生实现：async 走线程池，不阻塞事件循环
 const crypto = require('node:crypto');
 
 const config = require('./config');
@@ -21,6 +21,13 @@ const U = require('./util');
 const mailer = require('./mailer');
 const { activeFamilyFeatureKeys } = require('./entitlements');
 const family = require('./family');
+
+/* Express 4 不会捕获 async 处理器的 rejection；统一转交错误中间件。 */
+function asyncHandler(fn) {
+  return function (req, res, next) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
 
 function setSessionCookie(req, res, token) {
   res.cookie(sessionCookieName(), token, {
@@ -131,7 +138,7 @@ function buildAuthRouter(db) {
   /* 注册 */
   r.post('/register',
     rateLimit({ windowMs: 60000, max: 10, name: 'register' }),
-    (req, res) => {
+    asyncHandler(async (req, res) => {
       const { email, password, locale, timezone } = req.body || {};
       if (!U.isValidEmail(email)) return fail(res, 400, 'invalid_email', 'Please enter a valid email address.');
       if (!U.isValidPassword(password)) return fail(res, 400, 'weak_password', 'Password must be at least 8 characters.');
@@ -141,20 +148,29 @@ function buildAuthRouter(db) {
       const exists = db.prepare('SELECT id FROM users WHERE email_normalized = ?').get(U.normalizeEmail(email));
       if (exists) return fail(res, 409, 'email_taken', 'This email is already registered.');
 
-      const hash = bcrypt.hashSync(password, config.bcryptRounds);
+      const hash = await bcrypt.hash(password, config.bcryptRounds);
       const now = Date.now();
       // 用户 + 家庭 + 上线赠送在同一事务内完成，避免出现「有账号但无家庭/权益」的中间态
-      const userId = db.transaction(() => {
-        const info = db.prepare(
-          'INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at) VALUES (?,?,NULL,?,?,?)'
-        ).run(U.normalizeEmail(email), hash, loc, tz, now);
-        family.initFamilyForNewUser(db, info.lastInsertRowid, now);
-        return info.lastInsertRowid;
-      })();
+      let userId;
+      try {
+        userId = db.transaction(() => {
+          const info = db.prepare(
+            'INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at) VALUES (?,?,NULL,?,?,?)'
+          ).run(U.normalizeEmail(email), hash, loc, tz, now);
+          family.initFamilyForNewUser(db, info.lastInsertRowid, now);
+          return info.lastInsertRowid;
+        })();
+      } catch (e) {
+        // 哈希是 async 的，exists 检查与插入之间可能出现同邮箱并发注册
+        if (e && (e.code === 'SQLITE_CONSTRAINT_UNIQUE' || /UNIQUE constraint failed/.test(e.message || ''))) {
+          return fail(res, 409, 'email_taken', 'This email is already registered.');
+        }
+        throw e;
+      }
 
       issueOneTimeToken(db, userId, 'verify_email', U.normalizeEmail(email), req.app.locals.mailCapture);
       ok(res, { sent: true });
-    });
+    }));
 
   /* 邮箱验证 */
   r.post('/verify-email',
@@ -176,13 +192,14 @@ function buildAuthRouter(db) {
   /* 登录（成功轮换会话） */
   r.post('/login',
     rateLimit({ windowMs: 60000, max: 10, name: 'login' }),
-    (req, res) => {
+    asyncHandler(async (req, res) => {
       const { email, password } = req.body || {};
       if (!U.isValidEmail(email) || typeof password !== 'string') {
         return fail(res, 400, 'invalid_input', 'Invalid email or password.');
       }
       const row = db.prepare('SELECT * FROM users WHERE email_normalized = ?').get(U.normalizeEmail(email));
-      const okPass = row && bcrypt.compareSync(password, row.password_hash);
+      // Google-only 账号的 password_hash 为空字符串：直接判失败，不把空值交给 bcrypt
+      const okPass = row && row.password_hash && await bcrypt.compare(password, row.password_hash);
       if (!row || !okPass) return fail(res, 401, 'login_failed', 'Email or password is incorrect.');
       // 迁移前遗留账号兜底：确保每个家长都有家庭（幂等，不补发已结束的活动）
       if (!row.family_id) family.ensureFamilyForUser(db, row.id);
@@ -194,7 +211,7 @@ function buildAuthRouter(db) {
         locale: fresh.locale, timezone: fresh.timezone, createdAt: fresh.created_at,
         familyId: fresh.family_id, familyRole: fresh.family_role
       }) });
-    });
+    }));
 
   /* 子女登录：用户名 + 密码（与家长共用一个会话 Cookie） */
   r.post('/child-login',
@@ -203,14 +220,14 @@ function buildAuthRouter(db) {
       windowMs: 60000, max: 10, name: 'child-login-user',
       keyFn: req => 'u:' + family.normalizeUsername(req.body && req.body.username)
     }),
-    (req, res) => {
+    asyncHandler(async (req, res) => {
       const username = family.normalizeUsername(req.body && req.body.username);
       const password = req.body && req.body.password;
       if (!family.isValidUsername(username) || typeof password !== 'string') {
         return fail(res, 401, 'child_login_failed', 'Username or password is incorrect.');
       }
       const row = family.findChildByUsername(db, username);
-      const okPass = row && row.password_hash && bcrypt.compareSync(password, row.password_hash);
+      const okPass = row && row.password_hash && await bcrypt.compare(password, row.password_hash);
       if (!row || !okPass) return fail(res, 401, 'child_login_failed', 'Username or password is incorrect.');
       const token = createChildSession(db, row.id);
       setSessionCookie(req, res, token);
@@ -221,20 +238,20 @@ function buildAuthRouter(db) {
         entitlements: activeFamilyFeatureKeys(db, row.family_id),
         membership: family.membershipSummary(db, row.family_id)
       });
-    });
+    }));
 
   /* 子女修改自己的密码：需要当前密码；撤销其他设备的会话 */
-  r.post('/child-password', csrfProtect, requireChild, (req, res) => {
+  r.post('/child-password', csrfProtect, requireChild, asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = req.body || {};
     if (!U.isValidPassword(newPassword)) {
       return fail(res, 400, 'weak_password', 'Password must be at least 8 characters.');
     }
     const row = db.prepare('SELECT password_hash FROM child_profiles WHERE id = ?').get(req.child.id);
     if (!row || !row.password_hash || typeof currentPassword !== 'string' ||
-        !bcrypt.compareSync(currentPassword, row.password_hash)) {
+        !await bcrypt.compare(currentPassword, row.password_hash)) {
       return fail(res, 401, 'login_failed', 'Current password is incorrect.');
     }
-    const hash = bcrypt.hashSync(newPassword, config.bcryptRounds);
+    const hash = await bcrypt.hash(newPassword, config.bcryptRounds);
     const tx = db.transaction(() => {
       db.prepare('UPDATE child_profiles SET password_hash = ? WHERE id = ?').run(hash, req.child.id);
       db.prepare('DELETE FROM sessions WHERE child_profile_id = ? AND token_hash <> ?')
@@ -242,7 +259,7 @@ function buildAuthRouter(db) {
     });
     tx();
     ok(res, { updated: true });
-  });
+  }));
 
   /* 登出（当前设备） */
   r.post('/logout', csrfProtect, (req, res) => {
@@ -288,7 +305,7 @@ function buildAuthRouter(db) {
   /* 重置密码（一次性令牌 → 撤销全部旧会话） */
   r.post('/reset-password',
     rateLimit({ windowMs: 60000, max: 10, name: 'reset' }),
-    (req, res) => {
+    asyncHandler(async (req, res) => {
       const { token, password } = req.body || {};
       if (!token || typeof token !== 'string') return fail(res, 400, 'invalid_token', 'Missing token.');
       if (!U.isValidPassword(password)) return fail(res, 400, 'weak_password', 'Password must be at least 8 characters.');
@@ -298,15 +315,20 @@ function buildAuthRouter(db) {
       if (!row || row.used_at || row.expires_at < Date.now()) {
         return fail(res, 400, 'invalid_token', 'This link is invalid or has expired.');
       }
-      const hash = bcrypt.hashSync(password, config.bcryptRounds);
-      const tx = db.transaction(() => {
-        db.prepare('UPDATE auth_tokens SET used_at = ? WHERE id = ?').run(Date.now(), row.id);
+      const hash = await bcrypt.hash(password, config.bcryptRounds);
+      // 哈希是 async 的：用条件更新原子地消费令牌，避免同一链接被并发使用两次
+      const claimed = db.transaction(() => {
+        const info = db.prepare(
+          'UPDATE auth_tokens SET used_at = ? WHERE id = ? AND used_at IS NULL'
+        ).run(Date.now(), row.id);
+        if (!info.changes) return false;
         db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, row.user_id);
         db.prepare('DELETE FROM sessions WHERE user_id = ?').run(row.user_id);
-      });
-      tx();
+        return true;
+      })();
+      if (!claimed) return fail(res, 400, 'invalid_token', 'This link is invalid or has expired.');
       ok(res, { reset: true });
-    });
+    }));
 
   /* ---------- Google 登录两个端点 ---------- */
   r.get('/google',
