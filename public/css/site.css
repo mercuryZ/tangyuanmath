@@ -219,6 +219,8 @@ section.block > h1, section.block > h2 {
   margin: 6px 0 4px; line-height: 1.8;
 }
 .tip-eg b { color: var(--red-dark); }
+/* 技巧页：标题与正文卡片作为整体在 1080 容器内居中 */
+section.block.tips-page { max-width: 860px; margin-left: auto; margin-right: auto; }
 
 /* 博客列表与文章 */
 /* 文章页：标题、元信息与正文卡片作为一个整体居中 */
