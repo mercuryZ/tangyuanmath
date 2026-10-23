@@ -259,29 +259,53 @@ section.block.post-page { max-width: 860px; margin-left: auto; margin-right: aut
 .post-meta time { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; color: var(--ink-soft); }
 
 .post-hero {
-  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   background: #fff; border-radius: 20px; overflow: hidden;
   box-shadow: 0 10px 30px rgba(217, 59, 71, .10);
   margin: 22px 0 26px;
 }
-.post-hero-media { display: block; min-height: 240px; background: var(--cream); }
-.post-hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.post-hero-media { display: block; min-height: 240px; padding: 10px; background: #fff; }
+.post-hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px; }
 .post-hero-body { padding: 26px 30px; display: flex; flex-direction: column; justify-content: center; }
 .post-hero-title { font-size: 27px; line-height: 1.3; font-weight: 900; margin: 0 0 10px; }
 .post-hero-title a { color: var(--red-deep); text-decoration: none; }
 .post-hero-title a:hover { text-decoration: underline; }
 .post-hero-summary { font-size: 15px; line-height: 1.7; color: var(--ink-soft); font-weight: 600; margin: 0 0 14px; }
-.post-hero-more { font-weight: 800; font-size: 14.5px; align-self: flex-start; }
+/* 头条署名：作者头像 + 阅读时长 */
+.post-hero-byline {
+  display: flex; align-items: center; gap: 9px; margin: 2px 0 0;
+  font-size: 13px; font-weight: 700; color: var(--ink-soft);
+}
+.post-hero-byline img {
+  width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  border: 2px solid #fff; box-shadow: 0 0 0 2px var(--pink); background: #fff;
+}
+.post-hero-byline b { color: var(--red-deep); font-weight: 800; }
+
+/* 精选评论（待有真实家长来信后启用） */
+.post-hero-quote {
+  margin: 2px 0 0; padding: 10px 14px; background: var(--cream);
+  border-left: 4px solid var(--pink); border-radius: 0 12px 12px 0;
+  font-size: 13.5px; line-height: 1.6;
+}
+.post-hero-quote p { font-weight: 600; color: var(--ink); }
+.post-hero-quote cite {
+  display: block; margin-top: 4px; font-style: normal;
+  font-size: 12.5px; font-weight: 800; color: var(--ink-soft); text-align: right;
+}
+/* 列表页底部提示：通栏居中 */
+.post-footnote { text-align: center; }
 
 .post-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 0 0 22px; }
 .post-tile {
   background: #fff; border-radius: 20px; overflow: hidden;
   box-shadow: 0 8px 24px rgba(217, 59, 71, .08);
   display: flex; flex-direction: column;
+  transition: transform .25s, box-shadow .25s;
 }
-.post-tile-media { display: block; aspect-ratio: 16 / 9; background: var(--cream); overflow: hidden; }
-.post-tile-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s; }
-.post-tile:hover .post-tile-media img { transform: scale(1.04); }
+.post-tile:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(217, 59, 71, .14); }
+.post-tile-media { display: block; aspect-ratio: 16 / 9; padding: 10px; background: #fff; }
+.post-tile-media img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 12px; }
 .post-tile-body { padding: 16px 20px 20px; }
 .post-tile-body h3 { font-size: 18.5px; line-height: 1.45; margin: 0 0 8px; }
 .post-tile-body h3 a { color: var(--red-deep); text-decoration: none; }
