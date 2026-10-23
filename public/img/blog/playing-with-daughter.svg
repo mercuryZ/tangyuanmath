@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Two tangyuan characters playing math">
+  <defs>
+    <pattern id="dots2" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#FFF7F2"/>
+  <rect width="1200" height="675" fill="url(#dots2)"/>
+  <!-- 大汤圆（家长） -->
+  <g transform="translate(300 150)">
+    <circle cx="0" cy="160" r="150" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-52" cy="120" r="12" fill="#5D3A3A"/>
+    <circle cx="52" cy="120" r="12" fill="#5D3A3A"/>
+    <path d="M -46 175 Q 0 215 46 175" fill="none" stroke="#5D3A3A" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="-88" cy="160" rx="14" ry="9" fill="#FFC2CC"/>
+    <ellipse cx="88" cy="160" rx="14" ry="9" fill="#FFC2CC"/>
+  </g>
+  <!-- 小汤圆（女儿） -->
+  <g transform="translate(760 300)">
+    <circle cx="0" cy="90" r="96" fill="#fff" stroke="#D93B47" stroke-width="7"/>
+    <circle cx="-32" cy="70" r="9" fill="#5D3A3A"/>
+    <circle cx="32" cy="70" r="9" fill="#5D3A3A"/>
+    <path d="M -30 100 Q 0 130 30 100" fill="none" stroke="#5D3A3A" stroke-width="8" stroke-linecap="round"/>
+    <ellipse cx="-58" cy="92" rx="10" ry="7" fill="#FFC2CC"/>
+    <ellipse cx="58" cy="92" rx="10" ry="7" fill="#FFC2CC"/>
+  </g>
+  <!-- 中间的乘法气泡 -->
+  <g>
+    <rect x="530" y="120" width="150" height="92" rx="24" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <text x="605" y="182" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#D93B47" text-anchor="middle">6×7</text>
+    <path d="M 590 212 L 605 240 L 620 212 Z" fill="#fff" stroke="#F2555A" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+  <!-- 星星与符号点缀 -->
+  <g fill="#F5A623">
+    <path d="M 950 140 l 9 22 24 3 -17 16 4 23 -20 -11 -20 11 4 -23 -17 -16 24 -3 z"/>
+    <path d="M 180 90 l 7 16 18 2 -13 12 3 17 -15 -8 -15 8 3 -17 -13 -12 18 -2 z" opacity="0.8"/>
+  </g>
+  <text x="1010" y="470" font-family="Georgia, serif" font-size="44" font-weight="bold" fill="#D93B47" opacity="0.5">= 42</text>
+</svg>

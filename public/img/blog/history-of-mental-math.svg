@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Abacus cover art">
+  <defs>
+    <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#FFF7F2"/>
+  <rect width="1200" height="675" fill="url(#dots)"/>
+  <!-- 算盘 -->
+  <g transform="translate(250 130)">
+    <rect x="0" y="0" width="700" height="415" rx="26" fill="#fff" stroke="#F2555A" stroke-width="10"/>
+    <!-- 上梁 -->
+    <line x1="18" y1="90" x2="682" y2="90" stroke="#F2555A" stroke-width="8"/>
+    <line x1="18" y1="380" x2="682" y2="380" stroke="#F2555A" stroke-width="8"/>
+    <!-- 档杆 -->
+    <g stroke="#D93B47" stroke-width="9" stroke-linecap="round">
+      <line x1="105" y1="24" x2="105" y2="396"/>
+      <line x1="215" y1="24" x2="215" y2="396"/>
+      <line x1="325" y1="24" x2="325" y2="396"/>
+      <line x1="435" y1="24" x2="435" y2="396"/>
+      <line x1="545" y1="24" x2="545" y2="396"/>
+      <line x1="640" y1="24" x2="640" y2="396"/>
+    </g>
+    <!-- 上珠（每档 2 颗，错落表示拨动中） -->
+    <g fill="#FFC2CC" stroke="#D93B47" stroke-width="4">
+      <ellipse cx="105" cy="52" rx="26" ry="18"/><ellipse cx="105" cy="74" rx="26" ry="18"/>
+      <ellipse cx="215" cy="52" rx="26" ry="18"/><ellipse cx="215" cy="74" rx="26" ry="18"/>
+      <ellipse cx="325" cy="46" rx="26" ry="18"/>
+      <ellipse cx="435" cy="52" rx="26" ry="18"/><ellipse cx="435" cy="74" rx="26" ry="18"/>
+      <ellipse cx="545" cy="52" rx="26" ry="18"/><ellipse cx="545" cy="74" rx="26" ry="18"/>
+      <ellipse cx="640" cy="46" rx="26" ry="18"/>
+    </g>
+    <!-- 下珠（5 颗，部分已拨上） -->
+    <g fill="#F2555A">
+      <ellipse cx="105" cy="130" rx="26" ry="18"/><ellipse cx="105" cy="158" rx="26" ry="18"/><ellipse cx="105" cy="186" rx="26" ry="18"/><ellipse cx="105" cy="214" rx="26" ry="18"/><ellipse cx="105" cy="242" rx="26" ry="18"/><ellipse cx="105" cy="340" rx="26" ry="18"/>
+      <ellipse cx="215" cy="130" rx="26" ry="18"/><ellipse cx="215" cy="158" rx="26" ry="18"/><ellipse cx="215" cy="186" rx="26" ry="18"/><ellipse cx="215" cy="340" rx="26" ry="18"/><ellipse cx="215" cy="312" rx="26" ry="18"/>
+      <ellipse cx="325" cy="130" rx="26" ry="18"/><ellipse cx="325" cy="158" rx="26" ry="18"/><ellipse cx="325" cy="186" rx="26" ry="18"/><ellipse cx="325" cy="214" rx="26" ry="18"/><ellipse cx="325" cy="312" rx="26" ry="18"/>
+      <ellipse cx="435" cy="130" rx="26" ry="18"/><ellipse cx="435" cy="158" rx="26" ry="18"/><ellipse cx="435" cy="340" rx="26" ry="18"/><ellipse cx="435" cy="312" rx="26" ry="18"/><ellipse cx="435" cy="284" rx="26" ry="18"/>
+      <ellipse cx="545" cy="130" rx="26" ry="18"/><ellipse cx="545" cy="158" rx="26" ry="18"/><ellipse cx="545" cy="186" rx="26" ry="18"/><ellipse cx="545" cy="214" rx="26" ry="18"/><ellipse cx="545" cy="242" rx="26" ry="18"/><ellipse cx="545" cy="340" rx="26" ry="18"/>
+      <ellipse cx="640" cy="130" rx="26" ry="18"/><ellipse cx="640" cy="158" rx="26" ry="18"/><ellipse cx="640" cy="186" rx="26" ry="18"/><ellipse cx="640" cy="214" rx="26" ry="18"/><ellipse cx="640" cy="242" rx="26" ry="18"/>
+    </g>
+  </g>
+  <!-- 漂浮符号 -->
+  <g font-family="Georgia, 'Times New Roman', serif" font-weight="bold" fill="#D93B47" opacity="0.5">
+    <text x="105" y="120" font-size="66">×</text>
+    <text x="990" y="560" font-size="56">7×8</text>
+    <text x="120" y="600" font-size="44" fill="#9A7070">56</text>
+    <text x="1040" y="120" font-size="52">=</text>
+  </g>
+</svg>
