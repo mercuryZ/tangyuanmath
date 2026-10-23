@@ -158,7 +158,8 @@ body {
 a.mode-card { text-decoration: none; color: inherit; }
 
 /* ---------- Practice 设置表单 ---------- */
-.setup-form { display: grid; gap: 18px; max-width: 720px; }
+/* 表单不再限宽 720px：Number range 的四项随 .app 占满整行、均匀分布 */
+.setup-form { display: grid; gap: 18px; }
 .field { border: none; }
 .field legend, .field .f-label { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 8px; display: block; }
 .opt-row { display: flex; flex-wrap: wrap; gap: 10px; }
