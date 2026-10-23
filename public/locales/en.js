@@ -27,6 +27,9 @@ window.TM_I18N.en = {
 
   'home.title': 'Choose a mode',
   'home.subtitle': 'Practice and Challenge work without an account. Live Race is part of Supporter.',
+  'home.learn.title': 'Learn Multiplication',
+  'home.learn.desc': 'New to times tables? A free parent-led course starts from zero.',
+  'home.learn.cta': 'Start Lesson 1 →',
   'home.practice.title': 'Practice',
   'home.practice.desc': 'Untimed by default. Pick a range, check your answers, take your time.',
   'home.practice.cta': 'Start Practice →',

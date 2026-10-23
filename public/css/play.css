@@ -154,6 +154,8 @@ body {
 .mode-card p { font-size: 13px; line-height: 1.6; color: var(--ink-soft); font-weight: 600; }
 .mode-card .m-cta { margin-top: 6px; font-size: 13px; font-weight: 800; color: var(--red); }
 .mode-card[disabled] { opacity: .55; cursor: not-allowed; }
+/* 首页「学乘法」卡是链接而非按钮：重置浏览器默认链接样式 */
+a.mode-card { text-decoration: none; color: inherit; }
 
 /* ---------- Practice 设置表单 ---------- */
 .setup-form { display: grid; gap: 18px; max-width: 720px; }

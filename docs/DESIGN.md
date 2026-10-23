@@ -69,6 +69,7 @@
 > A friendly multiplication practice game for learners who know their times tables and are ready for the next step.
 
 产品提供轻松练习、分步提示和可选速度挑战，不将速度作为唯一学习成果。
+2026-10-23 起配套免费「乘法启蒙课」（/en/learn/，9 节家长带学课）覆盖还不会乘法表的初学者：讲解脚本 + 互动演示（learn.js）+ 小考验 + 深链练习（/play/#/setup?amin=…），进度存 localStorage。
 
 不宣传：
 - 适合所有儿童；
@@ -95,7 +96,7 @@
 |---|---|---|---|
 | Practice | 默认关闭，可选开启 | 自选范围，练习与答案检查 | P0 |
 | Challenge | 开启 | 原有 10 关闯关 | P0 |
-| Learn | 关闭 | 专项讲解、提示和示例 | P1 |
+| Learn | — | 已实现为静态课程 /en/learn/（9 节课：讲解脚本 + 互动演示 + 小考验 + 深链练习，进度存 localStorage），非游戏内模式 | 已上线（2026-10-23） |
 
 原挑战保留每关 10 题的设置，所有关卡统一限时 120 秒，并标记为进阶速度挑战。
 第 0 关是热身关（个位数 × 个位数，120 秒），不计入 10 关进度。
@@ -652,7 +653,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 | 英文产品首页 | `/en/` |
 | 免费乘法游戏介绍 | `/en/multiplication-game/` |
 | 两位数乘法练习介绍 | `/en/two-digit-multiplication/` |
-| 教程目录 | `/en/learn/` |
+| 教程目录（乘法启蒙课，已上线，9 节） | `/en/learn/` |
 | 单篇技巧 | `/en/learn/multiply-by-11/` |
 | 练习卷说明 | `/en/worksheets/` |
 | 家长与老师说明 | `/en/parents-teachers/` |
@@ -874,7 +875,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 > 状态快照（2026-10-22）：M0、M1 的代码与自动化测试部分已完成，剩余事项均为外部核查/运营；
 > M1.5 功能完成，待真实多人压测；M2 进行中（PDF、entitlements、每日加密备份已上线；Waffo Pancake 已切换生产环境，$1/3 天尝鲜与客户门户已上线；§6 redeem_codes 与管理后台（TM_ADMIN_EMAILS + /admin/，会员查询/手动授予/优惠码）已实现；受控真实交易/退款验收待完成）；
-> M3 进行中（Math Tips 与 Blog 栏目已上线）。
+> M3 进行中（Math Tips 与 Blog 栏目已上线；乘法启蒙课 /en/learn/ 9 节已于 2026-10-23 上线，中文镜像待补）。
 
 ### M0：免费海外试玩
 
@@ -951,7 +952,7 @@ PDF 服务端鉴权、限流、限制并发和超时。
 
 ### M3：内容与增长
 
-- [ ] 3–5 篇高质量英文教程（当前：Math Tips 页含 6 个技巧，Blog 已上线首篇文章）
+- [x] 高质量英文教程（2026-10-23：乘法启蒙课 9 节上线 `/en/learn/`；另有 Math Tips 页 6 个技巧与 Blog 文章）
 - [x] Math Tips 与 Blog 公开页（中英双语，含导航入口）
 - [x] sitemap 与 hreflang
 - [ ] 结构化数据（JSON-LD：WebApplication / SoftwareApplication）
