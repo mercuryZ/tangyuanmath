@@ -463,21 +463,26 @@
     }
 
     // 视图路由
+    // 先留档初始 hash：下方 showView('home') 会把 hash 同步改写成 #/home，
+    // 深链 /play/#/setup?amin=… 的参数必须在此前留存（Learn 课程 CTA）。
+    var initialHash = location.hash;
     TMUI.showView('home');
-    function routeHash() {
-      var raw = (location.hash || '#/home').replace('#/', '') || 'home';
+    function routeHash(h) {
+      var raw = ((h || location.hash) || '#/home').replace('#/', '') || 'home';
       var qi = raw.indexOf('?');
       var name = qi === -1 ? raw : raw.slice(0, qi);
       // Learn 课程深链：#/setup?amin=… 到达时解析范围并加入难度选项
       if (name === 'setup' && qi !== -1) {
         pendingRange = parseLessonRange(raw.slice(qi + 1));
+        settings.difficulty = LESSON_DIFF; // 课程 CTA 落地即预选，直接开练
+        saveSettings();
         renderSetup();
       }
       // 对战视图由 race.js 管理，避免 hash 回退把用户从对局里拽出来
       if (name === 'home' || name === 'setup' || name === 'stats' || name === 'versus') TMUI.showView(name);
     }
-    global.addEventListener('hashchange', routeHash);
-    routeHash(); // 直接打开 /play/#/setup?amin=…（课程 CTA）时也能落到设置页
+    global.addEventListener('hashchange', function () { routeHash(); });
+    routeHash(initialHash); // 用留档的初始 hash 复核一次（直接打开深链时生效）
 
     // 首页卡片
     $('brandHome').addEventListener('click', function () {
