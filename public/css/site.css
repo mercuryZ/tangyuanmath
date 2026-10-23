@@ -159,7 +159,11 @@ main { flex: 1; padding: 40px 0 56px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   text-decoration: none; text-align: center; cursor: pointer;
-  font: 900 16px/1 inherit; letter-spacing: .4px;
+  /* 用长写属性：font 简写里不能写 font-family: inherit，否则整条声明会被丢弃，
+     导致 <button> 回退到浏览器默认字体，与 <a> 外观不一致 */
+  font-family: inherit; font-size: 16px; font-weight: 900; line-height: 1;
+  letter-spacing: .4px;
+  appearance: none; -webkit-appearance: none;
   padding: 15px 36px; border-radius: 999px; border: none;
   transition: transform .1s, box-shadow .15s;
 }
