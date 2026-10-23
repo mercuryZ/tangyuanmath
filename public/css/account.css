@@ -6,6 +6,24 @@
 a { color: var(--red-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 a:hover { color: var(--red-dark); }
 a.btn, a.s-btn { text-decoration: none; }
+
+/* 顶部「返回游戏」胶囊：与公开站点 .back-btn 同款风格 */
+/* 家长中心的品牌区不再是链接（admin 页仍是），只在这里取消手型光标 */
+.brand:not(a) { cursor: default; }
+.back-game {
+  display: inline-flex; align-items: center;
+  margin-top: 5px; padding: 4px 12px;
+  border: 2px solid var(--pink); border-radius: 999px;
+  background: #fff; color: var(--red-deep);
+  font-size: 12.5px; font-weight: 800; line-height: 1.35;
+  text-decoration: none; box-shadow: 0 2px 0 var(--pink);
+  transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+}
+.back-game:hover {
+  background: var(--red-light); border-color: var(--red);
+  color: var(--red-deep); transform: translateY(-1px);
+}
+.back-game:active { transform: translateY(1px); box-shadow: none; }
 #inviteForm .hint:empty, #childForm .hint:empty { display: none; }
 
 .acct-input {

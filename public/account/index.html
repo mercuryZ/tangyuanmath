@@ -8,20 +8,20 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../img/tangyuan_small.png">
 <link rel="stylesheet" href="../css/play.css?v=20261022s">
-<link rel="stylesheet" href="../css/account.css?v=20261022s">
+<link rel="stylesheet" href="../css/account.css?v=20261022t">
 </head>
 <body>
 
 <div class="bg-particles" aria-hidden="true"></div>
 
 <header class="app-header">
-  <a class="brand" href="../play/" id="backToPlay">
+  <div class="brand">
     <span class="mascot"><img src="../img/tangyuan_small.png" alt="Tangyuan"></span>
     <span class="brand-text">
       <h1 data-i18n="acct.title">Parent Center</h1>
-      <span class="tag" data-i18n="acct.backToPlay">← Back to game</span>
+      <a class="back-game" href="../play/" id="backToPlay" data-i18n="acct.backToPlay">← Back to game</a>
     </span>
-  </a>
+  </div>
   <div class="header-actions" role="group" aria-label="Language">
     <button class="chip-btn" id="langEn" type="button" aria-pressed="false">EN</button>
     <button class="chip-btn" id="langZh" type="button" aria-pressed="false">中文</button>
