@@ -67,7 +67,9 @@ a:hover { color: var(--red-dark); }
   background: linear-gradient(120deg, var(--red-dark), var(--red) 60%, #FF8A8E);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-.site-nav { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+/* gap=20px：Play 胶囊有底色、内边距可见，而导航链接的 14px 内边距透明；
+ * 链接之间的视觉留白是 6+14+14=34px，Play 与首个链接之间需 20+14=34px 才等距 */
+.site-nav { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
 .site-nav a {
   display: inline-flex; align-items: center; gap: 6px;
   text-decoration: none; font-weight: 800; font-size: 14px;
