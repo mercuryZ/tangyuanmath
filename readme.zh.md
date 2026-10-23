@@ -216,7 +216,7 @@ npm run backup:prune              # 立即按保留期清理
 and not starts_with(http.request.uri.path, "/api/")
 ```
 
-设置：**Cache eligibility: Eligible for cache**、**Edge TTL: Use cache-control header if present, use default Cloudflare caching behavior if not**、**Browser TTL: Respect origin TTL**。**不要**把 4 小时的静态资源规则套到 HTML 上，也**绝不能**缓存 `/api/*`——那些响应带鉴权且因人而异。
+设置：**Cache eligibility: Eligible for cache**、**Edge TTL: Use cache-control header if present, use default Cloudflare caching behavior if not**、**Browser TTL: Respect origin**。**不要**把 4 小时的静态资源规则套到 HTML 上，也**绝不能**缓存 `/api/*`——那些响应带鉴权且因人而异。
 
 部署后边缘缓存最多滞后 5 分钟；要立即生效，在 Cloudflare 清除缓存（Caching → Configuration → Purge Everything，或按 URL 清除）。API 响应与 404 兜底页不受影响。
 

@@ -173,7 +173,7 @@ To actually keep HTML off the Render instance, add a Cloudflare **Cache Rule** (
 and not starts_with(http.request.uri.path, "/api/")
 ```
 
-Settings: **Cache eligibility: Eligible for cache**, **Edge TTL: Use cache-control header if present, use default Cloudflare caching behavior if not**, **Browser TTL: Respect origin TTL**. Do **not** apply the 4-hour asset rule to HTML, and never cache `/api/*` — those responses are authenticated and personalized.
+Settings: **Cache eligibility: Eligible for cache**, **Edge TTL: Use cache-control header if present, use default Cloudflare caching behavior if not**, **Browser TTL: Respect origin**. Do **not** apply the 4-hour asset rule to HTML, and never cache `/api/*` — those responses are authenticated and personalized.
 
 After a deploy, cached HTML may lag by up to 5 minutes. To publish immediately, purge the zone (Caching → Configuration → Purge Everything, or purge the changed URLs). API responses and the 404 fallback are not affected.
 
