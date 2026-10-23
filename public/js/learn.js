@@ -443,7 +443,7 @@
       eq.appendChild(eqLine(
         fmt(cfg.s.eq, {
           r: rows, c: cols, lc: m.leftCols, rc: m.rightCols,
-          l: m.left, rr: m.right, t: m.total
+          l: m.left, rp: m.right, t: m.total
         }),
         fmt(cfg.s.hint, { r: rows })
       ));
