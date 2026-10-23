@@ -7,7 +7,6 @@
  *   array-splitter  数组切分（第 7 课：拆一拆）
  *   table-crosser   乘法表盘点（第 8 课：划掉已知，数数还剩几个）
  *   quick-check     小考验（点选题，温和反馈、不计时不打分，DESIGN 2.3）
- *   lesson-done     「完成本课」按钮（进度存 localStorage，游客可用）
  *   course-progress 课程主页进度渲染（卡片打勾 + 继续学习按钮）
  * 文案全部来自各页面 data-config（不进 locales 包），中文镜像页自带中文文案。
  * UMD：浏览器挂 window.TMLearn；纯计算函数与进度存储在 Node 供 tests/learn.test.js require。
@@ -560,24 +559,6 @@
     });
   }
 
-  /* 「完成本课」按钮 */
-  function renderLessonDone(root, cfg, api) {
-    var btn = el('button', 'btn btn-ghost lesson-done-btn');
-    btn.type = 'button';
-    function draw() {
-      var done = !!api.progress[cfg.slug];
-      btn.setAttribute('aria-pressed', done ? 'true' : 'false');
-      btn.textContent = done ? cfg.s.undo : cfg.s.mark;
-    }
-    btn.addEventListener('click', function () {
-      api.progress = toggleDone(api.progress, cfg.slug);
-      saveProgress(api.progress, api.storage);
-      draw();
-    });
-    root.appendChild(btn);
-    draw();
-  }
-
   /* 课程主页进度 */
   function renderCourseProgress(root, cfg, api) {
     var order = cfg.entries.map(function (e) { return e.slug; });
@@ -626,7 +607,6 @@
       catch (e) { cfg = {}; }
       try {
         if (RENDERERS[name]) RENDERERS[name](node, cfg);
-        else if (name === 'lesson-done') renderLessonDone(node, cfg, api);
         else if (name === 'course-progress') renderCourseProgress(node, cfg, api);
       } catch (e) {
         // 单个组件失败不影响其余内容

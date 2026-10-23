@@ -4,7 +4,7 @@
   var drawers = document.querySelectorAll('.nav-drawer');
   if (!drawers.length) return;
 
-  var wide = window.matchMedia('(min-width: 1025px)');
+  var wide = window.matchMedia('(min-width: 1081px)');
 
   function close(drawer, restoreFocus) {
     if (!drawer.open) return;

@@ -55,7 +55,7 @@ a:hover { color: var(--red-dark); }
 }
 .site-header .wrap {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; flex-wrap: wrap; padding-top: 12px; padding-bottom: 12px;
+  gap: 14px; flex-wrap: nowrap; padding-top: 12px; padding-bottom: 12px;
 }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .brand img {
@@ -67,13 +67,14 @@ a:hover { color: var(--red-dark); }
   background: linear-gradient(120deg, var(--red-dark), var(--red) 60%, #FF8A8E);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-/* gap=20px：Play 胶囊有底色、内边距可见，而导航链接的 14px 内边距透明；
- * 链接之间的视觉留白是 6+14+14=34px，Play 与首个链接之间需 20+14=34px 才等距 */
-.site-nav { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+/* gap=18px：Play 胶囊有底色、内边距可见，而导航链接的 12px 内边距透明；
+ * 链接之间的视觉留白是 6+12+12=30px，Play 与首个链接之间需 18+12=30px 才等距。
+ * 12px 内边距也把整排导航压进 1080 容器，保证 Logo 与导航始终同一行。 */
+.site-nav { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; min-width: 0; }
 .site-nav a {
   display: inline-flex; align-items: center; gap: 6px;
   text-decoration: none; font-weight: 800; font-size: 14px;
-  color: var(--red-deep); padding: 8px 14px; border-radius: 999px;
+  color: var(--red-deep); padding: 8px 12px; border-radius: 999px;
   border: 2px solid transparent;
 }
 .site-nav a:hover { background: var(--red-light); }
@@ -85,11 +86,12 @@ a:hover { color: var(--red-dark); }
 .site-nav .play-cta:hover { background: linear-gradient(180deg, #FF7B7B, var(--red)); transform: translateY(-1px); }
 .site-nav .lang-switch { border: 2px solid var(--pink); background: #fff; }
 
-/* 窄屏导航抽屉：头部仅保留 Play 与菜单按钮，其余链接收进 <details> 面板 */
+/* 窄屏导航抽屉：头部仅保留 Play 与菜单按钮，其余链接收进 <details> 面板。
+ * 断点取 1080px：低于此宽度时整排导航会在 1080 容器内换行，改用抽屉更整洁 */
 .nav-drawer > summary { display: none; }
 .nav-drawer > .nav-links { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
-@media (max-width: 1024px) {
+@media (max-width: 1080px) {
   .site-header .wrap { flex-wrap: nowrap; gap: 10px; }
   .site-header .brand img { width: 38px; height: 38px; }
   .site-nav { gap: 8px; }
@@ -254,6 +256,9 @@ section.block.post-page { max-width: 860px; margin-left: auto; margin-right: aut
 
 .prose a { color: var(--red-deep); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 .prose a:hover { color: var(--red-dark); }
+/* 按钮自带配色与字重；.prose 里的按钮要压过上面 .prose a（同为 a+1 类，靠书写顺序取胜） */
+a.btn { text-decoration: none; font-weight: 900; }
+a.btn-primary, a.btn-primary:hover { color: #fff; }
 
 /* ---------- 博客列表：头条通栏 + 两列卡片（杂志式） ---------- */
 .post-meta { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; }
@@ -636,11 +641,12 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 .learn-page .block > h2,
 .learn-page .prose { max-width: 860px; margin-left: auto; margin-right: auto; }
 .learn-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
-.learn-progress { max-width: 420px; height: 12px; background: var(--red-light); border-radius: 999px; overflow: hidden; margin-top: 16px; }
+.learn-progress { width: 100%; height: 12px; background: var(--red-light); border-radius: 999px; overflow: hidden; margin-top: 16px; }
 .learn-progress-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--red), #FF8A8E); transition: width .4s ease; }
 .learn-progress-text { font-size: 13px; font-weight: 800; color: var(--ink-soft); margin-top: 6px; }
 
-.learn-stage { margin: 30px 0; }
+/* 与页内标题、正文同为 860px 列并居中，避免课程内容整体偏左 */
+.learn-stage { max-width: 860px; margin: 30px auto; }
 .learn-stage-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .learn-stage-head h2 { font-size: 19px; font-weight: 900; color: var(--red-deep); }
 .learn-stage-head .muted { font-size: 13.5px; }
@@ -838,7 +844,7 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 .lesson-playcta { text-align: center; margin: 22px 0 8px; }
 .lesson-playcta .btn { font-size: 17px; }
 .lesson-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 26px; padding-top: 18px; border-top: 2px dashed var(--pink-light); }
-.lesson-pager .back-btn { font-size: 13.5px; }
+.lesson-pager .back-btn { font-size: 13.5px; text-decoration: none; } /* 翻页条在 .prose 内，压过 .prose a 的下划线 */
 .lesson-pager-next { margin-left: auto; }
 
 @media (max-width: 640px) {
