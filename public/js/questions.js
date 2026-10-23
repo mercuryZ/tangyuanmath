@@ -91,6 +91,7 @@
     CHALLENGE_LEVELS: CHALLENGE_LEVELS,
     ALLOWED_COUNTS: ALLOWED_COUNTS,
     generateSet: generateSet,
+    generateFromRange: generateFromRange,
     generateChallenge: generateChallenge,
     normalize: normalize
   };

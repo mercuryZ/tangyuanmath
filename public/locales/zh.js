@@ -133,6 +133,7 @@ window.TM_I18N.zh = {
   'diffdesc.two_by_one': '如 34 × 6',
   'diff.two_by_two': '两位数 × 两位数',
   'diffdesc.two_by_two': '如 34 × 56',
+  'diff.lesson': '课程练习范围',
 
   'round.badge.practice': '练习',
   'round.badge.mistakes': '错题重练',

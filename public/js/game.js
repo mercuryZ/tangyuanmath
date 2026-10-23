@@ -74,6 +74,7 @@
   function newState(cfg) {
     return {
       mode: cfg.mode, difficulty: cfg.difficulty, count: cfg.questions.length,
+      range: cfg.range || null, // Learn 课程深链的自定义范围（记录仍记 difficulty 标签）
       level: (cfg.level === undefined || cfg.level === null) ? null : cfg.level,
       questions: cfg.questions,
       per: cfg.questions.map(function (q) {
@@ -398,7 +399,7 @@
       var lvl = state.level;
       return { label: t('round.retryLevel'), fn: function () { TMGame.startChallenge(lvl); } };
     }
-    var cfg = { difficulty: state.difficulty, count: state.count, stopwatch: state.stopwatchOn };
+    var cfg = { difficulty: state.difficulty, count: state.count, stopwatch: state.stopwatchOn, range: state.range };
     return { label: t('round.tryAgain'), fn: function () { TMGame.startPractice(cfg); } };
   }
 
@@ -428,7 +429,7 @@
   function tryAgain() {
     if (!state) return;
     var mode = state.mode;
-    var cfg = { difficulty: state.difficulty, count: state.count, stopwatch: state.stopwatchOn };
+    var cfg = { difficulty: state.difficulty, count: state.count, stopwatch: state.stopwatchOn, range: state.range };
     settleAndSave();
     stopClocks();
     if (mode === 'mistakes') TMGame.startMistakes();
@@ -455,7 +456,10 @@
     startPractice: function (cfg) {
       state = newState({
         mode: 'practice', difficulty: cfg.difficulty,
-        questions: TMQuestions.generateSet(cfg.difficulty, cfg.count),
+        questions: cfg.range
+          ? TMQuestions.generateFromRange(cfg.range, cfg.count)
+          : TMQuestions.generateSet(cfg.difficulty, cfg.count),
+        range: cfg.range || null,
         stopwatch: cfg.stopwatch
       });
       global.TMUI.showView('round');

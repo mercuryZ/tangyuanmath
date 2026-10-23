@@ -202,9 +202,44 @@
   var DIFFS = ['times_tables_10', 'times_tables_12', 'two_by_one', 'two_by_two'];
   var COUNTS = [5, 10, 20];
 
+  /* Learn 课程深链：/play/#/setup?amin=2&amax=5&bmin=2&bmax=5 预选课程对应的练习范围。
+   * 范围都在 1–10 内，记录口径仍按 times_tables_10 上报，服务端白名单无需改动。 */
+  var LESSON_DIFF = '__lesson__';
+  var pendingRange = null;
+  function parseLessonRange(query) {
+    var qs = new URLSearchParams(query);
+    function num(key, dflt) {
+      var v = Number(qs.get(key));
+      return Number.isInteger(v) && v >= 1 && v <= 99 ? v : dflt;
+    }
+    var a = [num('amin', 1), num('amax', 10)];
+    var b = [num('bmin', 1), num('bmax', 10)];
+    if (a[0] > a[1]) a = [a[1], a[0]];
+    if (b[0] > b[1]) b = [b[1], b[0]];
+    return { a: a, b: b };
+  }
+  function rangeLabel(r) {
+    var f = function (p) { return p[0] === p[1] ? String(p[0]) : p[0] + '–' + p[1]; };
+    return f(r.a) + ' × ' + f(r.b);
+  }
+
   function renderSetup() {
     var dBox = $('diffOptions');
     dBox.innerHTML = '';
+    if (settings.difficulty === LESSON_DIFF && !pendingRange) {
+      settings.difficulty = 'times_tables_10'; // 会话里没有课程范围时回退到常规难度
+    }
+    if (pendingRange) {
+      var lb = document.createElement('button');
+      lb.type = 'button';
+      lb.className = 'opt';
+      lb.setAttribute('aria-pressed', settings.difficulty === LESSON_DIFF ? 'true' : 'false');
+      lb.innerHTML = t('diff.lesson') + '<small>' + rangeLabel(pendingRange) + '</small>';
+      lb.addEventListener('click', function () {
+        settings.difficulty = LESSON_DIFF; saveSettings(); renderSetup();
+      });
+      dBox.appendChild(lb);
+    }
     DIFFS.forEach(function (d) {
       var b = document.createElement('button');
       b.type = 'button';
@@ -429,11 +464,20 @@
 
     // 视图路由
     TMUI.showView('home');
-    global.addEventListener('hashchange', function () {
-      var name = (location.hash || '#/home').replace('#/', '') || 'home';
+    function routeHash() {
+      var raw = (location.hash || '#/home').replace('#/', '') || 'home';
+      var qi = raw.indexOf('?');
+      var name = qi === -1 ? raw : raw.slice(0, qi);
+      // Learn 课程深链：#/setup?amin=… 到达时解析范围并加入难度选项
+      if (name === 'setup' && qi !== -1) {
+        pendingRange = parseLessonRange(raw.slice(qi + 1));
+        renderSetup();
+      }
       // 对战视图由 race.js 管理，避免 hash 回退把用户从对局里拽出来
       if (name === 'home' || name === 'setup' || name === 'stats' || name === 'versus') TMUI.showView(name);
-    });
+    }
+    global.addEventListener('hashchange', routeHash);
+    routeHash(); // 直接打开 /play/#/setup?amin=…（课程 CTA）时也能落到设置页
 
     // 首页卡片
     $('brandHome').addEventListener('click', function () {
@@ -453,7 +497,12 @@
     });
     $('setupForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      TMGame.startPractice({ difficulty: settings.difficulty, count: settings.count, stopwatch: settings.stopwatch });
+      var cfg = { difficulty: settings.difficulty, count: settings.count, stopwatch: settings.stopwatch };
+      if (settings.difficulty === LESSON_DIFF) {
+        cfg.difficulty = 'times_tables_10'; // 记录口径：课程练习范围都在 1–10 内
+        if (pendingRange) cfg.range = pendingRange;
+      }
+      TMGame.startPractice(cfg);
     });
     $('setupBack').addEventListener('click', function () { TMUI.showView('home'); });
 

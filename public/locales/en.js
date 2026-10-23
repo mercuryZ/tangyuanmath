@@ -133,6 +133,7 @@ window.TM_I18N.en = {
   'diffdesc.two_by_one': 'e.g. 34 × 6',
   'diff.two_by_two': '2-digit × 2-digit',
   'diffdesc.two_by_two': 'e.g. 34 × 56',
+  'diff.lesson': 'From your Learn lesson',
 
   'round.badge.practice': 'Practice',
   'round.badge.mistakes': 'Mistake Review',

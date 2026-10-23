@@ -532,7 +532,8 @@
       var box = el('div', 'lw-quiz');
       box.appendChild(el('p', 'lw-quiz-q', q.q));
       var opts = el('div', 'lw-quiz-opts');
-      var why = el('p', 'lw-why', q.why);
+      var why = el('p', 'lw-why');
+      why.innerHTML = q.why || ''; // 内容为课程页面自带，允许 <i>/<b> 等简单强调
       why.hidden = true;
       var solved = false;
       q.options.forEach(function (opt, idx) {
