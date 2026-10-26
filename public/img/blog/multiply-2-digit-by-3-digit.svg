@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Long multiplication of 326 by 24 equals 7,824, with Tangyuan holding a pencil">
+  <defs>
+    <pattern id="dots4" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#FFF7F2"/>
+  <rect width="1200" height="675" fill="url(#dots4)"/>
+
+  <!-- 纸张阴影 -->
+  <rect x="142" y="94" width="570" height="510" rx="24" fill="#FFDAD4" opacity="0.65"/>
+  <!-- 竖式纸张 -->
+  <g>
+    <rect x="130" y="80" width="570" height="510" rx="24" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+
+    <g font-family="ui-monospace, 'SFMono-Regular', Consolas, 'Courier New', monospace" font-weight="700" font-size="54" fill="#5D3A3A" text-anchor="end">
+      <text x="645" y="196">326</text>
+      <text x="645" y="261">× 24</text>
+      <text x="645" y="344">1,304</text>
+      <text x="645" y="398">6,520</text>
+      <text x="645" y="492" fill="#D93B47" font-size="58">7,824</text>
+    </g>
+    <line x1="196" y1="288" x2="658" y2="288" stroke="#D93B47" stroke-width="4"/>
+    <line x1="196" y1="429" x2="658" y2="429" stroke="#D93B47" stroke-width="4"/>
+  </g>
+
+  <!-- 汤圆与铅笔 -->
+  <g transform="translate(915 340)">
+    <!-- 手臂（画在身体后面，只露出手和笔） -->
+    <path d="M -75 20 Q -78 -55 -52 -86" fill="none" stroke="#F2555A" stroke-width="10" stroke-linecap="round"/>
+    <!-- 身体 -->
+    <circle cx="0" cy="60" r="145" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-50" cy="22" r="12" fill="#5D3A3A"/>
+    <circle cx="50" cy="22" r="12" fill="#5D3A3A"/>
+    <path d="M -44 76 Q 0 114 44 76" fill="none" stroke="#5D3A3A" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="-86" cy="62" rx="14" ry="9" fill="#FFC2CC"/>
+    <ellipse cx="86" cy="62" rx="14" ry="9" fill="#FFC2CC"/>
+    <!-- 铅笔 -->
+    <g transform="translate(-55 -90) rotate(50)">
+      <rect x="-13" y="-16" width="26" height="22" rx="6" fill="#F2555A" stroke="#D93B47" stroke-width="5"/>
+      <rect x="-13" y="0" width="26" height="130" rx="5" fill="#FFC2CC" stroke="#D93B47" stroke-width="5"/>
+      <path d="M -13 130 L 0 172 L 13 130 Z" fill="#FFF7F2" stroke="#D93B47" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M -5 152 L 0 172 L 5 152 Z" fill="#5D3A3A"/>
+    </g>
+    <!-- 握笔的手 -->
+    <circle cx="-55" cy="-90" r="21" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+  </g>
+
+  <!-- 答案气泡 -->
+  <g>
+    <rect x="1000" y="100" width="160" height="92" rx="24" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <text x="1080" y="160" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="bold" fill="#D93B47" text-anchor="middle">7,824</text>
+    <path d="M 1040 190 L 1030 232 L 1072 190 Z" fill="#fff" stroke="#F2555A" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- 点缀 -->
+  <g font-family="Georgia, 'Times New Roman', serif" font-weight="bold" fill="#D93B47" opacity="0.45">
+    <text x="88" y="170" font-size="58">×</text>
+    <text x="82" y="588" font-size="46">=</text>
+  </g>
+  <g fill="#F5A623">
+    <path d="M 1010 500 l 9 22 24 3 -17 16 4 23 -20 -11 -20 11 4 -23 -17 -16 24 -3 z"/>
+    <path d="M 120 260 l 7 16 18 2 -13 12 3 17 -15 -8 -15 8 3 -17 -13 -12 18 -2 z" opacity="0.8"/>
+  </g>
+</svg>

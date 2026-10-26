@@ -346,6 +346,51 @@ a.btn-primary, a.btn-primary:hover { color: #fff; }
 .prose .post-card .post-card-date { font-size: 12.5px; margin-bottom: 0; }
 .prose .post-card-more { font-size: 14px; }
 
+/* 教程类文章：小节标题、独立算式、竖式与练习表格 */
+.prose h3 { font-size: 17px; line-height: 1.45; color: var(--red-deep); margin: 18px 0 8px; }
+.prose ol { padding-left: 22px; margin: 8px 0; }
+.prose .math-block {
+  margin: 12px 0; padding: 10px 14px; border-radius: 12px;
+  background: var(--red-light); color: var(--red-deep);
+  font-size: 17px; font-weight: 800; text-align: center;
+  font-variant-numeric: tabular-nums; overflow-x: auto;
+}
+.prose .math-block.math-answer { background: var(--red-deep); color: #fff; }
+.math-answer .math-answer-label {
+  display: block; font-size: 11px; font-weight: 800;
+  letter-spacing: .14em; text-transform: uppercase; opacity: .85;
+}
+.long-mult {
+  margin: 14px auto; border-collapse: collapse; min-width: 250px;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, 'Courier New', monospace;
+  font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.long-mult caption {
+  caption-side: top; padding-bottom: 7px; white-space: nowrap;
+  font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 12.5px; font-weight: 700; color: var(--ink-soft);
+}
+.long-mult td { padding: 3px 14px; text-align: right; white-space: nowrap; }
+.long-mult .rule td { border-top: 3px solid var(--red-deep); padding-top: 5px; }
+.long-mult .ans td { color: var(--red-deep); font-size: 20px; }
+.table-scroll { overflow-x: auto; margin: 12px 0; -webkit-overflow-scrolling: touch; }
+.practice-table {
+  width: 100%; border-collapse: collapse; font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+}
+.practice-table th, .practice-table td {
+  padding: 9px 12px; border-bottom: 1px solid var(--pink-light); text-align: left;
+}
+.practice-table thead th {
+  background: var(--red-light); color: var(--red-deep);
+  font-size: 12.5px; font-weight: 800; letter-spacing: .03em; white-space: nowrap;
+}
+.practice-table th:first-child { border-radius: 10px 0 0 0; }
+.practice-table th:last-child { border-radius: 0 10px 0 0; }
+.practice-table tbody tr:last-child td { border-bottom: none; }
+.practice-table .num { text-align: right; }
+.practice-table strong { color: var(--red-deep); }
+
 /* 语言入口页 */
 .lang-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 28px; }
 .lang-card {
