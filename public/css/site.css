@@ -150,6 +150,7 @@ main { flex: 1; padding: 40px 0 56px; }
   background: linear-gradient(120deg, var(--red-dark), var(--red) 55%, #FF8A8E);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
+.hero h1 .h1-en { font-size: .55em; font-weight: 700; letter-spacing: 0; color: var(--ink-soft); -webkit-text-fill-color: var(--ink-soft); }
 .hero .tagline { font-size: 17px; font-weight: 800; color: var(--red-deep); margin-top: 6px; }
 .hero .sub { font-size: 15px; color: var(--ink-soft); font-weight: 600; margin-top: 10px; }
 .hero .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
@@ -418,6 +419,11 @@ a.btn-primary, a.btn-primary:hover { color: #fff; }
   gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-soft); font-weight: 600;
 }
 .site-footer a { color: var(--red-deep); font-weight: 800; margin-left: 14px; text-underline-offset: 2px; }
+.site-footer .footer-compliance {
+  flex: 1 0 100%; margin: 0; font-size: 12px; line-height: 1.55;
+  color: var(--ink-soft); font-weight: 500;
+}
+.site-footer .footer-compliance b { color: var(--red-deep); }
 
 @media (max-width: 640px) {
   .hero h1 { font-size: 27px; }
