@@ -1,7 +1,7 @@
 # Tangyuan's Multiplication Adventure 🍡
 
 > A friendly "two-digit × two-digit" multiplication practice game in a cute red-and-white theme, with Tangyuan the mascot cheering players on.
->
+> https://tangyuanmath.com
 > [中文版](readme.zh.md)
 
 ![Mascot Tangyuan](public/img/tangyuan_web.png)
