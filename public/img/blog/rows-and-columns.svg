@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="A 3 by 5 dot array labeled rows and columns, with Tangyuan pointing at it">
+  <defs>
+    <pattern id="dots5" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+    <marker id="arrowR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#D93B47"/>
+    </marker>
+    <marker id="arrowB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2F7BD9"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="675" fill="#FFF7F2"/>
+  <rect width="1200" height="675" fill="url(#dots5)"/>
+
+  <!-- 点阵卡片 -->
+  <rect x="120" y="82" width="600" height="512" rx="26" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+  <g fill="#F2555A">
+    <!-- 3 rows × 5 cols of dots -->
+    <g>
+      <circle cx="250" cy="220" r="26"/><circle cx="355" cy="220" r="26"/><circle cx="460" cy="220" r="26"/><circle cx="565" cy="220" r="26"/><circle cx="670" cy="220" r="26"/>
+    </g>
+    <g opacity="0.55">
+      <circle cx="250" cy="330" r="26"/><circle cx="355" cy="330" r="26"/><circle cx="460" cy="330" r="26"/><circle cx="565" cy="330" r="26"/><circle cx="670" cy="330" r="26"/>
+    </g>
+    <g opacity="0.55">
+      <circle cx="250" cy="440" r="26"/><circle cx="355" cy="440" r="26"/><circle cx="460" cy="440" r="26"/><circle cx="565" cy="440" r="26"/><circle cx="670" cy="440" r="26"/>
+    </g>
+  </g>
+
+  <!-- 行箭头（横向，红） -->
+  <g stroke="#D93B47" stroke-width="7" stroke-linecap="round" marker-end="url(#arrowR)">
+    <line x1="250" y1="540" x2="655" y2="540"/>
+  </g>
+  <text x="420" y="585" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="bold" fill="#D93B47" text-anchor="middle">rows →</text>
+
+  <!-- 列箭头（纵向，蓝） -->
+  <g stroke="#2F7BD9" stroke-width="7" stroke-linecap="round" marker-end="url(#arrowB)">
+    <line x1="160" y1="225" x2="160" y2="430"/>
+  </g>
+  <text x="160" y="188" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="bold" fill="#2F7BD9" text-anchor="middle">↓ cols</text>
+
+  <!-- 汤圆指卡片 -->
+  <g transform="translate(930 380)">
+    <!-- 指向的手臂 -->
+    <path d="M -80 -10 Q -120 -18 -158 -34" fill="none" stroke="#F2555A" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="-158" cy="-34" r="19" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <!-- 身体 -->
+    <circle cx="0" cy="60" r="140" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-48" cy="22" r="12" fill="#5D3A3A"/>
+    <circle cx="48" cy="22" r="12" fill="#5D3A3A"/>
+    <path d="M -42 74 Q 0 110 42 74" fill="none" stroke="#5D3A3A" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="-84" cy="62" rx="13" ry="9" fill="#FFC2CC"/>
+    <ellipse cx="84" cy="62" rx="13" ry="9" fill="#FFC2CC"/>
+  </g>
+
+  <!-- 答案气泡 -->
+  <g>
+    <rect x="960" y="96" width="192" height="96" rx="24" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <text x="1056" y="156" font-family="Georgia, 'Times New Roman', serif" font-size="40" font-weight="bold" fill="#D93B47" text-anchor="middle">3 × 5</text>
+    <path d="M 1010 188 L 1000 230 L 1044 190 Z" fill="#fff" stroke="#F2555A" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- 点缀 -->
+  <g fill="#F5A623">
+    <path d="M 1000 590 l 9 22 24 3 -17 16 4 23 -20 -11 -20 11 4 -23 -17 -16 24 -3 z"/>
+    <path d="M 90 250 l 7 16 18 2 -13 12 3 17 -15 -8 -15 8 3 -17 -13 -12 18 -2 z" opacity="0.8"/>
+  </g>
+</svg>

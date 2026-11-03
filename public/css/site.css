@@ -804,6 +804,10 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 .lw-dot.a { background: var(--red); }
 .lw-dot.b { background: var(--pink-light); }
 .lw-dot.miss { background: #fff; border: 2px dashed var(--red); box-shadow: none; }
+/* 博客静态点阵图：figure 内的网格列数（JS 小组件不需要它） */
+.array-fig .lw-array { margin-top: 4px; }
+.array-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.array-cols-5 { grid-template-columns: repeat(5, 1fr); }
 .lw-nines { display: grid; gap: 5px; justify-content: center; margin: 16px auto 0; width: fit-content; grid-template-columns: repeat(10, 1fr); }
 .lw-nines .lw-dot { width: 20px; height: 20px; }
 .lw-slider { width: min(320px, 100%); accent-color: var(--red); cursor: pointer; }
