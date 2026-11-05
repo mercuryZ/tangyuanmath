@@ -7,7 +7,7 @@
 <meta name="description" content="Friendly multiplication practice: untimed Practice mode, a 10-level Challenge, and a mistake review mode — free, no account needed. Live Race multiplayer is part of a family Supporter membership; try 3 days for $1.">
 <meta name="keywords" content="Tangyuan Math, math practice game, multiplication practice, free online learning, educational game for kids, homeschool math resources, printable worksheets, mental math tricks">
 <link rel="icon" href="../img/logo_small.png">
-<link rel="stylesheet" href="../css/play.css?v=20261023b">
+<link rel="stylesheet" href="../css/play.css?v=20261105a">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -79,14 +79,16 @@
       </a>
       <button class="mode-card" id="cardPractice" type="button">
         <svg class="ico" aria-hidden="true"><use href="#ico-pencil"/></svg>
-        <h2 data-i18n="home.practice.title">Practice</h2>
+        <h2><span data-i18n="home.practice.title">Practice</span>
+          <span class="mode-chip" data-i18n="home.practice.chip">Untimed</span></h2>
         <p data-i18n="home.practice.desc">Untimed by default. Pick a range, check your answers, take your time.</p>
         <span class="m-cta" data-i18n="home.practice.cta">Start Practice →</span>
       </button>
       <button class="mode-card" id="cardChallenge" type="button">
         <svg class="ico" aria-hidden="true"><use href="#ico-timer"/></svg>
-        <h2 data-i18n="home.challenge.title">Challenge</h2>
-        <p id="challengeDesc" data-i18n="home.challenge.desc">10 levels plus a level-0 warm-up, 10 questions each, time shrinks each level.</p>
+        <h2><span data-i18n="home.challenge.title">Challenge</span>
+          <span class="mode-chip" data-i18n="home.challenge.chip">Timed · 120s</span></h2>
+        <p id="challengeDesc" data-i18n="home.challenge.desc">10 levels plus a level-0 warm-up, 10 questions each. Every level gives you 120 seconds.</p>
         <span class="m-cta" id="challengeCta" data-i18n="home.challenge.cta">Start Challenge →</span>
       </button>
       <button class="mode-card" id="cardVersus" type="button">
@@ -408,8 +410,8 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="../locales/en.js?v=20261023a"></script>
-<script src="../locales/zh.js?v=20261023a"></script>
+<script src="../locales/en.js?v=20261105a"></script>
+<script src="../locales/zh.js?v=20261105a"></script>
 <script src="../js/i18n.js?v=20261022s"></script>
 <script src="../js/questions.js?v=20261023a"></script>
 <script src="../js/wrongbook.js?v=20261022s"></script>
