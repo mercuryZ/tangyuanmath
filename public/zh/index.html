@@ -16,7 +16,7 @@
 <meta property="og:url" content="https://tangyuanmath.com/zh/">
 <meta property="og:image" content="https://tangyuanmath.com/img/tangyuan_web.png">
 <link rel="icon" href="/img/logo_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261105b">
+<link rel="stylesheet" href="/css/site.css?v=20261105c">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -157,6 +157,40 @@
     </div>
   </section>
 
+  <section class="block" id="try-it">
+    <h2><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> 先试试真实的题目</h2>
+    <div class="prose prose-wide">
+      <p>不用听我们自夸——下面两道题就出自游戏本身，孩子看到的就是这个样子。点一个选项，感受一下温和的反馈。</p>
+    </div>
+    <div class="try-widget-grid">
+      <div class="try-widget">
+        <h3>一道口诀题</h3>
+        <div data-widget="quick-check" data-config='{"questions":[{"q":"7 × 8 = ?","options":["54","56","63"],"answer":1,"why":"7 × 8 = 56。游戏里直接输入答案、按回车跳下一题；做错的题会悄悄进错题本，改天再练。"}]}'></div>
+      </div>
+      <div class="try-widget">
+        <h3>一道两位数题（带提示）</h3>
+        <div data-widget="quick-check" data-config='{"questions":[{"q":"23 × 27 = ?（十位相同，个位相加等于 10）","options":["511","621","631"],"answer":1,"why":"前半：2 × 3 = 6；后半：3 × 7 = 21，所以 23 × 27 = 621。游戏里的六个速算技巧都有这样的分步提示。"}]}'></div>
+      </div>
+    </div>
+    <div class="learn-hero-btns">
+      <a class="btn btn-primary" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> 免费开练，无需注册</a>
+    </div>
+    <div class="try-scenes">
+      <figure>
+        <img src="/img/try-practice.svg" alt="四道练习题与答题框、难度徽标和进度条" width="800" height="560">
+        <figcaption>不限时练习——按自己的节奏作答，随时检查</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/try-hint.svg" alt="23 × 27 答错后的分步提示：2 × 3 = 6、3 × 7 = 21，得出 621" width="800" height="560">
+        <figcaption>答错了？分步提示讲清楚为什么</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/try-mistakes.svg" alt="错题本列表，每题标注待重练次数，其中一题已消灭" width="800" height="560">
+        <figcaption>错题自动收进错题本——重练到全部清空</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <section class="block">
     <h2><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-target"/></svg> 适合谁</h2>
     <div class="prose prose-wide">
@@ -246,6 +280,7 @@
   </div>
 </footer>
 
+<script src="/js/learn.js?v=20261023c" defer></script>
 <script src="/js/header.js?v=20261023a" defer></script>
 </body>
 </html>

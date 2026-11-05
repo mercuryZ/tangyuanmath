@@ -16,7 +16,7 @@
 <meta property="og:url" content="https://tangyuanmath.com/">
 <meta property="og:image" content="https://tangyuanmath.com/img/tangyuan_web.png">
 <link rel="icon" href="/img/logo_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261105b">
+<link rel="stylesheet" href="/css/site.css?v=20261105c">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -158,6 +158,40 @@
     </div>
   </section>
 
+  <section class="block" id="try-it">
+    <h2><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> See real questions first</h2>
+    <div class="prose prose-wide">
+      <p>No marketing pitch needed — the two questions below come straight from the game, exactly the way your child will meet them. Tap an answer to feel the gentle feedback.</p>
+    </div>
+    <div class="try-widget-grid">
+      <div class="try-widget">
+        <h3>A times-tables question</h3>
+        <div data-widget="quick-check" data-config='{"questions":[{"q":"7 × 8 = ?","options":["54","56","63"],"answer":1,"why":"7 × 8 = 56. In the game you just type the answer and press Enter — anything you miss quietly goes to the mistake book for another day."}]}'></div>
+      </div>
+      <div class="try-widget">
+        <h3>A two-digit question, hint included</h3>
+        <div data-widget="quick-check" data-config='{"questions":[{"q":"23 × 27 = ? (the tens match, the units add to 10)","options":["511","621","631"],"answer":1,"why":"Front: 2 × 3 = 6. Back: 3 × 7 = 21. So 23 × 27 = 621. The game gives step-by-step hints like this for all six mental-math tricks."}]}'></div>
+      </div>
+    </div>
+    <div class="learn-hero-btns">
+      <a class="btn btn-primary" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-play"/></svg> Play it for real — free, no signup</a>
+    </div>
+    <div class="try-scenes">
+      <figure>
+        <img src="/img/try-practice.svg" alt="Four practice questions with answer boxes, a level badge and a progress bar" width="800" height="560">
+        <figcaption>Untimed practice — answer at your own pace, check whenever you are ready</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/try-hint.svg" alt="A wrong answer of 511 to 23 × 27, followed by a step-by-step hint: 2 × 3 = 6, 3 × 7 = 21, answer 621" width="800" height="560">
+        <figcaption>Wrong answer? A step-by-step hint explains why</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/try-mistakes.svg" alt="A mistake book listing equations with replay counts, one equation cleared with a check mark" width="800" height="560">
+        <figcaption>Mistakes collect in a book — replay them until it is empty</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <section class="block" id="learn">
     <h2><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-book"/></svg> New to multiplication? Start from zero</h2>
     <div class="prose prose-wide">
@@ -262,6 +296,7 @@
   </div>
 </footer>
 
+<script src="/js/learn.js?v=20261023c" defer></script>
 <script src="/js/header.js?v=20261023a" defer></script>
 </body>
 </html>

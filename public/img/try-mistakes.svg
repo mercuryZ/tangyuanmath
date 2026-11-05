@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-label="A mistake book with four equations, each showing how many replays remain; one equation is cleared with a check mark">
+  <defs>
+    <pattern id="tm-dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+    <linearGradient id="tm-fill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F2555A"/><stop offset="1" stop-color="#FF8A8E"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="560" fill="#FFF7F2"/>
+  <rect width="800" height="560" fill="url(#tm-dots)"/>
+
+  <!-- 错题本主卡片 -->
+  <rect x="60" y="46" width="680" height="468" rx="24" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+
+  <!-- 顶栏：进度 -->
+  <rect x="92" y="78" width="96" height="34" rx="17" fill="#FFE9E6"/>
+  <text x="140" y="101" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="800" fill="#B02A37">2 / 4</text>
+  <rect x="204" y="85" width="366" height="20" rx="10" fill="#FFE9E6"/>
+  <rect x="204" y="85" width="183" height="20" rx="10" fill="url(#tm-fill)"/>
+
+  <!-- 错题行 1 -->
+  <g>
+    <rect x="92" y="132" width="616" height="62" rx="14" fill="#FFF7F2"/>
+    <text x="122" y="172" font-family="Segoe UI, system-ui, sans-serif" font-size="25" font-weight="900" fill="#5D3A3A">6 × 8 =</text>
+    <rect x="598" y="147" width="76" height="32" rx="16" fill="#FFE9E6"/>
+    <text x="636" y="169" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="800" fill="#B02A37">× 2</text>
+  </g>
+
+  <!-- 错题行 2 -->
+  <g>
+    <rect x="92" y="210" width="616" height="62" rx="14" fill="#FFF7F2"/>
+    <text x="122" y="250" font-family="Segoe UI, system-ui, sans-serif" font-size="25" font-weight="900" fill="#5D3A3A">9 × 6 =</text>
+    <rect x="598" y="225" width="76" height="32" rx="16" fill="#FFE9E6"/>
+    <text x="636" y="247" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="800" fill="#B02A37">× 3</text>
+  </g>
+
+  <!-- 错题行 3 -->
+  <g>
+    <rect x="92" y="288" width="616" height="62" rx="14" fill="#FFF7F2"/>
+    <text x="122" y="328" font-family="Segoe UI, system-ui, sans-serif" font-size="25" font-weight="900" fill="#5D3A3A">7 × 4 =</text>
+    <rect x="598" y="303" width="76" height="32" rx="16" fill="#FFE9E6"/>
+    <text x="636" y="325" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="16" font-weight="800" fill="#B02A37">× 1</text>
+  </g>
+
+  <!-- 错题行 4：已消灭 -->
+  <g opacity="0.55">
+    <rect x="92" y="366" width="616" height="62" rx="14" fill="#FFF7F2"/>
+    <text x="122" y="406" font-family="Segoe UI, system-ui, sans-serif" font-size="25" font-weight="900" fill="#9A7070">4 × 7 =</text>
+    <line x1="116" y1="398" x2="252" y2="398" stroke="#9A7070" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="636" cy="397" r="17" fill="#F2555A"/>
+    <path d="M 628 397 L 634 403 L 645 391" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- 重练按钮 -->
+  <rect x="280" y="452" width="240" height="44" rx="22" fill="#F2555A"/>
+  <path d="M 372 474 L 408 474" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 404 462 L 424 474 L 404 486 Z" fill="#fff"/>
+</svg>
