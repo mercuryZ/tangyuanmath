@@ -471,10 +471,17 @@
       var raw = ((h || location.hash) || '#/home').replace('#/', '') || 'home';
       var qi = raw.indexOf('?');
       var name = qi === -1 ? raw : raw.slice(0, qi);
-      // Learn 课程深链：#/setup?amin=… 到达时解析范围并加入难度选项
+      // Learn 课程深链：#/setup?amin=… 到达时解析范围并加入难度选项；
+      // 首页指引深链：#/setup?diff=two_by_two 预选标准难度档（统计口径不变）
       if (name === 'setup' && qi !== -1) {
-        pendingRange = parseLessonRange(raw.slice(qi + 1));
-        settings.difficulty = LESSON_DIFF; // 课程 CTA 落地即预选，直接开练
+        var qsDiff = new URLSearchParams(raw.slice(qi + 1)).get('diff');
+        if (qsDiff && DIFFS.indexOf(qsDiff) !== -1) {
+          pendingRange = null;
+          settings.difficulty = qsDiff;
+        } else {
+          pendingRange = parseLessonRange(raw.slice(qi + 1));
+          settings.difficulty = LESSON_DIFF; // 课程 CTA 落地即预选，直接开练
+        }
         saveSettings();
         renderSetup();
       }

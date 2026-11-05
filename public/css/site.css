@@ -197,6 +197,9 @@ section.block > h1, section.block > h2 {
 .info-card .ico { font-size: 26px; color: var(--red); }
 .info-card h3 { font-size: 16px; color: var(--red-deep); margin: 8px 0 6px; }
 .info-card p { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+/* 水平指引卡片：CTA 统一贴底对齐 */
+#where-to-start .info-card { display: flex; flex-direction: column; align-items: flex-start; }
+#where-to-start .info-card .btn { margin-top: auto; }
 
 .prose { background: #fff; border: 2px solid var(--red-light); border-radius: 22px;
   padding: 26px 30px; box-shadow: 0 6px 16px rgba(217, 59, 71, .07); }
