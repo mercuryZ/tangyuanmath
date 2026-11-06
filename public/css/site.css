@@ -8,7 +8,7 @@
   --pink-light: #FFDAD4;
   --cream: #FFF7F2;
   --ink: #5D3A3A;
-  --ink-soft: #9A7070;
+  --ink-soft: #85606A;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,7 +64,7 @@ a:hover { color: var(--red-dark); }
 }
 .brand b {
   font-size: 18px; font-weight: 900;
-  background: linear-gradient(120deg, var(--red-dark), var(--red) 60%, #FF8A8E);
+  background: linear-gradient(120deg, var(--red-dark), var(--red) 60%, var(--red));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 /* gap=18px：Play 胶囊有底色、内边距可见，而导航链接的 12px 内边距透明；
@@ -80,10 +80,10 @@ a:hover { color: var(--red-dark); }
 .site-nav a:hover { background: var(--red-light); }
 .site-nav a[aria-current="page"] { background: var(--red-light); border-color: var(--pink); }
 .site-nav .play-cta {
-  background: linear-gradient(180deg, #FF7B7B, var(--red)); color: #fff;
+  background: linear-gradient(180deg, var(--red), var(--red-deep)); color: #fff;
   box-shadow: 0 3px 0 var(--red-dark);
 }
-.site-nav .play-cta:hover { background: linear-gradient(180deg, #FF7B7B, var(--red)); transform: translateY(-1px); }
+.site-nav .play-cta:hover { background: linear-gradient(180deg, var(--red), var(--red-deep)); transform: translateY(-1px); }
 .site-nav .lang-switch { border: 2px solid var(--pink); background: #fff; }
 
 /* 窄屏导航抽屉：头部仅保留 Play 与菜单按钮，其余链接收进 <details> 面板。
@@ -147,7 +147,7 @@ main { flex: 1; padding: 40px 0 56px; }
   background: #fff;
 }
 .hero h1 { font-size: 34px; font-weight: 900; margin-top: 16px; letter-spacing: .5px;
-  background: linear-gradient(120deg, var(--red-dark), var(--red) 55%, #FF8A8E);
+  background: linear-gradient(120deg, var(--red-dark), var(--red) 55%, var(--red));
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .hero h1 .h1-en { font-size: .55em; font-weight: 700; letter-spacing: 0; color: var(--ink-soft); -webkit-text-fill-color: var(--ink-soft); }
@@ -174,7 +174,7 @@ main { flex: 1; padding: 40px 0 56px; }
 }
 .btn:active { transform: translateY(2px); }
 .btn-primary {
-  background: linear-gradient(180deg, #FF7B7B, var(--red)); color: #fff;
+  background: linear-gradient(180deg, var(--red), var(--red-deep)); color: #fff;
   box-shadow: 0 4px 0 var(--red-dark), 0 10px 24px rgba(242, 85, 90, .3);
 }
 .btn-primary:active { box-shadow: 0 1px 0 var(--red-dark); }
@@ -215,6 +215,14 @@ section.block > h1, section.block > h2 {
   padding: 12px 12px 10px; box-shadow: 0 6px 16px rgba(217, 59, 71, .07); }
 .try-scenes img { width: 100%; height: auto; border-radius: 12px; display: block; }
 .try-scenes figcaption { font-size: 13.5px; font-weight: 700; color: var(--ink-soft); margin-top: 8px; text-align: center; }
+/* 隐私页家长速览 */
+.privacy-tldr { background: var(--red-light); border: 2px solid var(--pink); border-radius: 20px;
+  padding: 18px 22px; margin-bottom: 18px; }
+.privacy-tldr h2 { font-size: 17px; color: var(--red-dark); margin: 0 0 8px; }
+.privacy-tldr ul { padding-left: 20px; margin: 0; }
+.privacy-tldr li { font-size: 14.5px; color: var(--ink); line-height: 1.7; margin-bottom: 6px; font-weight: 600; }
+.privacy-tldr li:last-child { margin-bottom: 0; }
+.privacy-tldr a { color: var(--red-deep); font-weight: 700; text-decoration: underline; }
 
 .prose { background: #fff; border: 2px solid var(--red-light); border-radius: 22px;
   padding: 26px 30px; box-shadow: 0 6px 16px rgba(217, 59, 71, .07); }
@@ -461,7 +469,7 @@ a.btn-primary, a.btn-primary:hover { color: #fff; }
 /* ---------- 练习卷页 ---------- */
 .ws-chip {
   display: inline-block; vertical-align: middle; margin-left: 8px;
-  background: var(--red); color: #fff; font-size: 12px; font-weight: 800;
+  background: var(--red-deep); color: #fff; font-size: 12px; font-weight: 800;
   border-radius: 999px; padding: 3px 12px; letter-spacing: .04em;
 }
 .ws-sample-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 14px 0 4px; }
@@ -532,7 +540,7 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 }
 .ws-field select option:hover,
 .ws-field select option:focus-visible { background: var(--red-light); outline: none; }
-.ws-field select option:checked { background: var(--red); color: #fff; }
+.ws-field select option:checked { background: var(--red-deep); color: #fff; }
 /* 自定义范围：选中「自定义」后展开的两组 min–max 输入 */
 .ws-custom { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 14px; }
 .ws-custom[hidden] { display: none; }
@@ -713,7 +721,7 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 .learn-page .prose { max-width: 860px; margin-left: auto; margin-right: auto; }
 .learn-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
 .learn-progress { width: 100%; height: 12px; background: var(--red-light); border-radius: 999px; overflow: hidden; margin-top: 16px; }
-.learn-progress-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--red), #FF8A8E); transition: width .4s ease; }
+.learn-progress-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--red-dark), var(--red-deep)); transition: width .4s ease; }
 .learn-progress-text { font-size: 13px; font-weight: 800; color: var(--ink-soft); margin-top: 6px; }
 
 /* 与页内标题、正文同为 860px 列并居中，避免课程内容整体偏左 */
@@ -739,13 +747,13 @@ a.learn-card:hover { border-color: var(--pink); transform: translateY(-2px); box
 .learn-card small { display: block; font-size: 13px; line-height: 1.5; color: var(--ink-soft); font-weight: 600; }
 .learn-card small .learn-card-time { color: var(--red); font-weight: 800; }
 a.learn-card.done { border-color: var(--pink); background: linear-gradient(180deg, #FFF1EC, #fff 70%); }
-.learn-card.done .learn-card-num { background: var(--red); color: #fff; }
+.learn-card.done .learn-card-num { background: var(--red-deep); color: #fff; }
 
 /* 课程页骨架 */
 .lesson-page { max-width: 860px; margin-left: auto; margin-right: auto; }
 .lesson-kicker { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .lesson-num {
-  display: inline-block; background: var(--red); color: #fff;
+  display: inline-block; background: var(--red-deep); color: #fff;
   font-size: 12px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
   border-radius: 999px; padding: 4px 12px;
 }
@@ -867,7 +875,7 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
   appearance: none; -webkit-appearance: none;
 }
 .lw-opt:hover:not(:disabled) { background: var(--red-light); }
-.lw-opt.ok { background: var(--red); border-color: var(--red-dark); color: #fff; }
+.lw-opt.ok { background: var(--red-deep); border-color: var(--red-dark); color: #fff; }
 .lw-opt.no { animation: lw-shake .4s ease; opacity: .55; }
 .lw-opt:disabled { cursor: default; }
 .lw-opt:disabled:not(.ok) { opacity: .5; }
