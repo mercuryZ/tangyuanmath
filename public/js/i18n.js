@@ -65,6 +65,9 @@
       try { global.localStorage.setItem(LANG_KEY, lang); } catch (e) { /* 忽略 */ }
     }
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    // 课程入口随语言指向中/英文启蒙课（play 首页 Learn 卡片）
+    var learnLink = document.querySelector('a[data-learn-link]');
+    if (learnLink) learnLink.setAttribute('href', lang === 'zh' ? '/zh/learn/' : '/en/learn/');
     applyI18n(document);
     document.dispatchEvent(new CustomEvent('tm:langchange', { detail: { lang: lang } }));
   }

@@ -14,38 +14,173 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/"/>
   </url>
-  <url><loc>https://tangyuanmath.com/en/tips/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/tips/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/worksheets/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/worksheets/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/learn/</loc></url>
+  <url><loc>https://tangyuanmath.com/play/</loc></url>
+  <url>
+    <loc>https://tangyuanmath.com/en/tips/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/tips/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/tips/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/tips/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/tips/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/tips/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/worksheets/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/worksheets/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/worksheets/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/worksheets/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/worksheets/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/worksheets/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/two-digit-multiplication/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/two-digit-multiplication/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/two-digit-multiplication/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/two-digit-multiplication/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/two-digit-multiplication/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/two-digit-multiplication/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/mistake-review/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/mistake-review/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/mistake-review/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/mistake-review/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/mistake-review/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/mistake-review/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/learn/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/learn/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/learn/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/learn/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/learn/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/learn/"/>
+  </url>
   <url><loc>https://tangyuanmath.com/en/learn/what-is-multiplication/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/what-is-multiplication/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/arrays/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/arrays/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/skip-counting/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/skip-counting/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/swap-rule/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/swap-rule/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/easy-facts/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/easy-facts/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/nines/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/nines/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/break-apart/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/break-apart/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/you-know-more/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/you-know-more/</loc></url>
   <url><loc>https://tangyuanmath.com/en/learn/teaching-plan/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/pricing/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/pricing/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/blog/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/blog/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/blog/history-of-mental-math/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/blog/history-of-mental-math/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/blog/playing-games-with-my-daughter/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/blog/playing-games-with-my-daughter/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/blog/multiply-2-digit-by-3-digit/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/blog/multiply-2-digit-by-3-digit/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/blog/rows-and-columns-in-arrays/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/blog/rows-and-columns-in-arrays/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/faq/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/faq/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/about/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/about/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/privacy/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/privacy/</loc></url>
-  <url><loc>https://tangyuanmath.com/en/terms/</loc></url>
-  <url><loc>https://tangyuanmath.com/zh/terms/</loc></url>
+  <url><loc>https://tangyuanmath.com/zh/learn/teaching-plan/</loc></url>
+  <url>
+    <loc>https://tangyuanmath.com/en/pricing/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/pricing/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/pricing/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/pricing/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/pricing/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/pricing/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/blog/history-of-mental-math/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/history-of-mental-math/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/history-of-mental-math/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/blog/history-of-mental-math/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/history-of-mental-math/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/history-of-mental-math/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/blog/playing-games-with-my-daughter/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/playing-games-with-my-daughter/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/playing-games-with-my-daughter/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/blog/playing-games-with-my-daughter/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/playing-games-with-my-daughter/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/playing-games-with-my-daughter/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/blog/multiply-2-digit-by-3-digit/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/multiply-2-digit-by-3-digit/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/multiply-2-digit-by-3-digit/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/blog/multiply-2-digit-by-3-digit/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/multiply-2-digit-by-3-digit/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/multiply-2-digit-by-3-digit/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/blog/rows-and-columns-in-arrays/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/rows-and-columns-in-arrays/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/rows-and-columns-in-arrays/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/blog/rows-and-columns-in-arrays/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/rows-and-columns-in-arrays/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/rows-and-columns-in-arrays/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/faq/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/faq/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/faq/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/faq/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/faq/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/faq/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/about/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/about/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/about/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/about/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/about/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/about/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/privacy/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/privacy/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/privacy/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/privacy/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/terms/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/terms/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/terms/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/terms/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/terms/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/terms/"/>
+  </url>
 </urlset>
