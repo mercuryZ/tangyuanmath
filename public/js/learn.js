@@ -532,6 +532,12 @@
 
   /* 小考验 */
   function renderQuickCheck(root, cfg) {
+    if (cfg.img) {
+      var pic = el('img', 'lw-quiz-img');
+      pic.src = cfg.img;
+      pic.alt = cfg.imgAlt || '';
+      root.appendChild(pic);
+    }
     cfg.questions.forEach(function (q) {
       var box = el('div', 'lw-quiz');
       box.appendChild(el('p', 'lw-quiz-q', q.q));

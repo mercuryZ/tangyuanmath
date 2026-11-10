@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" role="img" aria-label="Three plates, each holding two tangyuan rice balls">
+  <!-- 三只盘子，每盘两个汤圆；无文字，语言中立 -->
+  <g stroke="#F0AFA5" stroke-width="6" fill="#FFD9D2">
+    <ellipse cx="110" cy="132" rx="88" ry="42"/>
+    <ellipse cx="300" cy="132" rx="88" ry="42"/>
+    <ellipse cx="490" cy="132" rx="88" ry="42"/>
+  </g>
+  <g stroke="#D98A7E" stroke-width="5" fill="#FFFFFF">
+    <circle cx="76" cy="100" r="27"/>
+    <circle cx="140" cy="100" r="27"/>
+    <circle cx="266" cy="100" r="27"/>
+    <circle cx="330" cy="100" r="27"/>
+    <circle cx="456" cy="100" r="27"/>
+    <circle cx="520" cy="100" r="27"/>
+  </g>
+</svg>

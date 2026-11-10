@@ -69,6 +69,7 @@
     <div class="lesson-step">
       <span class="lesson-step-tag">说</span>
       <p>「每次都写 4 + 4 + 4 太累了，所以数学家发明了简写。<b>3 个 4</b> 就写成 <b>3 × 4</b>。前一个数数的是有几组，后一个数是每组有几个。一回事，写起来短。」</p>
+      <p class="muted">给你的小注：「组数写在前」是本课统一的教学约定。有的教材把同一幅画面写成 4 × 3——两种顺序都是正确的乘法，总数也相同；孩子写哪一种都不算错，第 4 节会讲为什么两者总是相等。</p>
     </div>
     <div class="lesson-step do">
       <span class="lesson-step-tag">做</span>
@@ -78,7 +79,7 @@
     <h2>一起试试</h2>
     <p>让孩子自己来操作下面的演示：每按一次按钮，就多摆一盘 4 个汤圆。看着加法算式慢慢变长——再看着它变成乘法。每次按之前先问：「现在有几组？加法算式会是什么样？」</p>
 
-    <div class="lw" data-widget="groups-builder" data-config='{"size":4,"max":6,"img":"/img/tangyuan_small.png","s":{
+    <div class="lw" id="group-machine" data-widget="groups-builder" data-config='{"size":4,"max":6,"img":"/img/tangyuan_small.png","s":{
       "add":"+ 再来一组","remove":"− 减少一组",
       "empty":"还没有小组——按按钮，加几盘 4 个汤圆吧！",
       "groupsOf":"现在是 {g} 组、每组 {s} 个——把它们加起来…",
@@ -91,7 +92,7 @@
 
     <div data-widget="quick-check" data-config='{"questions":[
       {"q":"5 组、每组 2 个——哪个加法算式和它对应？","options":["5 + 2","2 + 2 + 2 + 2 + 2","5 + 5"],"answer":1,"why":"5 组、每组 2 个——所以把 2 连加 5 次。（5 + 5 是 2 组、每组 5 个——总数一样，故事不一样！第 4 节会讲到。）"},
-      {"q":"2 + 2 + 2——简写怎么写？","options":["3 × 2","2 × 3","3 + 2"],"answer":0,"why":"3 组、每组 2 个：3 数的是组数，2 是每组有几个。2 × 3 总数相同——原因很快就见分晓！"},
+      {"q":"2 + 2 + 2——按本课的写法，简写是哪个？","options":["3 × 2","3 + 2","2 + 3"],"answer":0,"why":"3 组、每组 2 个：3 数的是组数，2 是每组有几个——所以本课写成 3 × 2。（有的教材把同一幅图写成 2 × 3——两种顺序都是正确的乘法，都等于 6，第 4 节讲为什么。但 3 + 2 永远不对——那是加法，不是分组！）"},
       {"q":"4 盘饼干、每盘 3 块——一共几块？","options":["7","9","12"],"answer":2,"why":"3 + 3 + 3 + 3 = 12。（不是 4 + 3 = 7——× 从来不是把两个数相加的意思！）"}]}'>
     </div>
 
@@ -99,13 +100,29 @@
     <ul class="lesson-mixups">
       <li><img src="/img/confused.webp" alt=""><span><b>「3 × 4 就是 3 + 4 = 7。」</b>头号新手错误。× 的意思是「几个几」，不是「再加一下」。温和地回到盘子：3 个盘子、每盘 4 块，全部数一遍。</span></li>
       <li><img src="/img/confused.webp" alt=""><span><b>把 × 只念成「乘」，背后没有画面。</b>念「三乘四」没问题——但每次都补上一句「……就是 3 个 4」，直到画面自动出现为止。</span></li>
-      <li><img src="/img/confused.webp" alt=""><span><b>每组必须一样多。</b>4 + 4 + 4 是 3 × 4，但 4 + 4 + 5 不是任何乘法——每组不一样大。乘法只管相同的组。</span></li>
+      <li><img src="/img/confused.webp" alt=""><span><b>每组必须一样多。</b>4 + 4 + 4 是 3 × 4，但 4 + 4 + 5 的加数不全相等——不能像前面的例子那样，直接表示成几个相同的组。（它当然还是一道很好的加法——只是不是乘法的故事。）</span></li>
     </ul>
 
-    <h2>现在去玩一轮</h2>
-    <p>用一轮小胜结束本节：十道小题，两个数都在 1 到 5 之间——正好是孩子刚刚学会想象的那种算式。大约对 8 道以上，这节就算成了。</p>
+    <h2>结束练习：同一个故事，四小步</h2>
+    <p>先别急着上裸数字。下面四步始终围着同一幅图——读图、说一说几组每组几个、写加法算式、写乘法算式、数出总数。点错了只是轻轻抖一下：不计分、不计时。这四步走得顺，这一课就算成了——哪怕还没做后面那轮纯数字练习。</p>
+
+    <div data-widget="quick-check" data-config='{"img":"/img/bridge-plates.svg","imgAlt":"三个盘子，每个盘子里放两个汤圆","questions":[
+      {"q":"看图说一说：几组、每组几个？","options":["3 组、每组 2 个","2 组、每组 3 个","5 组、每组 1 个"],"answer":0,"why":"3 个盘子、每盘 2 个——大声说出来：3 组、每组 2 个。盘子数就是组数；一盘里的个数就是每组几个。"},
+      {"q":"同一幅图——哪个加法算式和它对应？","options":["3 + 3","2 + 2 + 2","3 + 2"],"answer":1,"why":"加的是 2，每个盘子加一次：2 + 2 + 2。（3 + 3 是相反的故事——2 组、每组 3 个。总数一样，画面不一样！）"},
+      {"q":"同一幅图——按本课的写法，简写是哪个？","options":["3 × 2","3 + 2","2 + 2"],"answer":0,"why":"组数在前：3 组、每组 2 个，写成 3 × 2。（有的教材把同一幅图写成 2 × 3——两种顺序都是正确的乘法，都等于 6，第 4 节讲为什么。× 从来不是 3 + 2！）"},
+      {"q":"看图数一数——一共几个汤圆？","options":["5","6","8"],"answer":1,"why":"顺着盘子两个两个地数：2、4、6。（不是 3 + 2 = 5——× 从来不是把两个数相加！）"}]}'>
+    </div>
+
+    <div class="lesson-tip">
+      <svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-question"/></svg>
+      <span><b>家长问一句：</b>指着盘子问：「你能解释为什么 3 × 2 = 6 吗？」孩子能用自己的话讲出这个故事——3 个盘子、每盘 2 个、加起来——这一课就真正落地了。只报得出答案、讲不出故事？退回一步，一起把盘子数一遍，边数边说。</span>
+    </div>
+
+    <p>然后让孩子自己选下一步。十道纯数字小题（两个数都在 1 到 5 之间）是经典的收尾——等图上这几步走得轻松了再去刚好。大约对 8 道是让人高兴的信号；分数低也不算失败——只是说明画面值得再来一次，然后再上数字。</p>
+
     <div class="lesson-playcta">
-      <a class="btn btn-primary" href="/play/#/setup?amin=1&amax=5&bmin=1&bmax=5"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> 练一练 5 × 5 以内</a>
+      <a class="btn btn-primary" href="/play/#/setup?amin=1&amax=5&bmin=1&bmax=5"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> 试一试纯数字——10 道题、5 × 5 以内</a>
+      <a class="btn btn-ghost" href="#group-machine">还不想——回分组机器再玩玩</a>
     </div>
 
     <div class="lesson-tip">
@@ -136,7 +153,7 @@
   </div>
 </footer>
 
-<script src="/js/learn.js?v=20261108a" defer></script>
+<script src="/js/learn.js?v=20261110a" defer></script>
 <script src="/js/header.js?v=20261023a" defer></script>
 </body>
 </html>

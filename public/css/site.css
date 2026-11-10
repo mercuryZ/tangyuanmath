@@ -873,6 +873,7 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 
 /* 小考验 */
 .lw-quiz { margin: 16px 0; padding: 14px 16px; background: #fff; border: 2px solid var(--red-light); border-radius: 14px; }
+.lw-quiz-img { display: block; width: min(320px, 80%); margin: 2px auto 12px; }
 .lw-quiz-q { font-size: 15px; font-weight: 700; line-height: 1.6; margin: 0 0 10px; }
 .lw-quiz-opts { display: flex; gap: 8px; flex-wrap: wrap; }
 .lw-opt {
@@ -932,7 +933,7 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 .lesson-tip b { color: var(--red-deep); }
 
 /* 课程页 CTA 与翻页 */
-.lesson-playcta { text-align: center; margin: 22px 0 8px; }
+.lesson-playcta { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; margin: 22px 0 8px; }
 .lesson-playcta .btn { font-size: 17px; }
 .lesson-pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 26px; padding-top: 18px; border-top: 2px dashed var(--pink-light); }
 .lesson-pager .back-btn { font-size: 13.5px; text-decoration: none; } /* 翻页条在 .prose 内，压过 .prose a 的下划线 */

@@ -69,6 +69,7 @@
     <div class="lesson-step">
       <span class="lesson-step-tag">Say</span>
       <p>"Writing 4 + 4 + 4 every time gets tiring. So mathematicians made a shortcut. <b>3 groups of 4</b> is written <b>3 × 4</b>. The first number counts the groups. The second number is what's in each group. Same thing, shorter writing."</p>
+      <p class="muted">Note for you: writing the groups first is this course's convention. Some books write the very same picture as 4 × 3 — both orders are correct multiplication and both equal 12. Whichever order your child writes, it's right; Lesson 4 shows why the two always agree.</p>
     </div>
     <div class="lesson-step do">
       <span class="lesson-step-tag">Do</span>
@@ -78,7 +79,7 @@
     <h2>Try it together</h2>
     <p>Let your child drive the demo below: every tap of the button adds one more plate of 4 tangyuan. Watch the adding sentence grow — then see it turn into a multiplication. Ask before each tap: "Now how many groups? What will the addition look like?"</p>
 
-    <div class="lw" data-widget="groups-builder" data-config='{"size":4,"max":6,"img":"/img/tangyuan_small.png","s":{
+    <div class="lw" id="group-machine" data-widget="groups-builder" data-config='{"size":4,"max":6,"img":"/img/tangyuan_small.png","s":{
       "add":"+ One more group","remove":"− One group fewer",
       "empty":"No groups yet — tap the button to add plates of 4!",
       "groupsOf":"That is {g} groups of {s} each — add them up…",
@@ -91,7 +92,7 @@
 
     <div data-widget="quick-check" data-config='{"questions":[
       {"q":"5 groups of 2 — which adding sentence matches?","options":["5 + 2","2 + 2 + 2 + 2 + 2","5 + 5"],"answer":1,"why":"5 groups, 2 in each — so we add 2 five times. (5 + 5 is 2 groups of 5 — same total, different story! More on that in Lesson 4.)"},
-      {"q":"2 + 2 + 2 — how do we write it the short way?","options":["3 × 2","2 × 3","3 + 2"],"answer":0,"why":"Three groups of two: the 3 counts the groups, the 2 is what’s in each group. 2 × 3 has the same total — we’ll see why soon!"},
+      {"q":"2 + 2 + 2 — how does this course write it the short way?","options":["3 × 2","3 + 2","2 + 3"],"answer":0,"why":"Three groups of two: the 3 counts the groups, the 2 is what’s in each group — so this course writes 3 × 2. (Some books write 2 × 3 for the same picture — both orders are correct math and both equal 6; Lesson 4 shows why. What’s never right is 3 + 2 — that’s adding, not grouping!)"},
       {"q":"4 groups of 3 crackers — how many crackers?","options":["7","9","12"],"answer":2,"why":"3 + 3 + 3 + 3 = 12. (Not 4 + 3 = 7 — × never means adding the two numbers!)"}]}'>
     </div>
 
@@ -99,13 +100,29 @@
     <ul class="lesson-mixups">
       <li><img src="/img/confused.webp" alt=""><span><b>"3 × 4 is 3 + 4 = 7."</b> The number-one beginner mistake. × means "groups of", not "and then add". Gently re-run the plates: 3 plates, 4 each, count them all.</span></li>
       <li><img src="/img/confused.webp" alt=""><span><b>Reading × as "times" with no picture behind it.</b> "Three times four" is fine — but always finish with "…that's 3 groups of 4" until the picture comes automatically.</span></li>
-      <li><img src="/img/confused.webp" alt=""><span><b>Groups must be equal.</b> 4 + 4 + 4 is 3 × 4, but 4 + 4 + 5 isn't any multiplication — the groups aren't the same size. Multiplication is for equal groups only.</span></li>
+      <li><img src="/img/confused.webp" alt=""><span><b>Groups must be equal.</b> 4 + 4 + 4 is 3 × 4, but in 4 + 4 + 5 the addends aren't all equal — so, unlike the examples above, it can't be written as one multiplication of equal groups. (It's still a perfectly good addition — just not a multiplication story.)</span></li>
     </ul>
 
-    <h2>Play it now</h2>
-    <p>Finish with a winning round: ten little questions, both numbers from 1 to 5 — exactly the size of fact your child just learned to picture. Around 8 out of 10 correct means this lesson has landed.</p>
+    <h2>Wrap-up practice: one story, four steps</h2>
+    <p>One last picture before bare numbers. The four steps below stay on the same three plates — read the picture, say the groups, write the adding sentence, write the multiplication, then count the total. Wrong taps just wiggle: no score, no clock. If these steps feel easy, the lesson has landed — even before any bare-number round.</p>
+
+    <div data-widget="quick-check" data-config='{"img":"/img/bridge-plates.svg","imgAlt":"Three plates, each holding two tangyuan rice balls","questions":[
+      {"q":"Look at the plates — how many groups, and how many in each group?","options":["3 groups of 2","2 groups of 3","5 groups of 1"],"answer":0,"why":"3 plates, 2 tangyuan on each — say it out loud: three groups of two. The plates tell you how many groups; the count on one plate tells you how many in each."},
+      {"q":"Same picture — which adding sentence matches it?","options":["3 + 3","2 + 2 + 2","3 + 2"],"answer":1,"why":"We add the 2s, once for each plate: 2 + 2 + 2. (3 + 3 is the mirror story — 2 groups of 3. Same total, different picture!)"},
+      {"q":"Same picture — how does this course write it the short way?","options":["3 × 2","3 + 2","2 + 2"],"answer":0,"why":"Groups first: 3 groups, 2 in each — 3 × 2. (Some books write 2 × 3 for this same picture — both orders are correct math and both equal 6, as Lesson 4 will show. What × never means is 3 + 2!)"},
+      {"q":"Count it with the picture — how many tangyuan altogether?","options":["5","6","8"],"answer":1,"why":"Count by twos along the plates: 2, then 4, then 6. (Not 3 + 2 = 5 — × never means adding the two numbers!)"}]}'>
+    </div>
+
+    <div class="lesson-tip">
+      <svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-question"/></svg>
+      <span><b>Parent moment:</b> point back at the plates and ask, "Can you explain why 3 × 2 = 6?" The lesson has truly landed when your child can tell the story — 3 plates, 2 each, added up — in their own words. An answer without the story? Go back one step and count the plates together, out loud.</span>
+    </div>
+
+    <p>Then let your child choose what comes next. Ten bare-number questions (both numbers from 1 to 5) is the classic finish — a lovely round <i>after</i> the picture feels easy. Around 8 out of 10 correct is a happy sign. A lower score isn't failure; it just means the picture gets one more visit before numbers.</p>
+
     <div class="lesson-playcta">
-      <a class="btn btn-primary" href="/play/#/setup?amin=1&amax=5&bmin=1&bmax=5"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> Practice facts up to 5 × 5</a>
+      <a class="btn btn-primary" href="/play/#/setup?amin=1&amax=5&bmin=1&bmax=5"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> Try numbers — 10 questions up to 5 × 5</a>
+      <a class="btn btn-ghost" href="#group-machine">Not yet — replay the group machine</a>
     </div>
 
     <div class="lesson-tip">
@@ -136,7 +153,7 @@
   </div>
 </footer>
 
-<script src="/js/learn.js?v=20261108a" defer></script>
+<script src="/js/learn.js?v=20261110a" defer></script>
 <script src="/js/header.js?v=20261023a" defer></script>
 </body>
 </html>
