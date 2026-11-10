@@ -159,7 +159,15 @@ main { flex: 1; padding: 40px 0 56px; }
   background: #fff; border: 2px solid var(--pink); color: var(--red-deep);
   font-size: 13px; font-weight: 800; padding: 7px 16px; border-radius: 999px;
 }
-.hero .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+/* 首屏分流：两个入门入口，各带一句门槛说明 */
+.start-split { display: flex; gap: 18px; justify-content: center; align-items: stretch; flex-wrap: wrap; margin-top: 24px; }
+.start-option { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: 0 1 420px; }
+.start-option .btn { white-space: nowrap; }
+.start-note { font-size: 13px; line-height: 1.55; color: var(--ink-soft); font-weight: 600; margin: 0; }
+.start-alt { font-size: 14px; color: var(--ink-soft); font-weight: 600; margin: 18px 0 0; }
+@media (max-width: 480px) {
+  .start-option .btn { white-space: normal; }
+}
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
