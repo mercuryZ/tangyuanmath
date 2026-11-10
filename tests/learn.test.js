@@ -33,6 +33,20 @@ test('进度：toggleDone 增删与 completedCount', () => {
   assert.ok(!map.arrays);
 });
 
+test('进度：setDone 显式标记/撤销（lesson-done 按钮用）', () => {
+  let map = L.setDone({}, 'nines', true); // 学完按钮：标记
+  assert.ok(map.nines);
+  const iso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+  assert.match(map.nines, iso);
+  map = L.setDone(map, 'nines', true); // 重复标记不报错，只刷新时间戳
+  assert.strictEqual(L.completedCount(map), 1);
+  map = L.setDone(map, 'nines', false); // 撤销按钮：移除
+  assert.ok(!map.nines);
+  assert.deepStrictEqual(map, {});
+  map = L.setDone(map, 'nines', false); // 未标记时撤销是空操作
+  assert.deepStrictEqual(map, {});
+});
+
 test('进度：saveProgress/loadProgress 往返', () => {
   const s = fakeStorage();
   let map = L.toggleDone({}, 'skip-counting');

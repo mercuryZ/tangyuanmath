@@ -8,6 +8,7 @@
  *   table-crosser   乘法表盘点（第 8 课：划掉已知，数数还剩几个）
  *   quick-check     小考验（点选题，温和反馈、不计时不打分，DESIGN 2.3）
  *   course-progress 课程主页进度渲染（卡片打勾 + 继续学习按钮）
+ *   lesson-done     单课「学完了」按钮（写进度 + happy.png 庆祝动画）
  * 文案全部来自各页面 data-config（不进 locales 包），中文镜像页自带中文文案。
  * UMD：浏览器挂 window.TMLearn；纯计算函数与进度存储在 Node 供 tests/learn.test.js require。
  */
@@ -52,12 +53,16 @@
     try { storage.setItem(PROGRESS_KEY, JSON.stringify(map)); } catch (e) { /* 忽略 */ }
   }
 
-  function toggleDone(map, slug) {
+  function setDone(map, slug, done) {
     var next = {};
     Object.keys(map).forEach(function (k) { next[k] = map[k]; });
-    if (next[slug]) delete next[slug];
-    else next[slug] = new Date().toISOString();
+    if (done) next[slug] = new Date().toISOString();
+    else delete next[slug];
     return next;
+  }
+
+  function toggleDone(map, slug) {
+    return setDone(map, slug, !map[slug]);
   }
 
   function completedCount(map) { return Object.keys(map).length; }
@@ -559,6 +564,74 @@
     });
   }
 
+  /* 单课「学完了」按钮：标记完成 → 存进度 + 弹 happy.png 庆祝动画 */
+  function renderLessonDone(root, cfg, api) {
+    if (!cfg.slug) return;
+    var btn = el('button', 'lesson-done-btn');
+    btn.type = 'button';
+    btn.innerHTML = '<svg class="ico" aria-hidden="true"><use href="/img/icons.svg#ico-check"/></svg>';
+    var label = el('span', null, cfg.s.mark);
+    btn.appendChild(label);
+    var undo = el('button', 'lesson-done-undo');
+    undo.type = 'button';
+    undo.textContent = cfg.s.undo;
+    undo.hidden = true;
+
+    function draw() {
+      var done = !!api.progress[cfg.slug];
+      btn.classList.toggle('is-done', done);
+      label.textContent = done ? cfg.s.marked : cfg.s.mark;
+      undo.hidden = !done;
+    }
+
+    btn.addEventListener('click', function () {
+      if (api.progress[cfg.slug]) return; // 已完成：撤销走旁边的小按钮
+      api.progress = setDone(api.progress, cfg.slug, true);
+      saveProgress(api.progress, api.storage);
+      draw();
+      celebrate(cfg.s);
+    });
+    undo.addEventListener('click', function () {
+      api.progress = setDone(api.progress, cfg.slug, false);
+      saveProgress(api.progress, api.storage);
+      draw();
+    });
+
+    root.appendChild(btn);
+    root.appendChild(undo);
+    draw();
+  }
+
+  /* 庆祝动画：happy.png 弹跳出场，约 2.4 秒后淡出，点击立即关闭 */
+  function celebrate(s) {
+    var old = document.querySelector('.happy-overlay');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+
+    var layer = el('div', 'happy-overlay');
+    layer.setAttribute('role', 'status'); // 读屏播报 cheer 文案
+    var card = el('div', 'happy-card');
+    var img = el('img', 'happy-face');
+    img.src = '/img/happy.png';
+    img.alt = '';
+    card.appendChild(img);
+    card.appendChild(el('p', 'happy-cheer', s.cheer));
+    if (s.cheerSub) card.appendChild(el('p', 'happy-sub', s.cheerSub));
+    layer.appendChild(card);
+
+    var timer = null;
+    function hide() {
+      if (timer) { global.clearTimeout(timer); timer = null; }
+      if (layer.classList.contains('leaving')) return;
+      layer.classList.add('leaving');
+      global.setTimeout(function () {
+        if (layer.parentNode) layer.parentNode.removeChild(layer);
+      }, 280);
+    }
+    layer.addEventListener('click', hide);
+    timer = global.setTimeout(hide, 2400);
+    document.body.appendChild(layer);
+  }
+
   /* 课程主页进度 */
   function renderCourseProgress(root, cfg, api) {
     var order = cfg.entries.map(function (e) { return e.slug; });
@@ -608,6 +681,7 @@
       try {
         if (RENDERERS[name]) RENDERERS[name](node, cfg);
         else if (name === 'course-progress') renderCourseProgress(node, cfg, api);
+        else if (name === 'lesson-done') renderLessonDone(node, cfg, api);
       } catch (e) {
         // 单个组件失败不影响其余内容
         if (global.console) console.warn('learn widget failed:', name, e);
@@ -620,6 +694,7 @@
     loadProgress: loadProgress,
     saveProgress: saveProgress,
     toggleDone: toggleDone,
+    setDone: setDone,
     completedCount: completedCount,
     nextLesson: nextLesson,
     groupsMath: groupsMath,
