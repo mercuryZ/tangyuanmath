@@ -98,7 +98,8 @@ function createApp(db, opts) {
     '/pricing': '/en/pricing/',
     '/learn': '/en/learn/',
     '/two-digit-multiplication': '/en/two-digit-multiplication/',
-    '/mistake-review': '/en/mistake-review/'
+    '/mistake-review': '/en/mistake-review/',
+    '/weekly-puzzle': '/en/weekly-puzzle/'
   };
   /* 早期邮件里发出去的令牌链接形式（/account/verify-email?token=…、/account/reset?token=…）。
    * 这两个路径没有对应文件，直接访问会 404 并显示首页；这里带 query 转成前端真正解析的地址。 */

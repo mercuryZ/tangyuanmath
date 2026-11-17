@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Chickens and rabbits in a pen, with a sign counting 12 heads and 34 legs, and Tangyuan watching">
+  <defs>
+    <pattern id="pzc" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#FFF7F2"/>
+  <rect width="1200" height="675" fill="url(#pzc)"/>
+
+  <!-- 地面与围栏 -->
+  <rect y="560" width="1200" height="115" rx="0" fill="#FCE9DF"/>
+  <g fill="#F2A99B">
+    <rect x="70" y="400" width="1060" height="16" rx="8"/>
+    <rect x="70" y="472" width="1060" height="16" rx="8"/>
+    <rect x="92" y="386" width="16" height="230" rx="8"/>
+    <rect x="330" y="386" width="16" height="230" rx="8"/>
+    <rect x="568" y="386" width="16" height="230" rx="8"/>
+    <rect x="806" y="386" width="16" height="230" rx="8"/>
+    <rect x="1044" y="386" width="16" height="230" rx="8"/>
+  </g>
+
+  <!-- 计数牌：头 12 · 脚 34（只用数字和图形，中英文页面共用） -->
+  <g>
+    <rect x="856" y="84" width="272" height="168" rx="24" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <path d="M 890 250 L 862 300 L 926 254 Z" fill="#fff" stroke="#F2555A" stroke-width="6" stroke-linejoin="round"/>
+    <circle cx="906" cy="136" r="15" fill="#F2555A"/>
+    <text x="1000" y="152" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="bold" fill="#D93B47" text-anchor="middle">12</text>
+    <g stroke="#F2555A" stroke-width="6" stroke-linecap="round">
+      <line x1="900" y1="196" x2="900" y2="222"/>
+      <line x1="914" y1="196" x2="914" y2="222"/>
+    </g>
+    <text x="1000" y="226" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="bold" fill="#D93B47" text-anchor="middle">34</text>
+  </g>
+
+  <!-- 鸡 1 -->
+  <g transform="translate(250 505)">
+    <g stroke="#F5A623" stroke-width="6" stroke-linecap="round">
+      <line x1="-18" y1="40" x2="-18" y2="76"/>
+      <line x1="12" y1="40" x2="12" y2="76"/>
+      <line x1="-28" y1="76" x2="-8" y2="76"/>
+      <line x1="2" y1="76" x2="22" y2="76"/>
+    </g>
+    <path d="M -44 -8 Q -70 -30 -62 -52 Q -48 -36 -44 -8" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <ellipse cx="0" cy="0" rx="52" ry="42" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <path d="M -14 -6 Q 16 2 22 22" fill="none" stroke="#F2555A" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="42" cy="-34" r="24" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <g fill="#D93B47">
+      <circle cx="30" cy="-58" r="7"/>
+      <circle cx="41" cy="-63" r="8"/>
+      <circle cx="52" cy="-57" r="7"/>
+    </g>
+    <polygon points="66,-40 90,-31 66,-22" fill="#F5A623"/>
+    <circle cx="48" cy="-40" r="4.5" fill="#5D3A3A"/>
+  </g>
+
+  <!-- 鸡 2（反向、稍小） -->
+  <g transform="translate(420 517) scale(-0.78 0.78)">
+    <g stroke="#F5A623" stroke-width="7" stroke-linecap="round">
+      <line x1="-18" y1="40" x2="-18" y2="76"/>
+      <line x1="12" y1="40" x2="12" y2="76"/>
+      <line x1="-28" y1="76" x2="-8" y2="76"/>
+      <line x1="2" y1="76" x2="22" y2="76"/>
+    </g>
+    <path d="M -44 -8 Q -70 -30 -62 -52 Q -48 -36 -44 -8" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <ellipse cx="0" cy="0" rx="52" ry="42" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="42" cy="-34" r="24" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <g fill="#D93B47">
+      <circle cx="30" cy="-58" r="7"/>
+      <circle cx="41" cy="-63" r="8"/>
+      <circle cx="52" cy="-57" r="7"/>
+    </g>
+    <polygon points="66,-40 90,-31 66,-22" fill="#F5A623"/>
+    <circle cx="48" cy="-40" r="4.5" fill="#5D3A3A"/>
+  </g>
+
+  <!-- 兔 1 -->
+  <g transform="translate(610 505)">
+    <g transform="rotate(-12 -50 -60)"><ellipse cx="-50" cy="-88" rx="11" ry="36" fill="#fff" stroke="#F2555A" stroke-width="6"/><ellipse cx="-50" cy="-84" rx="5" ry="24" fill="#FFC2CC"/></g>
+    <g transform="rotate(10 -30 -60)"><ellipse cx="-28" cy="-92" rx="11" ry="38" fill="#fff" stroke="#F2555A" stroke-width="6"/><ellipse cx="-28" cy="-88" rx="5" ry="25" fill="#FFC2CC"/></g>
+    <circle cx="60" cy="6" r="17" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <ellipse cx="0" cy="0" rx="56" ry="48" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <circle cx="-44" cy="-38" r="26" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <circle cx="-38" cy="-44" r="4.5" fill="#5D3A3A"/>
+    <polygon points="-72,-34 -84,-28 -72,-24" fill="#FF9EB0"/>
+    <path d="M -58 -28 Q -50 -22 -42 -28" fill="none" stroke="#5D3A3A" stroke-width="4" stroke-linecap="round"/>
+    <ellipse cx="16" cy="42" rx="22" ry="10" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+  </g>
+
+  <!-- 兔 2（反向、稍小） -->
+  <g transform="translate(760 520) scale(-0.82 0.82)">
+    <g transform="rotate(-12 -50 -60)"><ellipse cx="-50" cy="-88" rx="11" ry="36" fill="#fff" stroke="#F2555A" stroke-width="7"/><ellipse cx="-50" cy="-84" rx="5" ry="24" fill="#FFC2CC"/></g>
+    <g transform="rotate(10 -30 -60)"><ellipse cx="-28" cy="-92" rx="11" ry="38" fill="#fff" stroke="#F2555A" stroke-width="7"/><ellipse cx="-28" cy="-88" rx="5" ry="25" fill="#FFC2CC"/></g>
+    <circle cx="60" cy="6" r="17" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <ellipse cx="0" cy="0" rx="56" ry="48" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-44" cy="-38" r="26" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-38" cy="-44" r="4.5" fill="#5D3A3A"/>
+    <polygon points="-72,-34 -84,-28 -72,-24" fill="#FF9EB0"/>
+    <ellipse cx="16" cy="42" rx="22" ry="10" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+  </g>
+
+  <!-- 问号：到底各有多少只？ -->
+  <g font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="bold" fill="#D93B47" text-anchor="middle">
+    <text x="330" y="382">?</text>
+    <text x="682" y="372">?</text>
+  </g>
+
+  <!-- 汤圆围观 -->
+  <g transform="translate(985 420)">
+    <path d="M -70 -20 Q -100 -60 -138 -66" fill="none" stroke="#F2555A" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="-138" cy="-66" r="18" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <circle cx="0" cy="70" r="120" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-42" cy="34" r="11" fill="#5D3A3A"/>
+    <circle cx="42" cy="34" r="11" fill="#5D3A3A"/>
+    <path d="M -36 84 Q 0 116 36 84" fill="none" stroke="#5D3A3A" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="-72" cy="72" rx="12" ry="8" fill="#FFC2CC"/>
+    <ellipse cx="72" cy="72" rx="12" ry="8" fill="#FFC2CC"/>
+  </g>
+
+  <!-- 点缀星星 -->
+  <g fill="#F5A623">
+    <path d="M 1050 560 l 9 22 24 3 -17 16 4 23 -20 -11 -20 11 4 -23 -17 -16 24 -3 z"/>
+    <path d="M 96 300 l 7 16 18 2 -13 12 3 17 -15 -8 -15 8 3 -17 -13 -12 18 -2 z" opacity="0.8"/>
+  </g>
+</svg>

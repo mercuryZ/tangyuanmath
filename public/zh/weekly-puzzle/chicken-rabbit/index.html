@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每周趣题第 1 期：鸡兔同笼 — 汤圆数学</title>
+<meta name="description" content="来自约 1500 年前《孙子算经》的鸡兔同笼：笼里有 12 个头、34 只脚，鸡和兔各有几只？分步提示、列表法和抬脚法两种小学生解法，输入答案点亮小星星。">
+<meta name="keywords" content="鸡兔同笼, 鸡兔同笼问题, 每周趣题, 小学数学趣题, 数学思维训练, 假设法, 抬脚法, 列表法, 小学奥数入门, 孙子算经, 汤圆数学">
+<link rel="canonical" href="https://tangyuanmath.com/zh/weekly-puzzle/chicken-rabbit/">
+<link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/chicken-rabbit/">
+<link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/chicken-rabbit/">
+<link rel="icon" href="/img/logo_small.png">
+<link rel="stylesheet" href="/css/site.css?v=20261110a">
+<link rel="stylesheet" href="/css/puzzle.css?v=20261117a">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/zh/"><img src="/img/logo_small.png" alt="汤圆数学 Logo"><b>汤圆数学</b></a>
+    <nav class="site-nav" aria-label="主导航">
+      <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> 开始玩</a>
+      <details class="nav-drawer">
+        <summary aria-label="菜单"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/zh/learn/">启蒙课</a>
+          <a href="/zh/tips/">速算秘籍</a>
+          <a href="/zh/worksheets/">练习卷</a>
+          <a href="/zh/pricing/">定价</a>
+          <a href="/zh/blog/">博客</a>
+          <a href="/zh/about/">关于</a>
+          <a href="/account/">家长中心</a>
+          <a class="lang-switch" href="/en/weekly-puzzle/chicken-rabbit/" hreflang="en" lang="en">EN</a>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block post-page">
+    <p class="post-back"><a class="back-btn" href="/zh/weekly-puzzle/"><span class="back-avatar" aria-hidden="true"><img src="/img/tangyuan_small.png" alt=""></span><span class="back-arrow" aria-hidden="true">←</span>跟着汤圆回每周趣题</a></p>
+    <h1 class="post-title">鸡兔同笼</h1>
+    <p class="post-subtitle">笼子里藏着鸡和兔。数一数头，数一数脚——你能猜出各有几只吗？</p>
+    <p class="post-meta"><span class="post-chip">每周趣题 · 第 1 期</span><time datetime="2026-11-17">2026 年 11 月 17 日</time></p>
+
+    <div class="prose">
+      <p>这是<a href="/zh/weekly-puzzle/">每周趣题</a>的第 1 期，我们从一道大名鼎鼎的老题开始。<b>鸡兔同笼</b>出自约 1500 年前的数学书《孙子算经》，原题是：「今有雉兔同笼，上有三十五头，下有九十四足，问雉兔各几何？」三十五个头、九十四只脚，数字有点吓人——我们把它换小一点，思路一模一样。</p>
+
+      <h2>题目</h2>
+
+      <p>把一些鸡和兔关在同一个笼子里。从上面数，一共有 <b>12 个头</b>；从下面数，一共有 <b>34 只脚</b>。</p>
+
+      <div class="math-block">12 个头 · 34 只脚 —— 鸡有几只？兔有几只？</div>
+
+      <p>每只动物都恰好是：鸡 2 只脚，兔 4 只脚。头不会少，脚也不会多。</p>
+
+      <h2>想一想，再动手</h2>
+
+      <p>先别急着看答案。卡住了也没关系，每点开一条提示，就离答案近一步：</p>
+
+      <details class="pz-hint">
+        <summary>提示一：如果 12 只全是鸡……</summary>
+        <div class="pz-hint-body">那脚应该有 12 × 2 = 24 只。可是笼里实实在在有 34 只脚——多出来的 34 − 24 = 10 只脚，是从哪来的？</div>
+      </details>
+      <details class="pz-hint">
+        <summary>提示二：把一只鸡换成一只兔，会怎样？</summary>
+        <div class="pz-hint-body">头还是 12 个，没变；但脚会多 2 只。所以多出来的 10 只脚，就是「换」出来的——每换一只，多 2 只脚。10 ÷ 2 = ？</div>
+      </details>
+
+      <div data-widget="puzzle-answer" data-config='{
+        "puzzleId": "chicken-rabbit",
+        "formTitle": "轮到你了：输入答案",
+        "inputs": [
+          {"label": "鸡（只）", "answer": 7},
+          {"label": "兔（只）", "answer": 5}
+        ],
+        "checkText": "检查答案",
+        "retryText": "还没有全对，再想一想。卡住了就点开上面的提示。",
+        "successText": "答对啦！这颗小星星送给你！",
+        "againText": "这道题你已经点亮过小星星啦，可以再试一遍。",
+        "reveal": "answer-solution"
+      }'></div>
+
+      <details class="pz-hint" id="answer-solution">
+        <summary>完整解析（先自己想，再看这里）</summary>
+        <div class="pz-hint-body">
+          <h3>解法一：列表试数法</h3>
+          <p>从「全是鸡」开始试，每换一只兔，脚就多 2 只，一直到正好 34 只：</p>
+          <div class="table-scroll">
+            <table class="practice-table">
+              <thead>
+                <tr><th scope="col">鸡（只）</th><th scope="col">兔（只）</th><th scope="col">脚（只）</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>12</td><td>0</td><td>24</td></tr>
+                <tr><td>9</td><td>3</td><td>30</td></tr>
+                <tr><td>7</td><td>5</td><td><strong>34 ✓</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>解法二：抬脚法（哨声一响！）</h3>
+          <p>想象吹一声哨，<b>所有动物都抬起 2 只脚</b>：鸡一屁股坐在地上，兔还站着 2 只脚。地上剩下的脚就是：34 − 12 × 2 = 10 只，全是兔的。</p>
+          <div class="math-block">34 − 12 × 2 = 10；10 ÷ 2 = 5（兔）；12 − 5 = 7（鸡）</div>
+          <h3>验算</h3>
+          <div class="math-block">7 × 2 + 5 × 4 = 14 + 20 = 34 ✓（头：7 + 5 = 12 ✓）</div>
+          <p>所以：笼里有 <b>7 只鸡、5 只兔</b>。</p>
+        </div>
+      </details>
+
+      <h2>给家长的话</h2>
+
+      <p>这道题的价值不在答案，而在<b>「假设」</b>这个念头：先假设全是鸡，再看差别从哪来。它是孩子第一次接触「像代数那样想问题」——很多孩子会在这里第一次体会到「倒着想」的乐趣。低年级的孩子用列表法就够了，试数本身就是好数学；高年级的孩子可以练抬脚法。</p>
+
+      <p>孩子做出来了？给他一个大挑战：《孙子算经》原题——35 个头、94 只脚，鸡兔各几只？（答案：鸡 23 只、兔 12 只。）</p>
+
+      <p>喜欢这种题？<a href="/zh/weekly-puzzle/">下周同一时间，来看第 2 期</a>。想先练练基本功，去<a href="/zh/learn/">免费的乘法启蒙课</a>或<a href="/play/">玩一局练习</a>。</p>
+    </div>
+
+    <p class="post-back post-back-bottom"><a class="back-btn" href="/zh/weekly-puzzle/"><span class="back-avatar" aria-hidden="true"><img src="/img/tangyuan_small.png" alt=""></span><span class="back-arrow" aria-hidden="true">←</span>跟着汤圆回每周趣题</a></p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 汤圆数学 · 免费练习、无广告、无追踪</span>
+    <span>
+      <a href="/zh/pricing/">定价</a>
+      <a href="/zh/faq/">常见问题</a>
+      <a href="/zh/about/">关于</a>
+      <a href="/zh/privacy/">隐私</a>
+      <a href="/zh/terms/">条款</a>
+      <a href="mailto:hi@tangyuanmath.com">联系我们</a>
+      <a href="/en/weekly-puzzle/chicken-rabbit/" lang="en">EN</a>
+    </span>
+  </div>
+</footer>
+
+<script src="/js/puzzle.js?v=20261117a" defer></script>
+<script src="/js/header.js?v=20261023a" defer></script>
+</body>
+</html>

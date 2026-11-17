@@ -1,0 +1,74 @@
+/* 每周趣题组件样式 —— 仅趣题页引用，不影响全站 site.css（版本号无需 bump） */
+
+/* 填空作答表单 */
+.pz-form {
+  background: var(--cream);
+  border: 2px solid var(--red-light);
+  border-radius: 18px;
+  padding: 20px 22px 18px;
+  margin: 20px 0;
+}
+.pz-form-title { font-weight: 900; color: var(--red-deep); font-size: 16px; margin: 0 0 14px; }
+.pz-fields { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: flex-end; }
+.pz-field { display: flex; flex-direction: column; gap: 6px; }
+.pz-field label { font-weight: 800; font-size: 14px; color: var(--red-deep); }
+.pz-field input {
+  width: 96px; padding: 10px 12px;
+  border: 2px solid var(--red-light); border-radius: 12px;
+  font-size: 18px; font-weight: 800; text-align: center;
+  color: var(--ink); background: #fff; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.pz-field input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(242, 85, 90, .15); }
+.pz-field input.pz-no { border-color: #E8A0A6; background: #FFF3F3; }
+.pz-actions { margin-top: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pz-feedback { font-weight: 700; font-size: 14px; color: var(--ink-soft); margin: 0; }
+
+/* 答对：小星星 + 祝贺语 */
+.pz-success {
+  display: flex; align-items: center; gap: 12px;
+  font-weight: 800; color: var(--red-deep); font-size: 16px; margin: 0;
+}
+.pz-star-wrap {
+  display: inline-flex; width: 46px; height: 46px; flex-shrink: 0;
+  color: #F5A623;
+  filter: drop-shadow(0 2px 5px rgba(245, 166, 35, .45));
+  animation: pz-pop .6s cubic-bezier(.2, 1.4, .4, 1);
+}
+.pz-star-wrap .pz-star { width: 100%; height: 100%; display: block; }
+@keyframes pz-pop {
+  0% { transform: scale(0) rotate(-30deg); }
+  70% { transform: scale(1.3) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* 栏目页的集星徽章 */
+.pz-stars-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: #fff; border: 2px solid var(--pink); border-radius: 999px;
+  padding: 8px 18px; font-weight: 800; font-size: 14px; color: var(--red-deep);
+}
+.pz-stars-badge .pz-star-wrap { width: 22px; height: 22px; animation: none; filter: none; }
+
+/* 分步提示折叠框 */
+.pz-hint { margin: 12px 0; }
+.pz-hint summary {
+  cursor: pointer; font-weight: 800; color: var(--red-deep);
+  font-size: 14.5px; padding: 9px 14px;
+  background: #fff; border: 2px dashed var(--pink); border-radius: 12px;
+  list-style-position: inside;
+}
+.pz-hint summary:hover { background: var(--red-light); }
+.pz-hint[open] summary { border-style: solid; border-color: var(--red-light); border-radius: 12px 12px 0 0; }
+.pz-hint .pz-hint-body {
+  padding: 10px 16px 12px;
+  background: #fff; border: 2px solid var(--red-light); border-top: 0;
+  border-radius: 0 0 12px 12px;
+  font-size: 14.5px; line-height: 1.7; font-weight: 600;
+}
+.pz-hint + .pz-hint { margin-top: -4px; }
+
+@media (max-width: 480px) {
+  .pz-form { padding: 16px 14px; }
+  .pz-fields { gap: 12px 18px; }
+}

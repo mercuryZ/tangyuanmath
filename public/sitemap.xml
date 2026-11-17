@@ -154,6 +154,26 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/what-is-repeated-addition/"/>
   </url>
   <url>
+    <loc>https://tangyuanmath.com/en/weekly-puzzle/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/weekly-puzzle/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/weekly-puzzle/chicken-rabbit/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/chicken-rabbit/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/chicken-rabbit/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/weekly-puzzle/chicken-rabbit/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/chicken-rabbit/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/chicken-rabbit/"/>
+  </url>
+  <url>
     <loc>https://tangyuanmath.com/en/faq/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/faq/"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/faq/"/>

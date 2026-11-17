@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Puzzle #1: The Farmyard Puzzle (Heads and Legs!) — Tangyuan Math</title>
+<meta name="description" content="A classic puzzle from a Chinese math book written about 1,500 years ago. Grandma's animals have 12 heads and 34 legs — how many chickens and how many rabbits? Step-by-step hints, two kid-friendly methods, and a star for a correct answer.">
+<meta name="keywords" content="heads and legs puzzle, chicken and rabbit problem, farmyard math puzzle, weekly math puzzle for kids, math brain teasers for kids, elementary math enrichment, problem of the week, homeschool math puzzle, algebra thinking for kids, Tangyuan Math">
+<link rel="canonical" href="https://tangyuanmath.com/en/weekly-puzzle/chicken-rabbit/">
+<link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/chicken-rabbit/">
+<link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/chicken-rabbit/">
+<link rel="icon" href="/img/logo_small.png">
+<link rel="stylesheet" href="/css/site.css?v=20261110a">
+<link rel="stylesheet" href="/css/puzzle.css?v=20261117a">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/img/logo_small.png" alt="Tangyuan Math logo"><b>Tangyuan Math</b></a>
+    <nav class="site-nav" aria-label="Main">
+      <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> Play</a>
+      <details class="nav-drawer">
+        <summary aria-label="Menu"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <a href="/en/learn/">Learn</a>
+          <a href="/en/tips/">Math Tips</a>
+          <a href="/en/worksheets/">Worksheets</a>
+          <a href="/en/pricing/">Pricing</a>
+          <a href="/en/blog/">Blog</a>
+          <a href="/en/about/">About</a>
+          <a href="/account/">Parent Center</a>
+          <a class="lang-switch" href="/zh/weekly-puzzle/chicken-rabbit/" hreflang="zh" lang="zh">中文</a>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block post-page">
+    <p class="post-back"><a class="back-btn" href="/en/weekly-puzzle/"><span class="back-avatar" aria-hidden="true"><img src="/img/tangyuan_small.png" alt=""></span><span class="back-arrow" aria-hidden="true">←</span>Follow Tangyuan back to Weekly Puzzle</a></p>
+    <h1 class="post-title">The Farmyard Puzzle (Heads and Legs!)</h1>
+    <p class="post-subtitle">Some chickens and rabbits share Grandma's pen. Count the heads, count the legs — can you work out how many of each?</p>
+    <p class="post-meta"><span class="post-chip">Weekly Puzzle · #1</span><time datetime="2026-11-17">November 17, 2026</time></p>
+
+    <div class="prose">
+      <p>Welcome to <a href="/en/weekly-puzzle/">Puzzle #1</a> of our weekly series — and we are starting with one of the most famous puzzles in the world. It comes from a Chinese math book, the <i>Sunzi Suanjing</i>, written about 1,500 years ago. There it starred 35 heads and 94 legs! Farmers everywhere have been scratching their heads over it ever since. Here we shrink the numbers — the thinking stays exactly the same.</p>
+
+      <h2>The Puzzle</h2>
+
+      <p>Grandma keeps some chickens and some rabbits in the same pen. Counting heads from above, there are <b>12 heads</b>. Counting legs from below, there are <b>34 legs</b>.</p>
+
+      <div class="math-block">12 heads · 34 legs — how many chickens? How many rabbits?</div>
+
+      <p>Every animal is exactly one of these: a chicken has 2 legs, a rabbit has 4. No heads missing, no legs extra.</p>
+
+      <h2>Think First, Peek Later</h2>
+
+      <p>Don't rush to the answer. Stuck is fine — each hint you open takes you one step closer:</p>
+
+      <details class="pz-hint">
+        <summary>Hint 1: What if all 12 were chickens?</summary>
+        <div class="pz-hint-body">Then there would be 12 × 2 = 24 legs. But the pen really has 34 legs — where did the extra 34 − 24 = 10 legs come from?</div>
+      </details>
+      <details class="pz-hint">
+        <summary>Hint 2: Swap one chicken for one rabbit. What changes?</summary>
+        <div class="pz-hint-body">Heads stay at 12 — nothing changed there. But legs go up by 2. So the 10 extra legs were added 2 at a time: 10 ÷ 2 = ?</div>
+      </details>
+
+      <div data-widget="puzzle-answer" data-config='{
+        "puzzleId": "chicken-rabbit",
+        "formTitle": "Your turn: type your answer",
+        "inputs": [
+          {"label": "Chickens", "answer": 7},
+          {"label": "Rabbits", "answer": 5}
+        ],
+        "checkText": "Check my answer",
+        "retryText": "Not quite yet — think some more. The hints above can help.",
+        "successText": "You got it! This little star is yours!",
+        "againText": "You have already earned the star for this puzzle — feel free to try again.",
+        "reveal": "answer-solution"
+      }'></div>
+
+      <details class="pz-hint" id="answer-solution">
+        <summary>The full solution (think first, read after)</summary>
+        <div class="pz-hint-body">
+          <h3>Method 1: Make a list</h3>
+          <p>Start from "all chickens" and swap one rabbit in at a time. Every swap adds 2 legs, until we hit exactly 34:</p>
+          <div class="table-scroll">
+            <table class="practice-table">
+              <thead>
+                <tr><th scope="col">Chickens</th><th scope="col">Rabbits</th><th scope="col">Legs</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>12</td><td>0</td><td>24</td></tr>
+                <tr><td>9</td><td>3</td><td>30</td></tr>
+                <tr><td>7</td><td>5</td><td><strong>34 ✓</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Method 2: The lifting-legs trick</h3>
+          <p>Imagine a whistle blows and <b>every animal lifts 2 legs</b>: each chicken plops down on the ground, while each rabbit still stands on 2 legs. The legs still touching the ground are 34 − 12 × 2 = 10 — and every one of them belongs to a rabbit.</p>
+          <div class="math-block">34 − 12 × 2 = 10; 10 ÷ 2 = 5 rabbits; 12 − 5 = 7 chickens</div>
+          <h3>Check</h3>
+          <div class="math-block">7 × 2 + 5 × 4 = 14 + 20 = 34 ✓ (heads: 7 + 5 = 12 ✓)</div>
+          <p>So the pen holds <b>7 chickens and 5 rabbits</b>.</p>
+        </div>
+      </details>
+
+      <h2>For Parents</h2>
+
+      <p>The treasure here is not the answer — it is the idea of <b>making an assumption</b>: suppose everything is a chicken, then ask where the difference came from. It is often a child's first taste of thinking "algebra-style" before algebra has a name. Younger kids do great with the list method — careful trying-out is real mathematics; older kids can aim for the lifting-legs trick.</p>
+
+      <p>Solved it? Offer the original from the <i>Sunzi Suanjing</i> as a boss level — 35 heads and 94 legs. (Answer: 23 chickens and 12 rabbits.)</p>
+
+      <p>Liked it? <a href="/en/weekly-puzzle/">Come back next week for Puzzle #2</a>. To warm up first, try the <a href="/en/learn/">free Multiplication Starter Course</a> or <a href="/play/">play a practice round</a>.</p>
+    </div>
+
+    <p class="post-back post-back-bottom"><a class="back-btn" href="/en/weekly-puzzle/"><span class="back-avatar" aria-hidden="true"><img src="/img/tangyuan_small.png" alt=""></span><span class="back-arrow" aria-hidden="true">←</span>Follow Tangyuan back to Weekly Puzzle</a></p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 Tangyuan Math · Free practice, no ads, no tracking</span>
+    <span>
+      <a href="/en/pricing/">Pricing</a>
+      <a href="/en/faq/">FAQ</a>
+      <a href="/en/about/">About</a>
+      <a href="/en/privacy/">Privacy</a>
+      <a href="/en/terms/">Terms</a>
+      <a href="mailto:hi@tangyuanmath.com">Contact</a>
+      <a href="/zh/weekly-puzzle/chicken-rabbit/" lang="zh">中文</a>
+    </span>
+  </div>
+</footer>
+
+<script src="/js/puzzle.js?v=20261117a" defer></script>
+<script src="/js/header.js?v=20261023a" defer></script>
+</body>
+</html>
