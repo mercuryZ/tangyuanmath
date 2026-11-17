@@ -144,6 +144,16 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/rows-and-columns-in-arrays/"/>
   </url>
   <url>
+    <loc>https://tangyuanmath.com/en/blog/what-is-repeated-addition/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/what-is-repeated-addition/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/what-is-repeated-addition/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/blog/what-is-repeated-addition/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/blog/what-is-repeated-addition/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/blog/what-is-repeated-addition/"/>
+  </url>
+  <url>
     <loc>https://tangyuanmath.com/en/faq/</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/faq/"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/faq/"/>
