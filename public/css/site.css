@@ -186,7 +186,7 @@ main { flex: 1; padding: 40px 0 56px; }
 }
 /* 首屏分流：两个入门入口，各带一句门槛说明 */
 .start-split { display: flex; gap: 18px; justify-content: center; align-items: stretch; flex-wrap: wrap; margin-top: 24px; }
-.start-option { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: 0 1 420px; }
+.start-option { display: flex; flex-direction: column; align-items: center; gap: 16px; flex: 0 1 420px; }
 .start-option .btn { white-space: nowrap; }
 .start-note { font-size: 13px; line-height: 1.55; color: var(--ink-soft); font-weight: 600; margin: 0; }
 .start-alt { font-size: 14px; color: var(--ink-soft); font-weight: 600; margin: 18px 0 0; }
@@ -331,6 +331,8 @@ a.btn-primary, a.btn-primary:hover { color: #fff; }
 }
 .post-meta time { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; color: var(--ink-soft); }
 
+/* 首页每周趣题紧跟 Hero：去掉区块上边距，只留 Hero 自身的底部内边距 */
+#weekly-puzzle { margin-top: 0; }
 .post-hero {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   background: #fff; border-radius: 20px; overflow: hidden;
