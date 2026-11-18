@@ -86,6 +86,22 @@ a:hover { color: var(--red-dark); }
 .site-nav .play-cta:hover { background: linear-gradient(180deg, var(--red), var(--red-deep)); transform: translateY(-1px); }
 .site-nav .lang-switch { border: 2px solid var(--pink); background: #fff; }
 
+/* Learn 下拉菜单：悬停/键盘聚焦展开，点击触发词仍直达课程页。
+ * 面板紧贴触发词下缘（top:100%），无 hover 死区；子项沿用导航链接的胶囊样式 */
+.nav-sub { position: relative; }
+.nav-caret { width: 11px; height: 8px; transition: transform .18s ease; }
+.nav-sub:hover .nav-caret, .nav-sub:focus-within .nav-caret { transform: rotate(180deg); }
+.nav-sub-panel {
+  position: absolute; top: 100%; left: 0;
+  display: none; flex-direction: column; gap: 2px;
+  min-width: 180px; padding: 8px;
+  background: #fff; border: 2px solid var(--pink); border-radius: 14px;
+  box-shadow: 0 18px 32px rgba(217, 59, 71, .14);
+  z-index: 20;
+}
+.nav-sub:hover > .nav-sub-panel, .nav-sub:focus-within > .nav-sub-panel { display: flex; }
+.nav-sub-panel a { white-space: nowrap; }
+
 /* 窄屏导航抽屉：头部仅保留 Play 与菜单按钮，其余链接收进 <details> 面板。
  * 断点取 1080px：低于此宽度时整排导航会在 1080 容器内换行，改用抽屉更整洁 */
 .nav-drawer > summary { display: none; }
@@ -131,6 +147,15 @@ a:hover { color: var(--red-dark); }
   .nav-drawer[open] > .nav-links { display: flex; }
   .nav-drawer .nav-links a { padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.25; }
   .nav-drawer .nav-links .lang-switch { align-self: flex-start; margin-top: 4px; }
+
+  /* 窄屏抽屉里下拉面板常显：改成缩进子列表，左侧细线当层级参考 */
+  .nav-sub { display: flex; flex-direction: column; }
+  .nav-sub-panel {
+    position: static; display: flex; min-width: 0;
+    margin: -2px 0 4px 14px; padding: 0 0 0 12px;
+    border: 0; border-left: 2px solid var(--red-light); border-radius: 0;
+    box-shadow: none; background: transparent;
+  }
 }
 
 @media (max-width: 420px) {
@@ -467,7 +492,7 @@ a.btn-primary, a.btn-primary:hover { color: #fff; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .lang-card, .site-nav a { transition: none !important; }
+  .btn, .lang-card, .site-nav a, .nav-caret { transition: none !important; }
   .back-btn:hover .back-avatar { animation: none; }
 }
 
