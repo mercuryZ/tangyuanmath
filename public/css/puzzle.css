@@ -8,8 +8,8 @@
   padding: 20px 22px 18px;
   margin: 20px 0;
 }
-.pz-form-title { font-weight: 900; color: var(--red-deep); font-size: 16px; margin: 0 0 14px; }
-.pz-fields { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: flex-end; }
+.pz-form-title { font-weight: 900; color: var(--red-deep); font-size: 16px; margin: 0 0 14px; text-align: center; }
+.pz-fields { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: flex-end; justify-content: center; }
 .pz-field { display: flex; flex-direction: column; gap: 6px; }
 .pz-field label { font-weight: 800; font-size: 14px; color: var(--red-deep); }
 .pz-field input {
@@ -21,7 +21,7 @@
 }
 .pz-field input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(242, 85, 90, .15); }
 .pz-field input.pz-no { border-color: #E8A0A6; background: #FFF3F3; }
-.pz-actions { margin-top: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pz-actions { margin-top: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center; }
 .pz-feedback { font-weight: 700; font-size: 14px; color: var(--ink-soft); margin: 0; }
 
 /* 答对：小星星 + 祝贺语 */
