@@ -437,6 +437,8 @@
     $('footTerms').setAttribute('href', zh ? '/zh/terms/' : '/en/terms/');
     $('learnCourse').setAttribute('href', zh ? '/zh/learn/' : '/en/learn/');
     $('learnPuzzle').setAttribute('href', zh ? '/zh/weekly-puzzle/' : '/en/weekly-puzzle/');
+    // 首页「每周趣题」卡直达本期题目（第 1 期 chicken-rabbit）
+    $('cardPuzzle').setAttribute('href', zh ? '/zh/weekly-puzzle/chicken-rabbit/' : '/en/weekly-puzzle/chicken-rabbit/');
   }
   function switchLang(lang) {
     TMI18N.setLang(lang);

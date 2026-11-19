@@ -154,10 +154,15 @@ body {
 .mode-card .ico { font-size: 30px; color: var(--red); }
 .mode-card h2 { font-size: 17px; font-weight: 900; color: var(--red-deep); }
 .mode-card p { font-size: 13px; line-height: 1.6; color: var(--ink-soft); font-weight: 600; }
-.mode-card .m-cta { margin-top: 6px; font-size: 13px; font-weight: 800; color: var(--red); }
+/* CTA 钉在卡片底部：同一行卡片高度拉伸相等，Start 链接对齐到同一水平线 */
+.mode-card .m-cta { margin-top: auto; padding-top: 8px; font-size: 13px; font-weight: 800; color: var(--red); }
 .mode-card[disabled] { opacity: .55; cursor: not-allowed; }
 /* 首页「学乘法」卡是链接而非按钮：重置浏览器默认链接样式 */
 a.mode-card { text-decoration: none; color: inherit; }
+/* 「每周趣题」卡：奶油底 + 暖色灯泡，和练习模式卡区分开 */
+.mode-card-puzzle { background: var(--cream); border-color: var(--pink); }
+.mode-card-puzzle .ico { color: var(--gold); }
+.mode-card-puzzle:hover { border-color: var(--red); }
 
 /* ---------- Practice 设置表单 ---------- */
 /* 表单不再限宽 720px：Number range 的四项随 .app 占满整行、均匀分布 */
