@@ -370,56 +370,73 @@
     LANGS.forEach(function (l) {
       var b = document.createElement('button');
       b.type = 'button';
-      b.className = 'lang-option';
+      b.className = 'nav-item';
       b.setAttribute('role', 'option');
       b.setAttribute('data-lang', l.code);
       b.textContent = l.label;
       b.addEventListener('click', function () {
         switchLang(l.code);
-        closeLangMenu(true);
+        closeDropdown('langBtn', 'langDropdown', true);
       });
       box.appendChild(b);
     });
   }
 
-  function openLangMenu() {
-    var dd = $('langDropdown');
+  /* 顶栏下拉（语言 / Learn 共用）：开合 + 焦点管理 */
+  function openDropdown(btnId, ddId) {
+    var dd = $(ddId);
     if (!dd) return;
     dd.hidden = false;
-    $('langBtn').setAttribute('aria-expanded', 'true');
-    var sel = dd.querySelector('.lang-option[aria-selected="true"]') || dd.querySelector('.lang-option');
+    $(btnId).setAttribute('aria-expanded', 'true');
+    var sel = dd.querySelector('[aria-selected="true"]') || dd.querySelector('button, a');
     if (sel) sel.focus();
   }
 
-  function closeLangMenu(returnFocus) {
-    var dd = $('langDropdown');
+  function closeDropdown(btnId, ddId, returnFocus) {
+    var dd = $(ddId);
     if (!dd || dd.hidden) return;
     dd.hidden = true;
-    $('langBtn').setAttribute('aria-expanded', 'false');
-    if (returnFocus) $('langBtn').focus();
+    $(btnId).setAttribute('aria-expanded', 'false');
+    if (returnFocus) $(btnId).focus();
+  }
+
+  /* 下拉键盘导航（语言 / Learn 共用） */
+  function dropdownKeyNav(btnId, ddId) {
+    return function (e) {
+      var opts = Array.prototype.slice.call($(ddId).querySelectorAll('button, a'));
+      var idx = opts.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); closeDropdown(btnId, ddId, true); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); opts[(idx + 1) % opts.length].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); opts[(idx - 1 + opts.length) % opts.length].focus(); }
+      else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
+      else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
+      else if (e.key === 'Tab') { closeDropdown(btnId, ddId, false); }
+    };
   }
 
   function syncLangButtons() {
     var lang = TMI18N.lang();
     var current = LANGS.filter(function (l) { return l.code === lang; })[0] || LANGS[0];
     $('langCurrent').textContent = current.short;
-    var options = $('langDropdown').querySelectorAll('.lang-option');
+    var options = $('langDropdown').querySelectorAll('.nav-item');
     for (var i = 0; i < options.length; i++) {
       var selected = options[i].getAttribute('data-lang') === lang;
       options[i].setAttribute('aria-selected', selected ? 'true' : 'false');
     }
   }
-  /* 底部链接跟随当前语言切换 /en/ 与 /zh/ 路径 */
+  /* 顶栏 Learn 菜单与底部链接跟随当前语言切换 /en/ 与 /zh/ 路径 */
   function syncFooterLinks() {
     var zh = TMI18N.lang() === 'zh';
     $('footHome').setAttribute('href', zh ? '/zh/' : '/');
     $('footPricing').setAttribute('href', zh ? '/zh/pricing/' : '/en/pricing/');
     $('btnWorksheets').setAttribute('href', zh ? '/zh/worksheets/' : '/en/worksheets/');
-    $('btnBlog').setAttribute('href', zh ? '/zh/blog/' : '/en/blog/');
+    $('footBlog').setAttribute('href', zh ? '/zh/blog/' : '/en/blog/');
     $('footFaq').setAttribute('href', zh ? '/zh/faq/' : '/en/faq/');
     $('footAbout').setAttribute('href', zh ? '/zh/about/' : '/en/about/');
     $('footPrivacy').setAttribute('href', zh ? '/zh/privacy/' : '/en/privacy/');
     $('footTerms').setAttribute('href', zh ? '/zh/terms/' : '/en/terms/');
+    $('learnCourse').setAttribute('href', zh ? '/zh/learn/' : '/en/learn/');
+    $('learnPuzzle').setAttribute('href', zh ? '/zh/weekly-puzzle/' : '/en/weekly-puzzle/');
   }
   function switchLang(lang) {
     TMI18N.setLang(lang);
@@ -520,32 +537,37 @@
     });
     $('setupBack').addEventListener('click', function () { TMUI.showView('home'); });
 
-    // 顶栏
+    // 顶栏下拉菜单（语言 / Learn）
     $('langBtn').addEventListener('click', function (e) {
       e.stopPropagation();
-      if ($('langDropdown').hidden) openLangMenu(); else closeLangMenu(true);
+      if ($('langDropdown').hidden) openDropdown('langBtn', 'langDropdown'); else closeDropdown('langBtn', 'langDropdown', true);
     });
     $('langBtn').addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
-        openLangMenu();
+        openDropdown('langBtn', 'langDropdown');
       } else if (e.key === 'Escape') {
-        closeLangMenu(false);
+        closeDropdown('langBtn', 'langDropdown', false);
       }
     });
-    $('langDropdown').addEventListener('keydown', function (e) {
-      var opts = Array.prototype.slice.call($('langDropdown').querySelectorAll('.lang-option'));
-      var idx = opts.indexOf(document.activeElement);
-      if (e.key === 'Escape') { e.preventDefault(); closeLangMenu(true); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); opts[(idx + 1) % opts.length].focus(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); opts[(idx - 1 + opts.length) % opts.length].focus(); }
-      else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
-      else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
-      else if (e.key === 'Tab') { closeLangMenu(false); }
+    $('langDropdown').addEventListener('keydown', dropdownKeyNav('langBtn', 'langDropdown'));
+    $('learnBtn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      if ($('learnDropdown').hidden) openDropdown('learnBtn', 'learnDropdown'); else closeDropdown('learnBtn', 'learnDropdown', true);
     });
+    $('learnBtn').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        openDropdown('learnBtn', 'learnDropdown');
+      } else if (e.key === 'Escape') {
+        closeDropdown('learnBtn', 'learnDropdown', false);
+      }
+    });
+    $('learnDropdown').addEventListener('keydown', dropdownKeyNav('learnBtn', 'learnDropdown'));
     // 点击菜单外部时收起
     document.addEventListener('click', function (e) {
-      if (!$('langMenu').contains(e.target)) closeLangMenu(false);
+      if (!$('langMenu').contains(e.target)) closeDropdown('langBtn', 'langDropdown', false);
+      if (!$('learnMenu').contains(e.target)) closeDropdown('learnBtn', 'learnDropdown', false);
     });
     $('btnTips').addEventListener('click', function () { openOverlay($('tipsOverlay')); });
     $('btnStats').addEventListener('click', function () { renderStats(); TMUI.showView('stats'); });
