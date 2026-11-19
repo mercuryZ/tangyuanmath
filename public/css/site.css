@@ -230,9 +230,12 @@ section.block > h1, section.block > h2 {
 .info-card .ico { font-size: 26px; color: var(--red); }
 .info-card h3 { font-size: 16px; color: var(--red-deep); margin: 8px 0 6px; }
 .info-card p { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
-/* 水平指引卡片：CTA 统一贴底对齐 */
+/* 水平指引卡片：CTA 统一贴底对齐、在卡内水平居中 */
 #where-to-start .info-card { display: flex; flex-direction: column; align-items: flex-start; }
-#where-to-start .info-card .btn { margin-top: auto; }
+#where-to-start .info-card .btn { margin-top: auto; align-self: center; }
+/* 练习首页模式卡片：三个 CTA 贴底同一水平线、卡内居中（同 #where-to-start 法） */
+#modes .info-card { display: flex; flex-direction: column; align-items: flex-start; }
+#modes .info-card .btn { margin-top: auto; align-self: center; }
 /* 首页免费/支持者对照表 */
 #pricing .practice-table .ico { font-size: 15px; color: var(--red); vertical-align: -2px; }
 #pricing .practice-table .no { color: var(--ink-soft); font-weight: 800; }
