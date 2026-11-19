@@ -213,4 +213,46 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/terms/"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/terms/"/>
   </url>
+  <!-- 以下为英文站新增的图表/口诀表/练习落地页（无中文镜像，self-canonical） -->
+  <url>
+    <loc>https://tangyuanmath.com/en/multiplication-chart/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/multiplication-chart/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/multiplication-chart/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/times-tables/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/times-tables/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/times-tables/"/>
+  </url>
+  <url><loc>https://tangyuanmath.com/en/times-tables/3-times-table/</loc></url>
+  <url><loc>https://tangyuanmath.com/en/times-tables/4-times-table/</loc></url>
+  <url><loc>https://tangyuanmath.com/en/times-tables/6-times-table/</loc></url>
+  <url><loc>https://tangyuanmath.com/en/times-tables/7-times-table/</loc></url>
+  <url><loc>https://tangyuanmath.com/en/times-tables/8-times-table/</loc></url>
+  <url><loc>https://tangyuanmath.com/en/times-tables/12-times-table/</loc></url>
+  <url>
+    <loc>https://tangyuanmath.com/en/practice/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/practice/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/practice/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/practice/times-tables/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/practice/times-tables/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/practice/times-tables/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/practice/2-digit-by-1-digit/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/practice/2-digit-by-1-digit/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/practice/2-digit-by-1-digit/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/practice/2-digit-by-2-digit/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/practice/2-digit-by-2-digit/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/practice/2-digit-by-2-digit/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/challenge/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/challenge/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://tangyuanmath.com/en/challenge/"/>
+  </url>
 </urlset>

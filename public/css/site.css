@@ -282,6 +282,10 @@ section.block > h1, section.block > h2 {
 /* 技巧页：标题与正文卡片作为整体在 1080 容器内居中 */
 section.block.tips-page { max-width: 860px; margin-left: auto; margin-right: auto; }
 
+/* 练习/挑战/口诀类页面：与 tips-page 同法，标题与正文卡片作为整体在 1080 容器内居中，
+   否则 860 的 .prose 卡片左贴边、标题和网格却通栏，右缘参差、跨页不一致 */
+main.wrap.narrow-page > section.block { max-width: 860px; margin-left: auto; margin-right: auto; }
+
 /* 博客列表与文章 */
 /* 文章页：标题、元信息与正文卡片作为一个整体居中 */
 section.block.post-page { max-width: 860px; margin-left: auto; margin-right: auto; }
@@ -1027,3 +1031,26 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
   .learn-progress-fill, .lw-hopper { transition: none; }
   .lw-opt.no { animation: none; }
 }
+
+/* ---------- 乘法图表页 / 单表页（/en/multiplication-chart/、/en/times-tables/） ---------- */
+/* 在页 1–12 / 1–100 图表：紧凑网格，表头行/列用品牌浅红，对角线平方数淡红标记 */
+.chart-table {
+  margin: 12px auto; border-collapse: collapse; background: #fff; font-size: 13px;
+  font-variant-numeric: tabular-nums; text-align: center;
+}
+.chart-table th, .chart-table td {
+  border: 1px solid var(--pink-light); padding: 4px 7px; min-width: 34px; height: 30px;
+}
+.chart-table .ch { background: var(--red-light); color: var(--red-deep); font-weight: 800; }
+.chart-table .sq { background: var(--cream); color: var(--red-deep); font-weight: 700; }
+/* 单表页 1×n 到 12×n 的完整清单：两列并排，公式 + 加粗得数 */
+.tt-facts {
+  width: 100%; max-width: 640px; margin: 12px auto; border-collapse: collapse;
+  background: #fff; border: 2px solid var(--red-light); border-radius: 16px;
+  overflow: hidden; font-size: 16px; font-variant-numeric: tabular-nums;
+}
+.tt-facts td {
+  padding: 10px 18px; border-bottom: 1px dashed var(--pink-light); color: var(--ink);
+}
+.tt-facts tr:last-child td { border-bottom: none; }
+.tt-facts td b { color: var(--red-deep); font-size: 18px; }

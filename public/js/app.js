@@ -487,6 +487,8 @@
       }
       // 对战视图由 race.js 管理，避免 hash 回退把用户从对局里拽出来
       if (name === 'home' || name === 'setup' || name === 'stats' || name === 'versus') TMUI.showView(name);
+      // 挑战深链：/play/#/challenge 直开当前关卡（/en/challenge/ 落地页 CTA）
+      if (name === 'challenge' && !(global.TMRace && global.TMRace.isActive())) TMGame.startChallenge();
     }
     global.addEventListener('hashchange', function () { routeHash(); });
     routeHash(initialHash); // 用留档的初始 hash 复核一次（直接打开深链时生效）
