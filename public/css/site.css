@@ -245,7 +245,6 @@ section.block > h1, section.block > h2 {
   padding: 18px 18px 8px; box-shadow: 0 6px 16px rgba(217, 59, 71, .07); }
 .try-widget h3 { font-size: 16px; color: var(--red-deep); margin: 0 0 6px; }
 .try-widget .lw-quiz { border: none; background: transparent; padding: 0; margin: 0; }
-#try-it .learn-hero-btns { justify-content: center; }
 .try-scenes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 20px; }
 .try-scenes figure { margin: 0; background: #fff; border: 2px solid var(--red-light); border-radius: 20px;
   padding: 12px 12px 10px; box-shadow: 0 6px 16px rgba(217, 59, 71, .07); }
@@ -761,7 +760,11 @@ a.ws-sample { /* a. 前缀提特异性：卡片在 .prose 内也要压过 .prose
 .learn-page .block > h1,
 .learn-page .block > h2,
 .learn-page .prose { max-width: 860px; margin-left: auto; margin-right: auto; }
-.learn-hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+/* CTA 行居中；恰好两个按钮时等宽平分（上限 300px > 最长按钮自然宽 281，防换行）。
+   单按钮场景（首页试玩区）保持自然宽度 */
+.learn-hero-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.learn-hero-btns .btn:first-child:nth-last-child(2),
+.learn-hero-btns .btn:first-child:nth-last-child(2) ~ .btn { flex: 1 1 0; max-width: 300px; }
 .learn-progress { width: 100%; height: 12px; background: var(--red-light); border-radius: 999px; overflow: hidden; margin-top: 16px; }
 .learn-progress-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--red-dark), var(--red-deep)); transition: width .4s ease; }
 .learn-progress-text { font-size: 13px; font-weight: 800; color: var(--ink-soft); margin-top: 6px; }
