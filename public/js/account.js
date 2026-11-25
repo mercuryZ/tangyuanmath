@@ -105,6 +105,7 @@
     } catch (e) { return new Date(ts).toISOString().slice(0, 10); }
   }
   function pricingUrl() { return TMI18N.lang() === 'zh' ? '/zh/pricing/' : '/en/pricing/'; }
+  function refundUrl() { return TMI18N.lang() === 'zh' ? '/zh/refund/' : '/en/refund/'; }
   function worksheetsUrl() { return TMI18N.lang() === 'zh' ? '/zh/worksheets/' : '/en/worksheets/'; }
 
   /* ---------- 认证表单（tab 切换） ---------- */
@@ -257,6 +258,7 @@
     renderSubscription(m.subscription);
     renderBillingPortal(m);
     $('membershipLink').href = pricingUrl();
+    $('refundPolicyLink').href = refundUrl();
   }
 
   /* Waffo 客户门户：取消订阅、更新支付方式、查看账单、提交退款申请。

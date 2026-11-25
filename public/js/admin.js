@@ -178,15 +178,28 @@
     parts.push('<h3>' + esc(t('admin.detailOrders')) + '</h3>');
     if (!d.orders.length) parts.push('<p class="hint">' + esc(t('admin.noOrders')) + '</p>');
     for (const o of d.orders) {
-      parts.push('<div class="s-row"><span>' + esc(t(SKU_LABELS[o.sku] || o.sku)) +
+      const refundable = ['paid', 'canceling', 'past_due'].includes(o.status);
+      parts.push('<div class="s-row" data-order="' + esc(o.orderNo) + '"><span>' + esc(t(SKU_LABELS[o.sku] || o.sku)) +
         ' <small>' + esc(o.orderNo) + ' · ' + esc(o.mode) + '</small></span>' +
-        '<small>' + esc(o.status) + ' · $' + (o.amountMinor / 100).toFixed(2) + ' · ' + fmtDate(o.createdAt) + '</small></div>');
+        '<span><small>' + esc(o.status) + ' · $' + (o.amountMinor / 100).toFixed(2) + ' · ' + fmtDate(o.createdAt) + '</small>' +
+        (refundable ? ' <button class="s-btn danger refund-btn">' + esc(t('admin.markRefunded')) + '</button>' : '') +
+        '</span></div>');
     }
 
     $('detailBody').innerHTML = parts.join('');
     $('detailBody').querySelectorAll('button.danger').forEach(btn => {
       btn.addEventListener('click', async () => {
         const rowEl = btn.closest('.s-row');
+        /* 订单行：标记退款并撤销该订单权益；权益行：撤销指定来源 */
+        if (rowEl.dataset.order) {
+          if (!global.confirm(t('admin.markRefundedConfirm'))) return;
+          btn.disabled = true;
+          const r2 = await global.TMAPI.call('POST', '/api/admin/refund-order', { orderNo: rowEl.dataset.order });
+          btn.disabled = false;
+          if (r2.ok) { toast(t('admin.markRefundedOk')); showMember(familyId); }
+          else toast(t('admin.errorPrefix', { code: r2.code }), true);
+          return;
+        }
         if (!global.confirm(t('admin.revokeConfirm'))) return;
         const body = { familyId: familyId, sourceType: rowEl.dataset.source };
         if (rowEl.dataset.sid) body.sourceId = rowEl.dataset.sid;

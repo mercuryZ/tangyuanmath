@@ -127,7 +127,35 @@ function sendFamilyInviteEmail(email, url, inviterEmail, capture, fetchImpl) {
   }, capture, fetchImpl);
 }
 
+/* 退款完成确认（refund.succeeded webhook / 管理端标记退款后发送）。
+ * plan 是套餐名（英文，如 "Tangyuan Math Supporter — Lifetime"），amount 是展示金额（如 "$149.00"）。 */
+function sendRefundEmail(email, order, capture, fetchImpl) {
+  const amount = order && order.amount ? order.amount : 'the amount paid';
+  return sendMail({
+    to: email,
+    subject: 'Tangyuan Math — your refund has been processed / 退款已处理',
+    text:
+      'Your refund for Tangyuan Math has been processed.\n\n' +
+      'Order: ' + (order && order.orderNo || '(unknown)') + '\n' +
+      'Plan: ' + (order && order.plan || 'Supporter Edition') + '\n' +
+      'Refunded: ' + amount + '\n\n' +
+      'The Supporter features unlocked by this order (Live Race multiplayer and custom printable worksheets) ' +
+      'have been locked again. Everything free on Tangyuan Math stays free for your family, and access from ' +
+      'other sources (a redeem code or a gift) is unaffected.\n\n' +
+      'The money usually returns to your payment method within 5-10 business days, depending on the method.\n' +
+      'Questions? Just reply to this email.\n\n' +
+      '——\n你在汤圆数学的退款已处理完成。\n\n' +
+      '订单号：' + (order && order.orderNo || '（未知）') + '\n' +
+      '套餐：' + (order && order.plan || '支持者会员') + '\n' +
+      '退款金额：' + amount + '\n\n' +
+      '该订单解锁的支持者功能（联机对战与自定义可打印练习卷）已重新锁定。网站的免费功能不受影响，' +
+      '其他来源（兑换码、赠送）的权限也不受影响。\n\n' +
+      '退款通常在 5-10 个工作日内退回原支付方式，具体取决于支付方式。\n' +
+      '有疑问直接回复本邮件。'
+  }, capture, fetchImpl);
+}
+
 module.exports = {
-  sendMail, sendVerificationEmail, sendResetEmail, sendFamilyInviteEmail,
+  sendMail, sendVerificationEmail, sendResetEmail, sendFamilyInviteEmail, sendRefundEmail,
   buildCloudflareRequest, bareAddress
 };

@@ -11,11 +11,13 @@ const { createApp } = require('../server/src/index');
 const mw = require('../server/src/middleware');
 const config = require('../server/src/config');
 const orderStore = require('../server/src/order-store');
+const mailer = require('../server/src/mailer');
 const { initFamilyForNewUser, membershipSummary } = require('../server/src/family');
 const { revokeFamilySource } = require('../server/src/entitlements');
 const waffo = require('../server/src/waffo');
 
 const STORE = config.waffoStoreId || 'STO_test';
+const ADMIN_EMAIL = 'refund-admin@example.com';
 
 function fixture() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-waffo-'));
@@ -96,27 +98,31 @@ test('subscription.activated / renewed：按 currentPeriodEnd 开通并延长', 
     const order = orderStore.createPendingOrder(f.db, {
       familyId: f.familyId, userId: f.userId, sku: 'supporter_monthly', mode: 'test'
     });
+    /* 周期用相对未来的日期：写死日期会随时间过期（「事件时间 +1 月」的兜底会反超）。 */
+    const day = 86400000;
+    const period1 = new Date(Date.now() + 40 * day).toISOString().slice(0, 10);
+    const period2 = new Date(Date.now() + 70 * day).toISOString().slice(0, 10);
     const first = makeEvent('subscription.activated', order.order_no, order.sku,
-      { currentPeriodEnd: '2026-11-20', billingPeriod: 'monthly' });
+      { currentPeriodEnd: period1, billingPeriod: 'monthly' });
     assert.strictEqual(process(f.db, first).status, 'processed');
 
     let rows = orderEntitlements(f.db, f.familyId);
     assert.strictEqual(rows.length, 3);
-    assert.ok(rows.every(r => r.expires_at === Date.parse('2026-11-20')));
+    assert.ok(rows.every(r => r.expires_at === Date.parse(period1)));
 
     // 续费事件把到期时间延后
     const renewed = makeEvent('subscription.renewed', order.order_no, order.sku,
-      { currentPeriodEnd: '2026-12-20', billingPeriod: 'monthly' });
+      { currentPeriodEnd: period2, billingPeriod: 'monthly' });
     process(f.db, renewed);
     rows = orderEntitlements(f.db, f.familyId);
-    assert.ok(rows.every(r => r.expires_at === Date.parse('2026-12-20')));
+    assert.ok(rows.every(r => r.expires_at === Date.parse(period2)));
 
     // 乱序到达的 payment_succeeded（无周期信息）不能把期限改短
     const payment = makeEvent('subscription.payment_succeeded', order.order_no, order.sku,
       { chargedAmount: '4.99' });
     process(f.db, payment);
     rows = orderEntitlements(f.db, f.familyId);
-    assert.ok(rows.every(r => r.expires_at === Date.parse('2026-12-20')));
+    assert.ok(rows.every(r => r.expires_at === Date.parse(period2)));
   } finally {
     f.cleanup();
   }
@@ -596,6 +602,192 @@ test('尝鲜路由守卫：已是会员 409 already_member；用过一次 409 al
     assert.strictEqual(r.status, 409);
     assert.strictEqual(r.json.code, 'already_trial');
   } finally {
+    await ctx.close();
+    f.cleanup();
+  }
+});
+
+/* ---------- 管理端退款兜底（POST /api/admin/refund-order） ---------- */
+
+test.before(() => { config.adminEmails.add(ADMIN_EMAIL); });
+test.after(() => { config.adminEmails.delete(ADMIN_EMAIL); });
+
+function mkAdmin(db, t) {
+  const userId = Number(db.prepare(
+    'INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, created_at) VALUES (?,?,?,?,?)'
+  ).run(ADMIN_EMAIL, 'hash', t, 'en', t).lastInsertRowid);
+  initFamilyForNewUser(db, userId);
+  return userId;
+}
+
+test('管理端标记退款：非管理员 403，管理员标记 paid 订单 → refunded 且只撤销该订单权益', async () => {
+  const f = fixture();
+  const payments = fakePayments();
+  const ctx = await startServer(f.db, payments);
+  const sent = [];
+  const origSend = mailer.sendRefundEmail;
+  mailer.sendRefundEmail = (email, order, capture, fetchImpl) => {
+    sent.push({ email, order });
+    return Promise.resolve();
+  };
+  try {
+    // 一笔已付订单 + 一条独立的补偿来源（退款不应影响它）
+    const order = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
+    });
+    process(f.db, makeEvent('order.completed', order.order_no, order.sku,
+      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } }));
+    f.db.prepare(
+      `INSERT INTO entitlements (family_id, user_id, feature_key, source_type, source_id, starts_at, expires_at)
+       VALUES (?,?, 'live_race', 'grant', 'support-2', ?, NULL)`
+    ).run(f.familyId, f.userId, Date.now());
+
+    const adminId = mkAdmin(f.db, Date.now());
+    const adminToken = mw.createSession(f.db, adminId);
+    const adminCsrf = await getCsrf(ctx.base, adminToken);
+    const plainToken = mw.createSession(f.db, f.userId);
+    const plainCsrf = await getCsrf(ctx.base, plainToken);
+
+    // 非管理员被拒
+    let r = await api(ctx.base, plainToken, plainCsrf, 'POST', '/api/admin/refund-order', { orderNo: order.order_no });
+    assert.strictEqual(r.status, 403);
+    assert.strictEqual(r.json.code, 'admin_required');
+    assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'paid');
+
+    // 管理员标记退款
+    r = await api(ctx.base, adminToken, adminCsrf, 'POST', '/api/admin/refund-order', { orderNo: order.order_no });
+    assert.strictEqual(r.status, 200);
+    assert.strictEqual(r.json.data.status, 'refunded');
+    assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'refunded');
+
+    const orderRows = orderEntitlements(f.db, f.familyId);
+    assert.strictEqual(orderRows.length, 3);
+    assert.ok(orderRows.every(row => row.revoked_at !== null), '该订单来源的权益全部撤销');
+    const grant = f.db.prepare(
+      "SELECT revoked_at FROM entitlements WHERE family_id = ? AND source_type = 'grant' AND source_id = 'support-2'"
+    ).get(f.familyId);
+    assert.strictEqual(grant.revoked_at, null, '补偿来源不受退款影响');
+
+    // 标记退款后发出确认邮件，收件人是最初下单人
+    assert.strictEqual(sent.length, 1);
+    const buyerEmail = f.db.prepare('SELECT email_normalized AS email FROM users WHERE id = ?').get(f.userId).email;
+    assert.strictEqual(sent[0].email, buyerEmail);
+  } finally {
+    mailer.sendRefundEmail = origSend;
+    await ctx.close();
+    f.cleanup();
+  }
+});
+
+test('管理端标记退款：状态守卫与未知订单', async () => {
+  const f = fixture();
+  const ctx = await startServer(f.db, fakePayments());
+  try {
+    const adminId = mkAdmin(f.db, Date.now() + 1);
+    const token = mw.createSession(f.db, adminId);
+    const csrf = await getCsrf(ctx.base, token);
+
+    // pending 订单不可标记为已退款
+    const pending = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_monthly', mode: 'test'
+    });
+    let r = await api(ctx.base, token, csrf, 'POST', '/api/admin/refund-order', { orderNo: pending.order_no });
+    assert.strictEqual(r.status, 409);
+    assert.strictEqual(r.json.code, 'not_refundable');
+
+    // 未知订单 404；缺参数 400
+    r = await api(ctx.base, token, csrf, 'POST', '/api/admin/refund-order', { orderNo: 'TM-NOPE' });
+    assert.strictEqual(r.status, 404);
+    r = await api(ctx.base, token, csrf, 'POST', '/api/admin/refund-order', {});
+    assert.strictEqual(r.status, 400);
+
+    // 已退款订单重复标记 → 409，不会二次撤销/二次发信
+    const paid = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_trial7', mode: 'test'
+    });
+    process(f.db, makeEvent('order.completed', paid.order_no, paid.sku, { chargedAmount: '1.00' }));
+    r = await api(ctx.base, token, csrf, 'POST', '/api/admin/refund-order', { orderNo: paid.order_no });
+    assert.strictEqual(r.status, 200);
+    r = await api(ctx.base, token, csrf, 'POST', '/api/admin/refund-order', { orderNo: paid.order_no });
+    assert.strictEqual(r.status, 409);
+    assert.strictEqual(r.json.code, 'not_refundable');
+  } finally {
+    await ctx.close();
+    f.cleanup();
+  }
+});
+
+test('webhook refund.succeeded 只发一次确认邮件（重复事件不重复打扰）', async () => {
+  const f = fixture();
+  const ctx = await startServer(f.db, fakePayments());
+  const sent = [];
+  const origSend = mailer.sendRefundEmail;
+  mailer.sendRefundEmail = (email, order) => { sent.push({ email, order }); return Promise.resolve(); };
+  try {
+    const order = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_yearly', mode: 'test'
+    });
+    process(f.db, makeEvent('subscription.activated', order.order_no, order.sku, { currentPeriodEnd: '2027-10-20' }));
+
+    const event = makeEvent('refund.succeeded', order.order_no, order.sku,
+      { refundedAmount: '49.00', currentPeriodEnd: '2027-10-20' });
+    const body = JSON.stringify(event);
+    const post = () => fetch(ctx.base + '/api/payments/waffo/webhook', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-waffo-signature': 'good' },
+      body
+    });
+
+    assert.strictEqual((await post()).status, 200);
+    assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'refunded');
+    assert.strictEqual(sent.length, 1);
+    assert.ok(sent[0].order.amount.startsWith('$'), '金额是已格式化的展示金额');
+
+    // 同一事件重发 → duplicate，不再发信
+    assert.strictEqual((await post()).status, 200);
+    assert.strictEqual(sent.length, 1);
+  } finally {
+    mailer.sendRefundEmail = origSend;
+    await ctx.close();
+    f.cleanup();
+  }
+});
+
+test('管理端先标记退款后，真实 webhook 到达不再重复发确认邮件', async () => {
+  const f = fixture();
+  const ctx = await startServer(f.db, fakePayments());
+  const sent = [];
+  const origSend = mailer.sendRefundEmail;
+  mailer.sendRefundEmail = (email, order) => { sent.push({ email, order }); return Promise.resolve(); };
+  try {
+    const order = orderStore.createPendingOrder(f.db, {
+      familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
+    });
+    process(f.db, makeEvent('order.completed', order.order_no, order.sku,
+      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } }));
+
+    const adminId = mkAdmin(f.db, Date.now() + 2);
+    const token = mw.createSession(f.db, adminId);
+    const csrf = await getCsrf(ctx.base, token);
+
+    // 1) 管理端标记退款 → 第一封信
+    let r = await api(ctx.base, token, csrf, 'POST', '/api/admin/refund-order', { orderNo: order.order_no });
+    assert.strictEqual(r.status, 200);
+    assert.strictEqual(sent.length, 1);
+
+    // 2) 补发的 webhook 才到达 → 事件被处理（新 event_id），但订单此前已退款，不再发信
+    const event = makeEvent('refund.succeeded', order.order_no, order.sku,
+      { refundedAmount: '149.00', orderMerchantExternalId: order.order_no });
+    const res = await fetch(ctx.base + '/api/payments/waffo/webhook', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-waffo-signature': 'good' },
+      body: JSON.stringify(event)
+    });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'refunded');
+    assert.strictEqual(sent.length, 1, '不重复发信');
+  } finally {
+    mailer.sendRefundEmail = origSend;
     await ctx.close();
     f.cleanup();
   }

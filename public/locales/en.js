@@ -285,6 +285,7 @@ window.TM_I18N.en = {
   'acct.cancelRenewalConfirm': 'Cancel automatic renewal? You keep access until the end of the paid period.',
   'acct.cancelRenewalDone': 'Renewal cancelled. Access continues until the end of the paid period.',
   'acct.billingPortal': 'Manage subscription & refunds',
+  'acct.refundPolicy': 'Refund policy (14-day window) →',
   'acct.portalPopupBlocked': 'Please allow pop-ups for this site, then try again.',
   'acct.checkoutSuccess': 'Payment received — your membership is active.',
 
@@ -392,6 +393,9 @@ window.TM_I18N.en = {
   'admin.revoke': 'Revoke',
   'admin.revokeConfirm': 'Revoke these entitlements? The family loses the related features immediately.',
   'admin.revokedOk': 'Revoked.',
+  'admin.markRefunded': 'Mark refunded',
+  'admin.markRefundedConfirm': 'Mark this order as refunded and revoke its entitlements? Only do this after the money has actually been refunded in Waffo.',
+  'admin.markRefundedOk': 'Order marked refunded and access revoked.',
   'admin.grantTitle': 'Manual grant',
   'admin.emailPlaceholder': 'parent@example.com',
   'admin.grant': 'Grant',

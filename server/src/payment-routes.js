@@ -13,6 +13,7 @@ const config = require('./config');
 const mw = require('./middleware');
 const orderStore = require('./order-store');
 const waffo = require('./waffo');
+const { sendRefundConfirmation } = require('./refund-notify');
 const { hasFamilyEntitlement } = require('./entitlements');
 
 function publicOrder(order) {
@@ -218,12 +219,29 @@ function buildWaffoWebhookHandler(db, payments) {
     }
 
     try {
+      /* 处理前先看订单是否已被退款（管理端「标记已退款」兜底会先改状态），
+       * 避免同一笔退款发两封确认邮件。退款事件带 orderMerchantExternalId（本站订单号）。 */
+      const preData = (event && event.data) || {};
+      const preOrderNo = (preData.orderMetadata && preData.orderMetadata.orderNo) ||
+        preData.orderMerchantExternalId || null;
+      const preOrder = preOrderNo ? orderStore.getOrderByNo(db, preOrderNo) : null;
+      const alreadyRefunded = !!preOrder && ['refunded', 'partially_refunded'].includes(preOrder.status);
+
       const result = orderStore.processWaffoEvent(db, event, {
         storeId: config.waffoStoreId,
         environment: config.waffoEnvironment
       });
       if (result.status === 'ignored') {
         console.warn('[waffo-webhook] ignored ' + event.eventType + ': ' + result.reason);
+      }
+      /* 退款成功：发确认邮件（只在该事件真正被处理、且此前未退款时发，重复不打扰）。
+       * 金额优先用事件里的实退金额，缺失时退回订单标价。 */
+      if (result.status === 'processed' && event.eventType === 'refund.succeeded' && !alreadyRefunded) {
+        const order = result.orderNo ? orderStore.getOrderByNo(db, result.orderNo) : null;
+        if (order) {
+          const refunded = waffo.amountToMinor((event.data || {}).refundedAmount);
+          sendRefundConfirmation(db, order, refunded !== null ? ('$' + waffo.minorToDisplay(refunded)) : null);
+        }
       }
       return res.status(200).send('OK');
     } catch (err) {

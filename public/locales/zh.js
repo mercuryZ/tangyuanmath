@@ -285,6 +285,7 @@ window.TM_I18N.zh = {
   'acct.cancelRenewalConfirm': '确定取消自动续费吗？已付周期结束前仍可使用。',
   'acct.cancelRenewalDone': '已取消续费。已付周期结束前仍可使用。',
   'acct.billingPortal': '管理订阅与退款',
+  'acct.refundPolicy': '退款政策（14 天无理由）→',
   'acct.portalPopupBlocked': '请允许本站打开新标签页后重试。',
   'acct.checkoutSuccess': '付款成功，会员已开通。',
 
@@ -392,6 +393,9 @@ window.TM_I18N.zh = {
   'admin.revoke': '撤销',
   'admin.revokeConfirm': '撤销这些权益？该家庭将立即失去对应功能。',
   'admin.revokedOk': '已撤销。',
+  'admin.markRefunded': '标记已退款',
+  'admin.markRefundedConfirm': '把这个订单标记为已退款并撤销其权益？请只在 Waffo 后台确实完成退款后再操作。',
+  'admin.markRefundedOk': '订单已标记为退款，权益已撤销。',
   'admin.grantTitle': '手动授予',
   'admin.emailPlaceholder': 'parent@example.com',
   'admin.grant': '授予',

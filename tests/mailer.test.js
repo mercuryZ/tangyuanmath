@@ -88,3 +88,30 @@ test('capture 注入：即使走网络通道也记录邮件内容供测试断言
   assert.strictEqual(capture.length, 1);
   assert.ok(capture[0].text.includes('token=t9'));
 });
+
+test('sendRefundEmail：双语正文含订单号、套餐、金额与权益收回说明', async () => {
+  const capture = [];
+  const fakeFetch = async () => ({ ok: true, status: 200, json: async () => ({ success: true, errors: [], result: { delivered: [] } }) });
+  await mailer.sendRefundEmail('parent@example.com', {
+    orderNo: 'TM-20261125-abcdef123456',
+    plan: 'Tangyuan Math Supporter — Lifetime',
+    amount: '$149.00'
+  }, capture, fakeFetch);
+  assert.strictEqual(capture.length, 1);
+  const mail = capture[0];
+  assert.strictEqual(mail.to, 'parent@example.com');
+  assert.ok(mail.subject.includes('refund has been processed'));
+  assert.ok(mail.subject.includes('退款已处理'));
+  assert.ok(mail.text.includes('TM-20261125-abcdef123456'));
+  assert.ok(mail.text.includes('Tangyuan Math Supporter — Lifetime'));
+  assert.ok(mail.text.includes('$149.00'));
+  assert.ok(mail.text.includes('Live Race'));
+  assert.ok(mail.text.includes('5-10 business days'));
+  assert.ok(mail.text.includes('退款通常在 5-10 个工作日内'));
+
+  // 字段缺失时用兜底文案，不出现 undefined
+  const capture2 = [];
+  await mailer.sendRefundEmail('p@example.com', {}, capture2, fakeFetch);
+  assert.ok(!capture2[0].text.includes('undefined'));
+  assert.ok(capture2[0].text.includes('Supporter Edition'));
+});

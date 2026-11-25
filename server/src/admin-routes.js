@@ -15,6 +15,7 @@ const redeem = require('./redeem');
 const { SKUS } = require('./waffo');
 const { normalizeEmail } = require('./util');
 const family = require('./family');
+const { sendRefundConfirmation } = require('./refund-notify');
 const { SUPPORTER_FEATURES, grantFamilyEntitlement, revokeFamilySource, listActiveEntitlements } = require('./entitlements');
 
 const MUTATE_LIMIT = { windowMs: 10 * 60 * 1000, max: 60, keyFn: q => 'u' + q.user.id, name: 'admin-mutate' };
@@ -104,6 +105,36 @@ function buildAdminRouter(db) {
     ).all(fid);
     const orders = orderStore.listFamilyOrders(db, fid, 50);
     mw.ok(res, { family: summary, membership: family.membershipSummary(db, fid), entitlements, entitlementHistory: allRows, orders });
+  });
+
+  /* ---------- 退款兜底：把订单标记为已退款并撤销该订单来源的权益 ----------
+   * 用于 webhook 丢失（如回调地址配置错误）、或站长已在 Waffo 后台手动退款后对账。
+   * 幂等：重复调用返回 not_refundable；后续真实 webhook 到达也只会命中已撤销的行。 */
+  r.post('/refund-order', mw.rateLimit(MUTATE_LIMIT), mw.csrfProtect, (req, res) => {
+    const orderNo = String((req.body && req.body.orderNo) || '').trim();
+    if (!orderNo) return mw.fail(res, 400, 'invalid_request', 'orderNo is required.');
+    const order = orderStore.getOrderByNo(db, orderNo);
+    if (!order) return mw.fail(res, 404, 'order_not_found', 'No such order.');
+    if (!['paid', 'canceling', 'past_due'].includes(order.status)) {
+      return mw.fail(res, 409, 'not_refundable',
+        'Only a paid, canceling or past-due order can be marked refunded (current: ' + order.status + ').');
+    }
+
+    const tx = db.transaction(() => {
+      db.prepare('UPDATE orders SET status = ?, last_event_at = ?, updated_at = ? WHERE id = ?')
+        .run('refunded', Date.now(), Date.now(), order.id);
+      orderStore.revokeOrderEntitlements(db, order);
+    });
+    tx();
+
+    sendRefundConfirmation(db, { ...order, status: 'refunded' }, null);
+    console.log('[admin] order marked refunded: ' + orderNo + ' by user ' + req.user.id);
+
+    mw.ok(res, {
+      orderNo: order.order_no,
+      status: 'refunded',
+      membership: family.membershipSummary(db, order.family_id)
+    });
   });
 
   /* ---------- 手动授予 / 撤销 ---------- */
