@@ -46,6 +46,7 @@ const TRAILS = {
   'en/learn/teaching-plan': [{ name: 'Home', url: `${SITE}/` }, { name: 'Learn', url: `${SITE}/en/learn/` }, { name: 'Lesson 9: The Coaching Plan' }],
   'en/weekly-puzzle': [{ name: 'Home', url: `${SITE}/` }, { name: 'Weekly Puzzle' }],
   'en/weekly-puzzle/chicken-rabbit': [{ name: 'Home', url: `${SITE}/` }, { name: 'Weekly Puzzle', url: `${SITE}/en/weekly-puzzle/` }, { name: 'Puzzle #1: Heads and Legs' }],
+  'en/weekly-puzzle/bikes-and-trikes': [{ name: 'Home', url: `${SITE}/` }, { name: 'Weekly Puzzle', url: `${SITE}/en/weekly-puzzle/` }, { name: 'Puzzle #2: Bikes and Trikes' }],
 
   /* ---------- zh ---------- */
   'zh/about': [{ name: '首页', url: `${SITE}/zh/` }, { name: '关于' }],
@@ -75,7 +76,8 @@ const TRAILS = {
   'zh/learn/you-know-more': [{ name: '首页', url: `${SITE}/zh/` }, { name: '启蒙课', url: `${SITE}/zh/learn/` }, { name: '第 8 节：只剩十句' }],
   'zh/learn/teaching-plan': [{ name: '首页', url: `${SITE}/zh/` }, { name: '启蒙课', url: `${SITE}/zh/learn/` }, { name: '第 9 节：陪练计划' }],
   'zh/weekly-puzzle': [{ name: '首页', url: `${SITE}/zh/` }, { name: '每周趣题' }],
-  'zh/weekly-puzzle/chicken-rabbit': [{ name: '首页', url: `${SITE}/zh/` }, { name: '每周趣题', url: `${SITE}/zh/weekly-puzzle/` }, { name: '第 1 期：鸡兔同笼' }]
+  'zh/weekly-puzzle/chicken-rabbit': [{ name: '首页', url: `${SITE}/zh/` }, { name: '每周趣题', url: `${SITE}/zh/weekly-puzzle/` }, { name: '第 1 期：鸡兔同笼' }],
+  'zh/weekly-puzzle/bikes-and-trikes': [{ name: '首页', url: `${SITE}/zh/` }, { name: '每周趣题', url: `${SITE}/zh/weekly-puzzle/` }, { name: '第 2 期：自行车与三轮车' }]
 };
 
 function breadcrumbLd(pagePath, trail) {

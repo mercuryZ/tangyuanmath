@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>每周趣题第 2 期：自行车与三轮车 — 汤圆数学</title>
+<meta name="description" content="车棚里 9 辆车、21 个轮子，自行车和三轮车各有几辆？这一期是鸡兔同笼换了件衣服：分步提示、列表试数法和假设法，输入答案点亮小星星。">
+<meta name="keywords" content="自行车三轮车轮子问题, 轮子应用题, 鸡兔同笼变式, 每周趣题, 小学数学趣题, 数学思维训练, 假设法, 列表法, 小学奥数入门, 汤圆数学">
+<link rel="canonical" href="https://tangyuanmath.com/zh/weekly-puzzle/bikes-and-trikes/">
+<link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/weekly-puzzle/bikes-and-trikes/">
+<link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/weekly-puzzle/bikes-and-trikes/">
+<link rel="icon" href="/img/logo_small.png">
+<link rel="stylesheet" href="/css/site.css?v=20261119a">
+<link rel="stylesheet" href="/css/puzzle.css?v=20261117b">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": "https://tangyuanmath.com/zh/weekly-puzzle/bikes-and-trikes/#breadcrumb",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "首页", "item": "https://tangyuanmath.com/zh/"},
+    {"@type": "ListItem", "position": 2, "name": "每周趣题", "item": "https://tangyuanmath.com/zh/weekly-puzzle/"},
+    {"@type": "ListItem", "position": 3, "name": "第 2 期：自行车与三轮车"}
+  ]
+}
+</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/zh/"><img src="/img/logo_small.png" alt="汤圆数学 Logo"><b>汤圆数学</b></a>
+    <nav class="site-nav" aria-label="主导航">
+      <a class="play-cta" href="/play/"><svg class="ico" aria-hidden="true"><use href="/img/icons.svg?v=20261106a#ico-play-solid"/></svg> 开始玩</a>
+      <details class="nav-drawer">
+        <summary aria-label="菜单"><span class="nav-toggle-bars" aria-hidden="true"></span></summary>
+        <div class="nav-links">
+          <div class="nav-sub">
+            <a class="nav-sub-trigger" href="/zh/learn/">启蒙课<svg class="nav-caret" aria-hidden="true" viewBox="0 0 12 8"><path d="M1 1.5 6 6.5 11 1.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <div class="nav-sub-panel">
+              <a href="/zh/learn/">从零开始教乘法</a>
+              <a href="/zh/weekly-puzzle/" aria-current="page">每周趣题</a>
+            </div>
+          </div>
+          <a href="/zh/tips/">速算秘籍</a>
+          <a href="/zh/worksheets/">练习卷</a>
+          <a href="/zh/pricing/">定价</a>
+          <a href="/zh/blog/">博客</a>
+          <a href="/zh/about/">关于</a>
+          <a href="/account/">家长中心</a>
+          <a class="lang-switch" href="/en/weekly-puzzle/bikes-and-trikes/" hreflang="en" lang="en">EN</a>
+        </div>
+      </details>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="block post-page">
+    <p class="post-back"><a class="back-btn" href="/zh/weekly-puzzle/"><span class="back-avatar" aria-hidden="true"><img src="/img/tangyuan_small.png" alt=""></span><span class="back-arrow" aria-hidden="true">←</span>跟着汤圆回每周趣题</a></p>
+    <h1 class="post-title">自行车与三轮车</h1>
+    <p class="post-subtitle">车棚里停着自行车和三轮车。先数车，再数轮——它们各有几辆？</p>
+    <p class="post-meta"><span class="post-chip">每周趣题 · 第 2 期</span><time datetime="2026-11-25">2026 年 11 月 25 日</time></p>
+
+    <div class="prose">
+      <p>这是<a href="/zh/weekly-puzzle/">每周趣题</a>的第 2 期。上一期我们数的是围栏里动物的头和脚，这一期换成数车轮——不过你要留个心眼：<b>这还是同一道题，只是换了件衣服。</b>如果你做对了鸡兔同笼，恭喜，解题的工具你已经有啦。看看你能不能找到它藏在哪儿。</p>
+
+      <h2>题目</h2>
+
+      <p>学校的车棚里停着自行车和三轮车，一共 <b>9 辆车</b>。数一数车轮，一共 <b>21 个轮子</b>。</p>
+
+      <div class="math-block">9 辆车 · 21 个轮子 —— 自行车有几辆？三轮车有几辆？</div>
+
+      <p>每辆车都恰好是其中的一种：自行车 2 个轮子，三轮车 3 个轮子。车筐里没有备胎，谁也没装辅助轮。</p>
+
+      <h2>想一想，再动手</h2>
+
+      <p>先别急着看答案。卡住了也没关系，每点开一条提示，就离答案近一步：</p>
+
+      <details class="pz-hint">
+        <summary>提示一：如果 9 辆全是自行车……</summary>
+        <div class="pz-hint-body">那轮子应该有 9 × 2 = 18 个。可是车棚里实实在在有 21 个轮子——多出来的 21 − 18 = 3 个轮子，是从哪来的？</div>
+      </details>
+      <details class="pz-hint">
+        <summary>提示二：把一辆自行车换成一辆三轮车，会怎样？</summary>
+        <div class="pz-hint-body">车的数量还是 9 辆，没变；但轮子会多 1 个。所以多出来的 3 个轮子，就是「换」出来的——每换一辆，多 1 个轮子。3 ÷ 1 = ？</div>
+      </details>
+
+      <div data-widget="puzzle-answer" data-config='{
+        "puzzleId": "bikes-and-trikes",
+        "formTitle": "轮到你了：输入答案",
+        "inputs": [
+          {"label": "自行车（辆）", "answer": 6},
+          {"label": "三轮车（辆）", "answer": 3}
+        ],
+        "checkText": "检查答案",
+        "retryText": "还没有全对，再想一想。卡住了就点开上面的提示。",
+        "successText": "答对啦！这颗小星星送给你！",
+        "againText": "这道题你已经点亮过小星星啦，可以再试一遍。",
+        "reveal": "answer-solution"
+      }'></div>
+
+      <details class="pz-hint" id="answer-solution">
+        <summary>完整解析（先自己想，再看这里）</summary>
+        <div class="pz-hint-body">
+          <h3>解法一：列表试数法</h3>
+          <p>从「全是自行车」开始试，每换一辆三轮车，轮子就多 1 个，一直到正好 21 个：</p>
+          <div class="table-scroll">
+            <table class="practice-table">
+              <thead>
+                <tr><th scope="col">自行车（辆）</th><th scope="col">三轮车（辆）</th><th scope="col">轮子（个）</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>9</td><td>0</td><td>18</td></tr>
+                <tr><td>7</td><td>2</td><td>20</td></tr>
+                <tr><td>6</td><td>3</td><td><strong>21 ✓</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>解法二：假设法（和上一期的抬脚法同一招）</h3>
+          <p>先假设 9 辆全是自行车，那就有 9 × 2 = 18 个轮子——可实际上有 21 个，少了 3 个。每把一辆自行车换成三轮车，车的数量不变，轮子多 1 个。所以有 3 辆三轮车，剩下 9 − 3 = 6 辆自行车。</p>
+          <div class="math-block">21 − 9 × 2 = 3；3 ÷ 1 = 3（三轮车）；9 − 3 = 6（自行车）</div>
+          <h3>验算</h3>
+          <div class="math-block">6 × 2 + 3 × 3 = 12 + 9 = 21 ✓（车数：6 + 3 = 9 ✓）</div>
+          <p>所以：车棚里有 <b>6 辆自行车、3 辆三轮车</b>。</p>
+        </div>
+      </details>
+
+      <h2>给家长的话</h2>
+
+      <p>这一期是故意设计的<b>「换个壳的复习」</b>：上一期「鸡换兔」每次多 2 只脚，这一期「自行车换三轮车」每次只多 1 个轮子。思路完全一样——先假设简单情况，再解释差在哪——但数字变了，孩子必须重新读题，不能直接套上一期的答案。</p>
+
+      <p>可以问孩子一个问题：<i>「上一期我们换了 5 只动物，这一期为什么只换 3 辆？」</i>答案是：每次「换」换来的东西不一样多，一次多 2 只脚，一次多 1 个轮子。能讲清这一点的孩子，是真的懂了方法，而不是记住了答案。</p>
+
+      <p>孩子做出来了？给他一个大挑战：同一个车棚，这次是 <b>12 辆车、28 个轮子</b>，自行车和三轮车各几辆？（答案：自行车 8 辆、三轮车 4 辆。）</p>
+
+      <p>错过了上一期？回去做做<a href="/zh/weekly-puzzle/chicken-rabbit/">鸡兔同笼</a>——同一招，不同衣服。想先练练基本功，去看看<a href="/zh/learn/">免费的乘法启蒙课</a>，下周同一时间来看第 3 期。</p>
+    </div>
+
+    <p class="post-back post-back-bottom"><a class="back-btn" href="/zh/weekly-puzzle/"><span class="back-avatar" aria-hidden="true"><img src="/img/tangyuan_small.png" alt=""></span><span class="back-arrow" aria-hidden="true">←</span>跟着汤圆回每周趣题</a></p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <span>© 2026 汤圆数学 · 免费练习、无广告、无追踪</span>
+    <span>
+      <a href="/zh/pricing/">定价</a>
+      <a href="/zh/faq/">常见问题</a>
+      <a href="/zh/about/">关于</a>
+      <a href="/zh/privacy/">隐私</a>
+      <a href="/zh/terms/">条款</a>
+      <a href="/zh/refund/">退款政策</a>
+      <a href="mailto:hi@tangyuanmath.com">联系我们</a>
+      <a href="/en/weekly-puzzle/bikes-and-trikes/" lang="en">EN</a>
+    </span>
+  </div>
+</footer>
+
+<script src="/js/puzzle.js?v=20261117a" defer></script>
+<script src="/js/header.js?v=20261023a" defer></script>
+</body>
+</html>

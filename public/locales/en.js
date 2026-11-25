@@ -49,7 +49,7 @@ window.TM_I18N.en = {
   'home.mistakes.cta': 'Review Mistakes →',
   'home.puzzle.title': 'Weekly Puzzle',
   'home.puzzle.chip': 'This week',
-  'home.puzzle.desc': '12 heads, 34 legs — how many chickens, how many rabbits? Solve the 1,500-year-old classic and earn a star.',
+  'home.puzzle.desc': '9 vehicles, 21 wheels — how many bicycles, how many tricycles? Last week\u2019s classic in a new costume.',
   'home.puzzle.cta': 'Try this week\u2019s puzzle →',
   'home.versus.title': 'Race a Friend',
   'home.versus.desc': 'Members only. Same questions, same clock — try 3 days for $1.',

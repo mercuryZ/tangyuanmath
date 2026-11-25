@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="A bicycle and a tricycle at the school bike rack, with a sign counting 9 vehicles and 21 wheels, and Tangyuan counting wheels">
+  <defs>
+    <pattern id="pzb" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.2" fill="#F2555A" opacity="0.10"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="675" fill="#FFF7F2"/>
+  <rect width="1200" height="675" fill="url(#pzb)"/>
+
+  <!-- 地面 -->
+  <rect y="560" width="1200" height="115" fill="#FCE9DF"/>
+
+  <!-- 车棚：棚顶 + 两根立柱 + 斜撑 -->
+  <g fill="none" stroke="#F2A99B" stroke-width="8" stroke-linecap="round">
+    <path d="M 60 300 L 760 300"/>
+    <path d="M 120 300 L 120 560"/>
+    <path d="M 700 300 L 700 560"/>
+    <path d="M 120 300 L 176 348"/>
+    <path d="M 700 300 L 644 348"/>
+  </g>
+  <rect x="120" y="238" width="580" height="62" rx="14" fill="#F2A99B" opacity="0.35"/>
+
+  <!-- 计数牌：9 辆车 · 21 个轮（只用图形和数字，中英页面共用） -->
+  <g>
+    <rect x="856" y="84" width="272" height="168" rx="24" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <path d="M 890 250 L 862 300 L 926 254 Z" fill="#fff" stroke="#F2555A" stroke-width="6" stroke-linejoin="round"/>
+    <!-- 小车图标 -->
+    <g transform="translate(890 132)" fill="none" stroke="#F2555A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="-15" cy="7" r="10"/>
+      <circle cx="15" cy="7" r="10"/>
+      <path d="M -15 7 L -2 -9 L 8 -7 L 15 7"/>
+      <path d="M -2 -9 L 3 -16 M -5 -17 L 7 -14"/>
+    </g>
+    <text x="1012" y="152" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="bold" fill="#D93B47" text-anchor="middle">9</text>
+    <!-- 轮子图标 -->
+    <g transform="translate(890 208)">
+      <circle cx="0" cy="0" r="14" fill="none" stroke="#F2555A" stroke-width="4"/>
+      <g stroke="#F2555A" stroke-width="2.5">
+        <line x1="-10" y1="0" x2="10" y2="0"/>
+        <line x1="0" y1="-10" x2="0" y2="10"/>
+        <line x1="-7" y1="-7" x2="7" y2="7"/>
+        <line x1="-7" y1="7" x2="7" y2="-7"/>
+      </g>
+      <circle cx="0" cy="0" r="4" fill="#F2555A"/>
+    </g>
+    <text x="1012" y="226" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="bold" fill="#D93B47" text-anchor="middle">21</text>
+  </g>
+
+  <!-- 自行车 -->
+  <g transform="translate(240 500)">
+    <g fill="none" stroke="#F2555A" stroke-width="8">
+      <circle cx="-78" cy="0" r="46"/>
+      <circle cx="78" cy="0" r="46"/>
+    </g>
+    <circle cx="-78" cy="0" r="7" fill="#F2555A"/>
+    <circle cx="78" cy="0" r="7" fill="#F2555A"/>
+    <g fill="none" stroke="#F2555A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M -78 0 L -30 -66 L 40 -66 L 78 0"/>
+      <path d="M -30 -66 L 10 -8 L -78 0"/>
+      <path d="M 10 -8 L 40 -66"/>
+      <path d="M 40 -66 L 42 -98 M 22 -102 L 62 -94"/>
+      <path d="M -30 -66 L -34 -86"/>
+    </g>
+    <ellipse cx="-34" cy="-90" rx="26" ry="9" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <circle cx="10" cy="-8" r="13" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <line x1="10" y1="-8" x2="-6" y2="8" stroke="#F2555A" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- 三轮车：一个大前轮 + 两个后轮（错开表现纵深） -->
+  <g transform="translate(620 505)">
+    <g fill="none" stroke="#F2555A" stroke-width="8">
+      <circle cx="-84" cy="-24" r="28"/>
+      <circle cx="-112" cy="28" r="30"/>
+      <circle cx="92" cy="-4" r="46"/>
+    </g>
+    <circle cx="-84" cy="-24" r="6" fill="#F2555A"/>
+    <circle cx="-112" cy="28" r="6" fill="#F2555A"/>
+    <circle cx="92" cy="-4" r="7" fill="#F2555A"/>
+    <g fill="none" stroke="#F2555A" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M -84 -24 L -66 -70"/>
+      <path d="M -112 28 L -66 -70"/>
+      <path d="M -66 -70 L 70 -54 L 92 -4"/>
+      <path d="M 70 -54 L 76 -92 M 54 -98 L 94 -88"/>
+    </g>
+    <ellipse cx="-70" cy="-74" rx="27" ry="9" fill="#fff" stroke="#F2555A" stroke-width="7"/>
+    <!-- 车筐 -->
+    <g fill="#fff" stroke="#F2555A" stroke-width="6" stroke-linejoin="round">
+      <rect x="84" y="-108" width="46" height="30" rx="8"/>
+    </g>
+  </g>
+
+  <!-- 问号：各有几辆？ -->
+  <g font-family="Georgia, 'Times New Roman', serif" font-size="52" font-weight="bold" fill="#D93B47" text-anchor="middle">
+    <text x="240" y="352">?</text>
+    <text x="620" y="358">?</text>
+  </g>
+
+  <!-- 汤圆数轮子 -->
+  <g transform="translate(1000 426)">
+    <path d="M -80 -34 Q -116 -62 -150 -58" fill="none" stroke="#F2555A" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="-150" cy="-58" r="17" fill="#fff" stroke="#F2555A" stroke-width="6"/>
+    <circle cx="0" cy="70" r="118" fill="#fff" stroke="#F2555A" stroke-width="8"/>
+    <circle cx="-42" cy="34" r="11" fill="#5D3A3A"/>
+    <circle cx="42" cy="34" r="11" fill="#5D3A3A"/>
+    <path d="M -36 84 Q 0 112 36 84" fill="none" stroke="#5D3A3A" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="-72" cy="72" rx="12" ry="8" fill="#FFC2CC"/>
+    <ellipse cx="72" cy="72" rx="12" ry="8" fill="#FFC2CC"/>
+  </g>
+
+  <!-- 点缀星星 -->
+  <g fill="#F5A623">
+    <path d="M 636 148 l 8 20 22 3 -16 15 4 21 -18 -10 -18 10 4 -21 -16 -15 22 -3 z"/>
+    <path d="M 150 168 l 6 15 17 2 -12 11 3 16 -14 -7 -14 7 3 -16 -12 -11 17 -2 z" opacity="0.85"/>
+  </g>
+</svg>

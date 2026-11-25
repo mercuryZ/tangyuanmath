@@ -5,14 +5,18 @@
 > 2. 改 head 的 title/description/keywords/canonical/hreflang，改 lang-switch 互链与返回链接；
 > 3. 题面、提示（`.pz-hint`）、`data-widget="puzzle-answer"` 的 `data-config`（改 `puzzleId`、`inputs` 的 label 和 answer）、解析（`details#answer-solution`）；
 > 4. 栏目页 `weekly-puzzle/index.html`：把原 featured 卡片挪进 `.post-grid`（照博客列表 `.post-tile` 格式），新卡放上 featured 位；
-> 5. `public/sitemap.xml` 追加 en/zh 两条互指 hreflang；`server/src/index.js` 的 `BARE_PAGE_REDIRECTS` 视需要加裸路径（一般不需要，栏目入口即可）；
-> 6. 本地浏览器验证交互后提交。
+> 5. 首页三份（`public/index.html`、`public/en/index.html`、`public/zh/index.html`）的 `#weekly-puzzle` 区块、`/play/` 卡片（`public/play/index.html` 的 `#cardPuzzle` 与 `public/js/app.js` 的 `syncFooterLinks`）、`home.puzzle.desc`（两个 locale）、`public/sitemap.xml` 的 en/zh 两条互指 hreflang、`scripts/add-breadcrumbs.js` 的 TRAILS 都要同步；裸路径 `BARE_PAGE_REDIRECTS` 一般不需要（栏目入口即可）；
+> 6. 改了 `locales/*.js` 要把引用它的页面 `?v=` 一起 bump（play / account / admin 三处）；改了 `app.js` 要 bump `public/play/index.html` 里的 `app.js?v=`；
+> 7. 本地浏览器验证交互后提交。
 >
 > 全部题目数值都已验算。难度与第 1 期相当：小学中高年级，重思路轻计算。
+>
+> **进度**：第 1 期 `chicken-rabbit`（2026-11-17）、第 2 期 `bikes-and-trikes`（2026-11-25，用下面第 1 题）已上线。下一期从下面第 2 题（蜘蛛与甲虫）起，做完的在题目前记一行「已发布」。 
+
 
 ---
 
-## 1. 停车场里的自行车与三轮车（第 1 期的直接复习题）
+## 1. 停车场里的自行车与三轮车（第 1 期的直接复习题）— ✅ 已发布（第 2 期，slug `bikes-and-trikes`，2026-11-25）
 - **slug 建议**：`bikes-and-trikes`
 - **中文题面**：停车场里停着自行车和三轮车共 9 辆，轮子一共 21 个。自行车和三轮车各有几辆？
 - **English** (localized): At the school bike rack there are bicycles and tricycles — 9 vehicles altogether, with 21 wheels in total. How many are bicycles and how many are tricycles?

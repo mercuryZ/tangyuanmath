@@ -49,7 +49,7 @@ window.TM_I18N.zh = {
   'home.mistakes.cta': '开始重练 →',
   'home.puzzle.title': '每周趣题',
   'home.puzzle.chip': '本周更新',
-  'home.puzzle.desc': '12 个头、34 只脚——鸡和兔各几只？做出这道约 1500 岁的老题，点亮一颗星星。',
+  'home.puzzle.desc': '9 辆车、21 个轮子——自行车和三轮车各几辆？上一期的经典题换了件衣服。',
   'home.puzzle.cta': '挑战本周趣题 →',
   'home.versus.title': '和朋友比一场',
   'home.versus.desc': '会员专属。同一套题、同一个倒计时——$1 体验 3 天。',
