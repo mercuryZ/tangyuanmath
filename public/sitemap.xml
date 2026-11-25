@@ -213,6 +213,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/terms/"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/terms/"/>
   </url>
+  <url>
+    <loc>https://tangyuanmath.com/en/refund/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/refund/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/refund/"/>
+  </url>
+  <url>
+    <loc>https://tangyuanmath.com/zh/refund/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://tangyuanmath.com/en/refund/"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://tangyuanmath.com/zh/refund/"/>
+  </url>
   <!-- 以下为英文站新增的图表/口诀表/练习落地页（无中文镜像，self-canonical） -->
   <url>
     <loc>https://tangyuanmath.com/en/multiplication-chart/</loc>

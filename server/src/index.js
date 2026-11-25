@@ -91,6 +91,7 @@ function createApp(db, opts) {
     '/privacy': '/en/privacy/',
     '/about': '/en/about/',
     '/terms': '/en/terms/',
+    '/refund': '/en/refund/',
     '/faq': '/en/faq/',
     '/tips': '/en/tips/',
     '/blog': '/en/blog/',
