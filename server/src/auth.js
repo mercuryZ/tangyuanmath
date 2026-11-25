@@ -127,6 +127,20 @@ function oauthRedirectUri(req) {
   return req.protocol + '://' + req.get('host') + '/api/auth/google/callback';
 }
 
+/* Google 回跳目标：只接受站内相对路径（防开放重定向）。
+ * 悬浮登录框可以在任意页面弹出，登录后要回到用户原来那一页，而不是一律 /account/。 */
+function safeNextPath(value) {
+  if (typeof value !== 'string' || !value) return '';
+  if (value.charAt(0) !== '/') return '';
+  if (value.charAt(1) === '/' || value.charAt(1) === '\\') return ''; // //evil.com、/\evil.com
+  if (value.indexOf('/api/') === 0) return '';
+  if (value.indexOf('/account') === 0) return '';
+  return value;
+}
+
+const OAUTH_NEXT_COOKIE = 'tm_oauth_next';
+const OAUTH_COOKIE_PATH = '/api/auth/google';
+
 function buildAuthRouter(db) {
   const r = express.Router();
 
@@ -341,6 +355,17 @@ function buildAuthRouter(db) {
         secure: req.secure || config.isProd,
         maxAge: 10 * 60 * 1000, path: '/api/auth/google'
       });
+      // 悬浮登录框带 next：授权回来落回原页面（留档 10 分钟，路径限定 OAuth 端点）
+      const nextPath = safeNextPath(req.query.next);
+      if (nextPath) {
+        res.cookie(OAUTH_NEXT_COOKIE, nextPath, {
+          httpOnly: true, sameSite: 'lax',
+          secure: req.secure || config.isProd,
+          maxAge: 10 * 60 * 1000, path: OAUTH_COOKIE_PATH
+        });
+      } else {
+        res.clearCookie(OAUTH_NEXT_COOKIE, { path: OAUTH_COOKIE_PATH });
+      }
       const url = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
         client_id: config.googleClientId,
         redirect_uri: oauthRedirectUri(req),
@@ -407,8 +432,20 @@ function buildAuthRouter(db) {
       const token = createSession(db, resolved.user.id);
       setSessionCookie(req, res, token);
       issueCsrfCookie(req, res); // 回到 /account/ 后立即可调用修改类接口
+      // 悬浮登录框发起的授权：回到用户原来那一页（Cookie 里的是站内相对路径）
+      const landing = safeNextPath(req.cookies ? req.cookies[OAUTH_NEXT_COOKIE] : '');
+      res.clearCookie(OAUTH_NEXT_COOKIE, { path: OAUTH_COOKIE_PATH });
       // 邀请落地页设置的 Cookie 必须带回参数，否则 Google 回跳后会丢失邀请
-      res.redirect('/account/' + (req.cookies && req.cookies.tm_invite ? '?invite=1' : ''));
+      const invite = req.cookies && req.cookies.tm_invite ? 'invite=1' : '';
+      if (landing) {
+        if (invite) {
+          landing.indexOf('?') === -1
+            ? (landing += '?invite=1')
+            : (landing += '&invite=1');
+        }
+        return res.redirect(landing);
+      }
+      res.redirect('/account/' + (invite ? '?invite=1' : ''));
     });
 
   return r;
@@ -495,5 +532,5 @@ function updateMeHandler(db) {
 module.exports = {
   buildAuthRouter, meHandler, updateMeHandler,
   issueOneTimeToken, setSessionCookie, clearSessionCookie, publicUser,
-  resolveGoogleUser, googleEnabled
+  resolveGoogleUser, googleEnabled, safeNextPath
 };

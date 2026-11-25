@@ -484,6 +484,38 @@ test('Google：callback 缺 state/伪造 state 一律被拒', async () => {
   assert.ok(bad2.headers.get('location').includes('google_error'));
 });
 
+/* 悬浮登录框：Google 授权完成后回跳原页面。只接受站内相对路径，防开放重定向。 */
+const { safeNextPath, googleEnabled } = require('../server/src/auth');
+
+test('Google next：只接受站内相对路径，拒绝协议相对 / 站外 / 登录页', () => {
+  assert.strictEqual(safeNextPath('/en/about/'), '/en/about/');
+  assert.strictEqual(safeNextPath('/zh/pricing/?buy=supporter_year'), '/zh/pricing/?buy=supporter_year');
+  assert.strictEqual(safeNextPath('https://evil.example.com/'), '', '绝对地址拒绝');
+  assert.strictEqual(safeNextPath('//evil.example.com/'), '', '协议相对地址拒绝');
+  assert.strictEqual(safeNextPath('/\\evil.example.com'), '', '反斜杠变体拒绝');
+  assert.strictEqual(safeNextPath('/account/'), '', '登录页不回跳（避免循环）');
+  assert.strictEqual(safeNextPath('/api/auth/google'), '', 'API 路径拒绝');
+  assert.strictEqual(safeNextPath(''), '');
+  assert.strictEqual(safeNextPath(null), '');
+  assert.strictEqual(safeNextPath(42), '');
+});
+
+test('Google next：入口带 next 时写回跳 Cookie', async () => {
+  const r = await fetch(base + '/api/auth/google?next=' + encodeURIComponent('/en/about/'), { redirect: 'manual' });
+  assert.strictEqual(r.status, 302);
+  const cookies = r.headers.getSetCookie ? r.headers.getSetCookie() : [];
+  if (!googleEnabled()) {
+    // 测试环境没有 Google 密钥：入口直接带错误码回 account，不会走到写 Cookie
+    assert.ok(r.headers.get('location').includes('google_not_configured'));
+    return;
+  }
+  assert.ok(cookies.some(c => c.startsWith('tm_oauth_next=/en/about/')), 'cookies: ' + JSON.stringify(cookies));
+  // 站外 next 不落 Cookie
+  const evil = await fetch(base + '/api/auth/google?next=' + encodeURIComponent('//evil.example.com/'), { redirect: 'manual' });
+  const evilCookies = evil.headers.getSetCookie ? evil.headers.getSetCookie() : [];
+  assert.ok(!evilCookies.some(c => c.startsWith('tm_oauth_next=/')), '站外地址不落 Cookie');
+});
+
 test('登录限流：连续失败最终 429', async () => {
   let saw429 = false;
   for (let i = 0; i < 15; i++) {

@@ -574,7 +574,11 @@
     $('btnTips').addEventListener('click', function () { openOverlay($('tipsOverlay')); });
     $('btnStats').addEventListener('click', function () { renderStats(); TMUI.showView('stats'); });
     $('btnSettings').addEventListener('click', function () { renderSettings(); openOverlay($('settingsOverlay')); });
-    $('btnAccount').addEventListener('click', function () { location.href = '/account/'; });
+    $('btnAccount').addEventListener('click', function () {
+      // 未登录：就地弹出悬浮登录框（auth-modal.js）；已登录：进家长中心
+      if (global.TMAuthModal && global.TMAuthModal.openIfSignedOut()) return;
+      location.href = '/account/';
+    });
     $('statsBack').addEventListener('click', function () { TMUI.showView('home'); refreshHome(); });
 
     // 登录态刷新：恢复会话、清空离线上报队列（按账号隔离，DESIGN 4.3）
@@ -592,8 +596,28 @@
           btn.textContent = t('nav.account');
           btn.setAttribute('aria-pressed', 'true');
         }
+        /* 未登录时按钮文案由 auth-modal 负责（显示「登录」）；这里同步一次状态，
+         * 避免上面的昵称 / 账号文案与弹框里的登录态判断不一致 */
+        if (global.TMAuthModal && global.TMAuthModal.setSignedIn) {
+          global.TMAuthModal.setSignedIn(!!(st.user || st.child));
+        }
       });
     }
+
+    /* 弹框里登录成功后刷新游戏内状态（会员 / 档案 / 错题本） */
+    document.addEventListener('tm:authchange', function () {
+      refreshHome();
+      var btn = $('btnAccount');
+      var st = global.TMAPI && global.TMAPI.state;
+      if (!btn || !st) return;
+      if (st.child) {
+        btn.textContent = st.child.nickname;
+        btn.setAttribute('aria-pressed', 'true');
+      } else if (st.user) {
+        btn.textContent = t('nav.account');
+        btn.setAttribute('aria-pressed', 'true');
+      }
+    });
 
     // 弹窗关闭（含 Esc 与遮罩点击）
     [['tipsOverlay', 'tipsCloseBtn'], ['settingsOverlay', 'settingsCloseBtn'], ['resultOverlay', null]].forEach(function (pair) {

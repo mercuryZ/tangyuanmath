@@ -163,6 +163,7 @@ function footerHtml() {
       <a href="/en/about/">About</a>
       <a href="/en/privacy/">Privacy</a>
       <a href="/en/terms/">Terms</a>
+      <a href="/en/refund/">Refund Policy</a>
       <a href="mailto:hi@tangyuanmath.com">Contact</a>
       <a href="/zh/" lang="zh">中文</a>
     </span>
@@ -243,7 +244,8 @@ function tablePage(n) {
 <link rel="alternate" hreflang="en" href="${SITE}/en/times-tables/${slug}/">
 <link rel="alternate" hreflang="x-default" href="${SITE}/en/times-tables/${slug}/">
 <link rel="icon" href="/img/logo_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261118b">
+<link rel="stylesheet" href="/css/site.css?v=20261119a">
+<link rel="stylesheet" href="/css/auth-modal.css?v=20261125a">
 ${breadcrumbLd(slug, `The ${n} Times Table`)}
 ${faqLd(slug, T.faqs)}
 </head>
@@ -251,7 +253,7 @@ ${faqLd(slug, T.faqs)}
 
 ${headerHtml(slug)}
 
-<main class="wrap">
+<main class="wrap narrow-page">
   <section class="block">
     <h1><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-cards"/></svg> The ${n} Times Table</h1>
     <div class="prose">
@@ -305,6 +307,7 @@ ${faqsHtml}
 ${footerHtml()}
 
 <script src="/js/header.js?v=20261023a" defer></script>
+<script src="/js/auth-modal.js?v=20261125a" defer></script>
 </body>
 </html>
 `;
@@ -341,7 +344,8 @@ function hubPage() {
 <link rel="alternate" hreflang="en" href="${SITE}/en/times-tables/">
 <link rel="alternate" hreflang="x-default" href="${SITE}/en/times-tables/">
 <link rel="icon" href="/img/logo_small.png">
-<link rel="stylesheet" href="/css/site.css?v=20261118b">
+<link rel="stylesheet" href="/css/site.css?v=20261119a">
+<link rel="stylesheet" href="/css/auth-modal.css?v=20261125a">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -358,7 +362,7 @@ function hubPage() {
 
 ${headerHtml('')}
 
-<main class="wrap">
+<main class="wrap narrow-page">
   <section class="block">
     <h1><svg class="ico h-ico" aria-hidden="true"><use href="/img/icons.svg#ico-cards"/></svg> Times Tables, One Page Each</h1>
     <div class="prose">
@@ -396,6 +400,7 @@ ${cards}
 ${footerHtml()}
 
 <script src="/js/header.js?v=20261023a" defer></script>
+<script src="/js/auth-modal.js?v=20261125a" defer></script>
 </body>
 </html>
 `;

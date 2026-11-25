@@ -1,0 +1,215 @@
+/* Tangyuan Math — 全站悬浮登录框（auth-modal.js 的样式）
+ * 依赖页面已有的主题变量（site.css / play.css 都定义了同一套），
+ * 变量都带兜底值，两套页面共用这一份样式。
+ * 结构：.tm-auth-overlay > .tm-auth-panel（tabs / 表单 / Google / 脚注）
+ */
+
+.tm-auth-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(93, 58, 58, .45);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  animation: tm-auth-fade .16s ease-out;
+}
+.tm-auth-overlay[hidden] { display: none !important; }
+.tm-auth-tabs[hidden], .tm-auth-divider[hidden], .tm-auth-form[hidden],
+.tm-auth-google[hidden], .tm-auth-msg[hidden], .tm-auth-hint[hidden] { display: none !important; }
+
+@keyframes tm-auth-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tm-auth-rise {
+  from { opacity: 0; transform: translateY(14px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+
+.tm-auth-panel {
+  position: relative;
+  width: 100%; max-width: 404px;
+  max-height: calc(100vh - 40px); overflow-y: auto;
+  padding: 26px 26px 20px;
+  background: #fff;
+  border: 2px solid var(--pink-light, #FFDAD4);
+  border-radius: 24px;
+  box-shadow: 0 30px 60px rgba(176, 42, 55, .3), 0 2px 0 rgba(255, 255, 255, .6) inset;
+  animation: tm-auth-rise .22s cubic-bezier(.2, 1.2, .4, 1);
+  text-align: center;
+}
+
+/* 关闭按钮：右上角圆形幽灵按钮 */
+.tm-auth-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 34px; height: 34px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 999px; background: transparent;
+  color: var(--ink-soft, #85606A); cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.tm-auth-close:hover { background: var(--red-light, #FFE9E6); color: var(--red-deep, #D93B47); }
+.tm-auth-close svg { width: 16px; height: 16px; }
+.tm-auth-close:focus-visible { outline: 3px solid var(--red-light, #FFE9E6); outline-offset: 1px; }
+
+/* 品牌区 */
+.tm-auth-head { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 2px 30px 0; }
+.tm-auth-logo {
+  width: 52px; height: 52px; border-radius: 18px;
+  border: 2px solid #fff; box-shadow: 0 0 0 2px var(--pink, #FFC2CC);
+  background: #fff; margin-bottom: 4px;
+}
+.tm-auth-title {
+  font-size: 21px; font-weight: 900; line-height: 1.2; letter-spacing: -.2px;
+  color: #AC3939;
+}
+.tm-auth-sub {
+  font-size: 13px; font-weight: 700; line-height: 1.5;
+  color: var(--ink-soft, #85606A);
+}
+
+/* Tab：登录 / 注册，选中项用下划线（沿用站点深红，不用蓝色） */
+.tm-auth-tabs {
+  display: flex; justify-content: center; gap: 26px;
+  margin: 18px 0 16px;
+  border-bottom: 2px solid var(--red-light, #FFE9E6);
+}
+.tm-auth-tab {
+  appearance: none; -webkit-appearance: none;
+  border: 0; background: none; cursor: pointer;
+  font-family: inherit; font-size: 14.5px; font-weight: 800;
+  color: var(--ink-soft, #85606A);
+  padding: 8px 2px 10px;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+.tm-auth-tab:hover { color: var(--red-deep, #D93B47); }
+.tm-auth-tab[aria-selected="true"] { color: #AC3939; border-bottom-color: var(--red-deep, #D93B47); }
+.tm-auth-tab:focus-visible { outline: 3px solid var(--red-light, #FFE9E6); outline-offset: 2px; border-radius: 6px; }
+
+/* 表单 */
+.tm-auth-form { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.tm-auth-form[hidden] { display: none !important; }
+.tm-auth-field { display: flex; flex-direction: column; gap: 5px; }
+.tm-auth-label-row { display: flex; align-items: baseline; justify-content: flex-end; gap: 10px; }
+.tm-auth-label {
+  font-size: 12.5px; font-weight: 800; color: var(--ink, #5D3A3A);
+  letter-spacing: .1px;
+}
+.tm-auth-link-btn {
+  appearance: none; -webkit-appearance: none; border: 0; background: none;
+  padding: 0; cursor: pointer; font-family: inherit;
+  font-size: 12.5px; font-weight: 800; color: var(--red-deep, #D93B47);
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.tm-auth-link-btn:hover { color: var(--red-dark, #B02A37); }
+.tm-auth-link-btn:focus-visible { outline: 3px solid var(--red-light, #FFE9E6); outline-offset: 2px; border-radius: 4px; }
+
+.tm-auth-input {
+  width: 100%; padding: 12px 14px;
+  font-family: inherit; font-size: 15px; font-weight: 700;
+  color: var(--ink, #5D3A3A);
+  background: var(--cream, #FFF7F2);
+  border: 2px solid var(--pink-light, #FFDAD4); border-radius: 13px;
+  transition: border-color .15s, background .15s;
+}
+.tm-auth-input::placeholder { color: #B08A92; font-weight: 600; }
+.tm-auth-input:hover { border-color: var(--pink, #FFC2CC); }
+.tm-auth-input:focus { border-color: var(--red, #F2555A); background: #fff; outline: none; }
+.tm-auth-input:focus-visible { outline: 3px solid var(--red-light, #FFE9E6); outline-offset: 1px; }
+
+.tm-auth-hint { font-size: 12px; font-weight: 600; line-height: 1.5; color: var(--ink-soft, #85606A); }
+.tm-auth-hint:empty { display: none; }
+
+/* 主按钮：与全站 .btn-primary 同一渐变与立体投影，圆角改小以适配紧凑弹窗 */
+.tm-auth-submit {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; margin-top: 2px;
+  padding: 13px 20px; border: 0; border-radius: 13px; cursor: pointer;
+  font-family: inherit; font-size: 15.5px; font-weight: 900; letter-spacing: .3px;
+  color: #fff;
+  background: linear-gradient(180deg, var(--red, #F2555A), var(--red-deep, #D93B47));
+  box-shadow: 0 3px 0 var(--red-dark, #B02A37);
+  transition: transform .1s, box-shadow .15s, filter .15s;
+}
+.tm-auth-submit:hover { filter: brightness(1.03); }
+.tm-auth-submit:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--red-dark, #B02A37); }
+.tm-auth-submit[aria-busy="true"] { opacity: .75; cursor: progress; }
+.tm-auth-submit:focus-visible { outline: 3px solid var(--pink, #FFC2CC); outline-offset: 2px; }
+
+/* 错误 / 成功提示 */
+.tm-auth-msg {
+  margin: 10px 0 0; padding: 9px 12px;
+  font-size: 12.8px; font-weight: 700; line-height: 1.5; text-align: left;
+  border-radius: 11px;
+  background: var(--red-light, #FFE9E6); color: var(--red-dark, #B02A37);
+  border: 2px solid var(--pink-light, #FFDAD4);
+}
+.tm-auth-msg[hidden] { display: none !important; }
+.tm-auth-msg.is-ok {
+  background: var(--green-light, #E3F6EC); color: var(--green, #218050);
+  border-color: #B7E4C9;
+}
+
+/* 分隔线：or */
+.tm-auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 16px 0 12px;
+  font-size: 12px; font-weight: 800; color: var(--ink-soft, #85606A);
+}
+.tm-auth-divider::before, .tm-auth-divider::after {
+  content: ''; flex: 1; height: 2px; border-radius: 2px;
+  background: var(--red-light, #FFE9E6);
+}
+
+/* Google：白底描边按钮，与主按钮同宽 */
+.tm-auth-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 12px 16px;
+  font-family: inherit; font-size: 14.5px; font-weight: 800;
+  color: var(--ink, #5D3A3A); text-decoration: none;
+  background: #fff;
+  border: 2px solid var(--pink-light, #FFDAD4); border-radius: 13px;
+  box-shadow: 0 2px 0 var(--pink-light, #FFDAD4);
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.tm-auth-google:hover { background: var(--cream, #FFF7F2); border-color: var(--pink, #FFC2CC); color: var(--ink, #5D3A3A); }
+.tm-auth-google:active { transform: translateY(1px); box-shadow: none; }
+.tm-auth-google svg { flex-shrink: 0; }
+.tm-auth-google[hidden] { display: none !important; }
+
+/* 学生登录入口：主按钮 / Google 按钮下方的次级切换 */
+#tmAuthStudentLink { display: block; margin: 10px auto 0; }
+#tmAuthStudentLink:focus-visible { outline: 3px solid var(--red-light, #FFE9E6); outline-offset: 3px; border-radius: 4px; }
+
+/* 底部：学生登录 + 条款 */
+.tm-auth-foot { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.tm-auth-note {
+  font-size: 11.5px; font-weight: 600; line-height: 1.6; color: var(--ink-soft, #85606A);
+  max-width: 320px;
+}
+.tm-auth-note a { color: var(--red-deep, #D93B47); }
+
+/* 打开时锁住背景滚动 */
+body.tm-auth-lock { overflow: hidden; }
+
+/* ---------- 页头入口：未登录时「家长中心」变成描边胶囊「登录」 ---------- */
+.site-nav a.nav-auth-link {
+  border-color: var(--red-deep, #D93B47);
+  background: #fff; color: var(--red-deep, #D93B47);
+}
+.site-nav a.nav-auth-link:hover {
+  background: var(--red-light, #FFE9E6); border-color: var(--red-deep, #D93B47);
+}
+.chip-btn.nav-auth-link { border-color: var(--red-deep, #D93B47); color: var(--red-deep, #D93B47); }
+
+/* 弹框内的文字链接（条款）：跟着品牌色走，不使用浏览器默认蓝 */
+.tm-auth-note a { color: var(--red-deep, #D93B47); font-weight: 800; }
+.tm-auth-note a:hover { color: var(--red-dark, #B02A37); }
+
+@media (max-width: 480px) {
+  .tm-auth-panel { padding: 22px 18px 18px; border-radius: 20px; }
+  .tm-auth-title { font-size: 19px; }
+  .tm-auth-tabs { gap: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-auth-overlay, .tm-auth-panel { animation: none; }
+  .tm-auth-submit, .tm-auth-google, .tm-auth-input { transition: none; }
+}
