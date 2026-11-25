@@ -16,6 +16,7 @@
     "revoke-launch-promo": "node scripts/revoke-launch-promo.js",
     "waffo:products": "node scripts/waffo-setup.js products",
     "waffo:list": "node scripts/waffo-setup.js list",
+    "waffo:prices": "node scripts/waffo-setup.js prices",
     "waffo:webhook": "node scripts/waffo-setup.js webhook",
     "waffo:publish": "node scripts/waffo-setup.js publish"
   },

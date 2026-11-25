@@ -25,11 +25,11 @@ const SKUS = {
     name: 'Tangyuan Math Supporter — Monthly'
   },
   supporter_yearly: {
-    kind: 'subscription', months: 12, amountMinor: 4900, currency: CURRENCY,
+    kind: 'subscription', months: 12, amountMinor: 2900, currency: CURRENCY,
     name: 'Tangyuan Math Supporter — Yearly'
   },
   supporter_lifetime: {
-    kind: 'onetime', months: null, amountMinor: 14900, currency: CURRENCY,
+    kind: 'onetime', months: null, amountMinor: 8900, currency: CURRENCY,
     name: 'Tangyuan Math Supporter — Lifetime'
   }
 };
@@ -293,6 +293,43 @@ async function ensureProducts() {
   return { ids, created, warnings };
 }
 
+/* 把店里已有商品的 USD 价格改成 SKUS 里的当前价格。返回改动过的 SKU。
+ * 只改价格，不动名称 / 描述 / billingPeriod；Waffo 会生成新版本，
+ * 生产环境要接着 publishProducts() 才生效。
+ * 注意：listProducts 走 GraphQL 拿到的是数组，SDK 的 update 返回的是
+ * 按币种为键的对象，两种形状都要认。 */
+function usdAmountFrom(prices) {
+  if (!prices) return null;
+  if (Array.isArray(prices)) {
+    const row = prices.find(p => p.currency === CURRENCY);
+    return row && row.priceInfo ? row.priceInfo.amount : null;
+  }
+  const row = prices[CURRENCY];
+  return row && row.amount ? row.amount : null;
+}
+
+async function updateProductPrices(ids) {
+  const c = getClient();
+  const changed = [];
+  for (const [sku, spec] of Object.entries(SKUS)) {
+    const id = ids[sku] || productIdFor(sku);
+    if (!id) continue;
+    const params = {
+      id,
+      prices: { [CURRENCY]: { amount: minorToDisplay(spec.amountMinor), taxCategory: taxCategoryFor(sku) } }
+    };
+    const result = spec.kind === 'onetime'
+      ? await c.onetimeProducts.update(params)
+      : await c.subscriptionProducts.update(params);
+    changed.push({
+      sku,
+      amount: usdAmountFrom(result.product && result.product.prices) || minorToDisplay(spec.amountMinor),
+      warnings: result.warnings || []
+    });
+  }
+  return changed;
+}
+
 async function publishProducts(ids) {
   const c = getClient();
   const out = {};
@@ -337,6 +374,7 @@ module.exports = {
   cancelSubscription,
   listProducts,
   ensureProducts,
+  updateProductPrices,
   publishProducts,
   registerWebhook
 };

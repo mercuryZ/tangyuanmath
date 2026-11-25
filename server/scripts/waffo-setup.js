@@ -3,6 +3,7 @@
  *
  *   node scripts/waffo-setup.js products          创建缺失的商品，打印商品 ID
  *   node scripts/waffo-setup.js list              列出店铺现有商品
+ *   node scripts/waffo-setup.js prices            把已有商品的价格改成代码里的当前定价
  *   node scripts/waffo-setup.js webhook <URL>     注册 webhook（test/prod 由环境变量决定）
  *   node scripts/waffo-setup.js publish           把已配置的商品发布到生产环境
  *
@@ -33,7 +34,7 @@ function configuredIds() {
 async function main() {
   const cmd = process.argv[2] || 'help';
   if (cmd === 'help' || cmd === '--help' || cmd === '-h') {
-    console.log('用法：node scripts/waffo-setup.js [products|list|webhook <URL>|publish]');
+    console.log('用法：node scripts/waffo-setup.js [products|list|prices|webhook <URL>|publish]');
     return;
   }
   if (!waffo.isConfigured()) {
@@ -61,6 +62,21 @@ async function main() {
     for (const p of products.onetimeProducts || []) printProduct(null, p, 'onetime');
     console.log('订阅商品：');
     for (const p of products.subscriptionProducts || []) printProduct(null, p, 'subscription');
+    return;
+  }
+
+  if (cmd === 'prices') {
+    const changed = await waffo.updateProductPrices(configuredIds());
+    if (!changed.length) {
+      console.log('没有配置任何商品 ID，先跑 products 再设置 WAFFO_PRODUCT_* 环境变量。');
+      return;
+    }
+    console.log('已把商品价格改成代码里的当前定价（新版本）：');
+    for (const row of changed) {
+      console.log('  ' + row.sku.padEnd(20) + ' ' + row.amount.padStart(8) + ' ' + waffo.CURRENCY);
+      for (const w of row.warnings) console.warn('    警告：' + (w.message || JSON.stringify(w)));
+    }
+    console.log('\n生产环境还要跑一次 publish 才会生效：node scripts/waffo-setup.js publish');
     return;
   }
 

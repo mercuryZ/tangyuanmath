@@ -71,8 +71,8 @@ test('order.completed：一次性付款开通永久权益，重复事件不重�
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     const event = makeEvent('order.completed', order.order_no, order.sku, {
-      listPrice: { total: '149.00', subtotal: '149.00', taxAmount: '0' },
-      chargedAmount: '149.00'
+      listPrice: { total: '89.00', subtotal: '89.00', taxAmount: '0' },
+      chargedAmount: '89.00'
     });
 
     assert.strictEqual(process(f.db, event).status, 'processed');
@@ -179,9 +179,9 @@ test('refund.succeeded：只撤销该订单来源的权益', () => {
     ).run(f.familyId, f.userId, Date.now());
 
     process(f.db, makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } }));
+      { listPrice: { subtotal: '89.00', total: '89.00', taxAmount: '0' } }));
     const refunded = process(f.db, makeEvent('refund.succeeded', order.order_no, order.sku,
-      { refundedAmount: '149.00' }));
+      { refundedAmount: '89.00' }));
 
     assert.strictEqual(refunded.status, 'processed');
     assert.strictEqual(orderStore.getOrderByNo(f.db, order.order_no).status, 'refunded');
@@ -227,7 +227,7 @@ test('webhook 校验：店铺、环境、币种、SKU、金额不符时一律不
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     const base = () => makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } });
+      { listPrice: { subtotal: '89.00', total: '89.00', taxAmount: '0' } });
 
     const wrongStore = base(); wrongStore.storeId = 'STO_other';
     const wrongMode = base(); wrongMode.mode = 'prod';
@@ -507,7 +507,7 @@ test('webhook 路由：验签失败 401，验签成功开通权益', async () =>
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     const event = makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } });
+      { listPrice: { subtotal: '89.00', total: '89.00', taxAmount: '0' } });
     const body = JSON.stringify(event);
 
     let res = await fetch(ctx.base + '/api/payments/waffo/webhook', {
@@ -636,7 +636,7 @@ test('管理端标记退款：非管理员 403，管理员标记 paid 订单 →
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     process(f.db, makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } }));
+      { listPrice: { subtotal: '89.00', total: '89.00', taxAmount: '0' } }));
     f.db.prepare(
       `INSERT INTO entitlements (family_id, user_id, feature_key, source_type, source_id, starts_at, expires_at)
        VALUES (?,?, 'live_race', 'grant', 'support-2', ?, NULL)`
@@ -730,7 +730,7 @@ test('webhook refund.succeeded 只发一次确认邮件（重复事件不重复�
     process(f.db, makeEvent('subscription.activated', order.order_no, order.sku, { currentPeriodEnd: '2027-10-20' }));
 
     const event = makeEvent('refund.succeeded', order.order_no, order.sku,
-      { refundedAmount: '49.00', currentPeriodEnd: '2027-10-20' });
+      { refundedAmount: '29.00', currentPeriodEnd: '2027-10-20' });
     const body = JSON.stringify(event);
     const post = () => fetch(ctx.base + '/api/payments/waffo/webhook', {
       method: 'POST',
@@ -764,7 +764,7 @@ test('管理端先标记退款后，真实 webhook 到达不再重复发确认�
       familyId: f.familyId, userId: f.userId, sku: 'supporter_lifetime', mode: 'test'
     });
     process(f.db, makeEvent('order.completed', order.order_no, order.sku,
-      { listPrice: { subtotal: '149.00', total: '149.00', taxAmount: '0' } }));
+      { listPrice: { subtotal: '89.00', total: '89.00', taxAmount: '0' } }));
 
     const adminId = mkAdmin(f.db, Date.now() + 2);
     const token = mw.createSession(f.db, adminId);
@@ -777,7 +777,7 @@ test('管理端先标记退款后，真实 webhook 到达不再重复发确认�
 
     // 2) 补发的 webhook 才到达 → 事件被处理（新 event_id），但订单此前已退款，不再发信
     const event = makeEvent('refund.succeeded', order.order_no, order.sku,
-      { refundedAmount: '149.00', orderMerchantExternalId: order.order_no });
+      { refundedAmount: '89.00', orderMerchantExternalId: order.order_no });
     const res = await fetch(ctx.base + '/api/payments/waffo/webhook', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-waffo-signature': 'good' },
