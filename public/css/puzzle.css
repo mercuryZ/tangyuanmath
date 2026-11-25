@@ -10,8 +10,8 @@
 }
 .pz-form-title { font-weight: 900; color: var(--red-deep); font-size: 16px; margin: 0 0 14px; text-align: center; }
 .pz-fields { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: flex-end; justify-content: center; }
-.pz-field { display: flex; flex-direction: column; gap: 6px; }
-.pz-field label { font-weight: 800; font-size: 14px; color: var(--red-deep); }
+.pz-field { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pz-field label { font-weight: 800; font-size: 14px; color: var(--red-deep); text-align: center; }
 .pz-field input {
   width: 96px; padding: 10px 12px;
   border: 2px solid var(--red-light); border-radius: 12px;
