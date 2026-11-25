@@ -238,6 +238,7 @@ window.TM_I18N.zh = {
   'tips.s6.eg': '34 × 56：<br>尾 4×6 = 24 → 写 4 进 2<br>交叉 3×6 + 4×5 = 38，+2 = 40 → 写 0 进 4<br>头 3×5 = 15，+4 = 19 → <b>1904</b>',
 
   'acct.title': '家长中心',
+  'acct.authTitle': '登录或注册',
   'acct.backToPlay': '← 返回游戏',
   'acct.intro': '登录后可在多设备间同步学习数据。游戏本身无需账号即可完整使用。',
   'acct.tabLogin': '登录',

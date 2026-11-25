@@ -238,6 +238,7 @@ window.TM_I18N.en = {
   'tips.s6.eg': '34 × 56:<br>units 4×6 = 24 → write 4 carry 2<br>cross 3×6 + 4×5 = 38, +2 = 40 → write 0 carry 4<br>tens 3×5 = 15, +4 = 19 → <b>1904</b>',
 
   'acct.title': 'Parent Center',
+  'acct.authTitle': 'Sign in or create account',
   'acct.backToPlay': '← Back to game',
   'acct.intro': 'Sign in to sync learning data across devices. The game itself works fully without an account.',
   'acct.tabLogin': 'Sign in',
