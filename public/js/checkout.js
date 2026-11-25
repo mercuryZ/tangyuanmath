@@ -9,6 +9,7 @@
   var ZH = (document.documentElement.lang || 'en').toLowerCase().indexOf('zh') === 0;
   var STR = ZH ? {
     starting: '正在创建安全支付页面…',
+    retrying: '支付服务响应较慢，正在重试…',
     opening: '支付页面已在新标签页打开，请在那里完成付款。',
     popup: '支付页面未能自动打开，请点击这里继续：',
     success: '付款成功，会员已开通。感谢支持！',
@@ -25,6 +26,7 @@
     close: '知道了'
   } : {
     starting: 'Starting secure checkout…',
+    retrying: 'The payment service is responding slowly — retrying…',
     opening: 'Checkout opened in a new tab. Complete the payment there.',
     popup: 'The checkout tab could not open automatically. Continue here:',
     success: 'Payment received — your membership is active. Thank you!',
@@ -99,24 +101,36 @@
   }
 
   /* 502/503/504 与网络错误多半是瞬时故障（部署重启、支付方抖动）。
-   * 服务端 30 分钟内复用同一笔 pending 订单，重试不会产生重复订单。 */
+   * 挂持久磁盘的服务发版时 Render 先停旧实例再起新的，这几秒里只有 503——
+   * 多等几次就能跨过去。服务端 30 分钟内复用同一笔 pending 订单，
+   * 幂等键也保证不会开出两个结账会话，所以重试不会产生重复订单。
+   * payments_not_configured 是配置问题，重试没有意义。 */
   function isTransientFailure(r) {
     if (!r || r.ok) return false;
     if (r.code === 'network_error') return true;
+    if (r.code === 'payments_not_configured') return false;
     return r.status === 502 || r.status === 503 || r.status === 504;
   }
 
-  async function createOrder(sku, token) {
-    var r = await jsonFetch('POST', '/api/orders', { sku: sku }, token);
-    if (isTransientFailure(r)) {
-      await new Promise(function (resolve) { setTimeout(resolve, 1200); });
-      r = await jsonFetch('POST', '/api/orders', { sku: sku }, token);
+  /* 单次发版窗口通常十几秒；1.2 + 2.5 + 5 秒的退避足以跨过大多数重启。 */
+  var RETRY_DELAYS_MS = [1200, 2500, 5000];
+
+  async function fetchWithRetry(method, path, body, token) {
+    var r = await jsonFetch(method, path, body, token);
+    for (var i = 0; i < RETRY_DELAYS_MS.length && isTransientFailure(r); i++) {
+      showMessage(STR.retrying);
+      await new Promise(function (resolve) { setTimeout(resolve, RETRY_DELAYS_MS[i]); });
+      r = await jsonFetch(method, path, body, token);
     }
     return r;
   }
 
+  function createOrder(sku, token) {
+    return fetchWithRetry('POST', '/api/orders', { sku: sku }, token);
+  }
+
   async function csrfToken() {
-    var r = await jsonFetch('GET', '/api/csrf');
+    var r = await fetchWithRetry('GET', '/api/csrf');
     return r && r.ok && r.data ? r.data.csrfToken : null;
   }
 
@@ -137,9 +151,13 @@
     showMessage(STR.starting);
 
     try {
-      var me = await jsonFetch('GET', '/api/me');
+      /* 发版窗口的 503 不能当成「未登录」处理：那会把已登录的家长踢回登录页。 */
+      var me = await fetchWithRetry('GET', '/api/me');
       var data = me && me.ok ? me.data : null;
       if (!data || (!data.user && !data.child)) {
+        /* 只有服务端明确回「未登录」(401 not_logged_in) 才跳登录页；
+         * 部署窗口重试后仍失败的 503 直接提示，不能把已登录的家长踢回登录。 */
+        if (!me || me.code !== 'not_logged_in') { showMessage(STR.error); return; }
         var redirected = null;
         try { redirected = sessionStorage.getItem('tm_checkout_redirected'); } catch (e) { /* 忽略 */ }
         // 自动续购（?buy=）只跳转一次，避免登录失败时无限重定向；手动点击始终跳转。
