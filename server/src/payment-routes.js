@@ -57,7 +57,7 @@ function buildOrdersRouter(db, payments) {
     name: 'order-create'
   });
 
-  r.post('/', createLimit, mw.csrfProtect, async (req, res) => {
+  r.post('/', createLimit, mw.csrfProtect, mw.asyncHandler(async (req, res) => {
     const sku = String((req.body && req.body.sku) || '');
     const spec = waffo.SKUS[sku];
     if (!spec) return mw.fail(res, 400, 'invalid_sku', 'Unknown plan.');
@@ -122,11 +122,27 @@ function buildOrdersRouter(db, payments) {
         return mw.fail(res, 503, 'payments_not_configured',
           'Online checkout is not available yet. Please contact us to subscribe.');
       }
-      console.error('[waffo] checkout failed:', err && err.message ? err.message : err);
+      /* 日志要带 HTTP 状态与 Waffo 的 errors[]：SDK 只把概要放进 message，
+       * 真正原因（如商品 ID 无效、店铺不匹配）在 errors[].message 里，
+       * 只记 message 会让线上 502 无从排查。 */
+      const status = err && err.status;
+      console.error('[waffo] checkout failed: status=' + (status || '-') + ' ' +
+        (err && err.message ? err.message : err));
+      if (err && err.errors) {
+        for (const e of [].concat(err.errors)) {
+          console.error('[waffo]   ' + (e && e.layer ? '[' + e.layer + '] ' : '') + (e && e.message));
+        }
+      }
+      /* 4xx 是配置或参数问题（商品 ID / 店铺 / 买家邮箱），重试无用：
+       * 按「支付暂不可用、请联系我们」回，避免客户在坏配置上反复重试。 */
+      if (status >= 400 && status < 500) {
+        return mw.fail(res, 503, 'payments_not_configured',
+          'Online checkout is not available right now. Please contact us and we will sort it out.');
+      }
       return mw.fail(res, 502, 'payment_provider_error',
         'The payment provider could not start checkout. Please try again.');
     }
-  });
+  }));
 
   r.get('/', (req, res) => {
     mw.ok(res, { orders: orderStore.listFamilyOrders(db, req.familyId, 20) });
@@ -140,7 +156,7 @@ function buildOrdersRouter(db, payments) {
     keyFn: req => 'u' + (req.user ? req.user.id : req.ip),
     name: 'billing-portal'
   });
-  r.post('/portal', portalLimit, mw.csrfProtect, async (req, res) => {
+  r.post('/portal', portalLimit, mw.csrfProtect, mw.asyncHandler(async (req, res) => {
     if (!orderStore.hasAnyOrder(db, req.familyId)) {
       return mw.fail(res, 404, 'no_orders', 'There are no orders to manage yet.');
     }
@@ -159,7 +175,7 @@ function buildOrdersRouter(db, payments) {
       return mw.fail(res, 502, 'payment_provider_error',
         'The billing portal could not be opened. Please try again.');
     }
-  });
+  }));
 
   r.get('/:orderNo', (req, res) => {
     const order = orderStore.getOrderByNo(db, req.params.orderNo);
@@ -175,7 +191,7 @@ function buildOrdersRouter(db, payments) {
     return mw.ok(res, out);
   });
 
-  r.post('/:orderNo/cancel', mw.csrfProtect, async (req, res) => {
+  r.post('/:orderNo/cancel', mw.csrfProtect, mw.asyncHandler(async (req, res) => {
     const order = orderStore.getOrderByNo(db, req.params.orderNo);
     if (!order || order.family_id !== req.familyId) {
       return mw.fail(res, 404, 'not_found', 'Order not found.');
@@ -201,7 +217,7 @@ function buildOrdersRouter(db, payments) {
       return mw.fail(res, 502, 'payment_provider_error',
         'The subscription could not be cancelled. Please try again or contact us.');
     }
-  });
+  }));
 
   return r;
 }

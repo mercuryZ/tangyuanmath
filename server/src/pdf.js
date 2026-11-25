@@ -487,7 +487,7 @@ function buildPdfRouter(db) {
   r.get('/worksheet',
     mw.rateLimit({ windowMs: 10 * 60 * 1000, max: 20, keyFn: q => q.user && q.user.familyId, name: 'pdf' }),
     concurrencyGuard,
-    async (req, res) => {
+    mw.asyncHandler(async (req, res) => {
       let params;
       try {
         params = normalizeParams({ ...req.query, userLocale: req.user.locale });
@@ -515,7 +515,7 @@ function buildPdfRouter(db) {
         'Cache-Control': 'no-store' // 个性化响应不进公共缓存（DESIGN 9.2）
       });
       res.send(Buffer.from(out.bytes));
-    });
+    }));
 
   return r;
 }

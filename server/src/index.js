@@ -147,6 +147,14 @@ function createApp(db, opts) {
 
 /* 直接运行：初始化数据库并监听（同一 HTTP 服务同时承载 /api/race/ws 升级） */
 if (require.main === module) {
+  /* Node 15+ 默认把未处理的 Promise rejection 变成进程退出。Express 4 不会捕获
+   * async 处理器的 rejection，一个漏包的处理器就能让整站 502。所有路由已用
+   * mw.asyncHandler 包住；这里再兜一层，只记日志不退出（SQLite 是同步的，
+   * 事务失败不会留下半写状态）。 */
+  process.on('unhandledRejection', reason => {
+    console.error('[unhandledRejection]', reason && reason.stack ? reason.stack : reason);
+  });
+
   const db = initDb(config.dbFile);
   const app = createApp(db);
   const server = app.listen(config.port, () => {

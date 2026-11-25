@@ -91,8 +91,28 @@
       return { ok: false, code: 'network_error' };
     }
     var json = null;
-    try { json = await res.json(); } catch (e) { /* 非 JSON */ }
-    return json || { ok: false, code: 'bad_response', status: res.status };
+    try { json = await res.json(); } catch (e) { /* 非 JSON（边缘 502 的 HTML 响应体） */ }
+    var out = json || { ok: false, code: 'bad_response' };
+    // 统一带上 HTTP 状态码：边缘 502 只能靠状态码识别
+    if (out.status === undefined) out.status = res.status;
+    return out;
+  }
+
+  /* 502/503/504 与网络错误多半是瞬时故障（部署重启、支付方抖动）。
+   * 服务端 30 分钟内复用同一笔 pending 订单，重试不会产生重复订单。 */
+  function isTransientFailure(r) {
+    if (!r || r.ok) return false;
+    if (r.code === 'network_error') return true;
+    return r.status === 502 || r.status === 503 || r.status === 504;
+  }
+
+  async function createOrder(sku, token) {
+    var r = await jsonFetch('POST', '/api/orders', { sku: sku }, token);
+    if (isTransientFailure(r)) {
+      await new Promise(function (resolve) { setTimeout(resolve, 1200); });
+      r = await jsonFetch('POST', '/api/orders', { sku: sku }, token);
+    }
+    return r;
   }
 
   async function csrfToken() {
@@ -139,7 +159,7 @@
       var token = await csrfToken();
       if (!token) { showMessage(STR.error); return; }
 
-      var r = await jsonFetch('POST', '/api/orders', { sku: sku }, token);
+      var r = await createOrder(sku, token);
       if (!r.ok) {
         if (r.code === 'payments_not_configured') {
           showMessage(STR.unavailable, { href: 'mailto:hi@tangyuanmath.com?subject=Supporter%20Edition', text: 'hi@tangyuanmath.com' });

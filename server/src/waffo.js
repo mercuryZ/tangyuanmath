@@ -113,6 +113,17 @@ function status() {
 
 let client = null;
 
+/* 出站请求超时：Waffo 网关无响应时不要一直挂着——Node 的 fetch 默认没有超时，
+ * 请求会一直占着连接，最终被 CDN 判成 502/524。20 秒足够一次正常调用。 */
+const REQUEST_TIMEOUT_MS = 20000;
+
+function fetchWithTimeout(url, init) {
+  const opts = Object.assign({}, init);
+  // 调用方自带信号时尊重它，不再叠加
+  if (!opts.signal) opts.signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  return fetch(url, opts);
+}
+
 function getClient() {
   if (client) return client;
   if (!isConfigured()) {
@@ -125,7 +136,8 @@ function getClient() {
     client = new SDK.WaffoPancake({
       merchantId: config.waffoMerchantId,
       privateKey: config.waffoPrivateKey,
-      environment: config.waffoEnvironment
+      environment: config.waffoEnvironment,
+      fetch: fetchWithTimeout
     });
   } catch (e) {
     // 私钥格式错误等；不要把密钥内容带进日志
@@ -166,7 +178,7 @@ async function createCheckout(order, opts) {
       'No Waffo product ID is configured for ' + order.sku + '.');
   }
   const c = getClient();
-  const result = await c.checkout.authenticated.create({
+  const params = {
     productId,
     currency: CURRENCY,
     buyerIdentity: buyerIdentityFor(order.family_id),
@@ -180,12 +192,29 @@ async function createCheckout(order, opts) {
       familyId: String(order.family_id)
     },
     orderMerchantExternalId: order.order_no
-  }, { idempotencyKey: 'tm-checkout-' + order.order_no });
-  return {
-    checkoutUrl: result.checkoutUrl,
-    sessionId: result.sessionId,
-    expiresAt: result.expiresAt
   };
+  const requestOpts = { idempotencyKey: 'tm-checkout-' + order.order_no };
+  /* 幂等键让重试返回同一个会话而不是开两个，所以网络类失败可以安全重试一次。
+   * 4xx 是参数/配置问题，重试没有意义。 */
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const result = await c.checkout.authenticated.create(params, requestOpts);
+      return {
+        checkoutUrl: result.checkoutUrl,
+        sessionId: result.sessionId,
+        expiresAt: result.expiresAt
+      };
+    } catch (err) {
+      lastErr = err;
+      const status = err && err.status;
+      const transient = err && (err.name === 'TimeoutError' || err.name === 'AbortError' ||
+        err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND' ||
+        status === 429 || status >= 500);
+      if (!transient) throw err;
+    }
+  }
+  throw lastErr;
 }
 
 /* 验签并解析 webhook。失败统一抛 invalid_signature，路由返回 401。 */

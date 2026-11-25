@@ -13,6 +13,15 @@ const { hashToken } = require('./util');
 function ok(res, data) { res.json({ ok: true, data }); }
 function fail(res, status, code, msg) { res.status(status).json({ ok: false, code, msg }); }
 
+/* Express 4 不会捕获 async 处理器的 rejection：裸 async 处理器里任何同步抛错
+ * （如 SQLITE_BUSY）都会变成 unhandledRejection -> 进程退出 / 请求挂死到 CDN 502。
+ * 所有 async 路由都必须用它包一层。 */
+function asyncHandler(fn) {
+  return function (req, res, next) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
+
 /* ---------- 安全响应头 + 严格 CSP（DESIGN 10.2） ----------
  * Live Race 需要 WebSocket：connect-src 除 'self' 外只放行「本请求的同源 ws/wss」，
  * 不用 `ws:` / `wss:` 通配——那等于允许脚本连任意主机。 */
@@ -227,7 +236,7 @@ function parseCookieHeader(header) {
 }
 
 module.exports = {
-  ok, fail,
+  ok, fail, asyncHandler,
   securityHeaders, rateLimit,
   issueCsrfCookie, csrfProtect,
   sessionCookieName, createSession, createChildSession, resolveSession,
