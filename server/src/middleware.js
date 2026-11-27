@@ -35,6 +35,8 @@ function securityHeaders(req, res, next) {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'no-referrer',
+    /* 全站只有 HTTPS 入口（www/http 都 301 到 apex），强制浏览器后续走 TLS */
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
     'Content-Security-Policy':
       "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
       `connect-src ${connectSrc}; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'`,

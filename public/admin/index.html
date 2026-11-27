@@ -9,7 +9,7 @@
 <link rel="icon" href="../img/logo_small.png">
 <link rel="stylesheet" href="../css/play.css?v=20261125a">
 <link rel="stylesheet" href="../css/account.css?v=20261125a">
-<link rel="stylesheet" href="../css/admin.css?v=20261125a">
+<link rel="stylesheet" href="../css/admin.css?v=20261127a">
 </head>
 <body>
 
@@ -63,7 +63,7 @@
       <form id="grantForm" class="acct-form" novalidate>
         <div class="s-row">
           <input class="acct-input" id="grantEmail" type="email" autocomplete="off"
-                 placeholder="parent@example.com" data-i18n-placeholder="admin.emailPlaceholder" style="flex:1;min-width:200px">
+                 placeholder="parent@example.com" data-i18n-placeholder="admin.emailPlaceholder">
           <select class="acct-select" id="grantSku">
             <option value="supporter_trial7" data-i18n="admin.skuTrial">3 days</option>
             <option value="supporter_monthly" data-i18n="admin.skuMonthly">1 month</option>
@@ -86,12 +86,12 @@
             <option value="supporter_yearly" data-i18n="admin.skuYearly">12 months</option>
             <option value="supporter_lifetime" data-i18n="admin.skuLifetime">Lifetime</option>
           </select>
-          <input class="acct-input" id="codeCount" type="number" min="1" max="100" value="10" style="width:80px" aria-label="Count">
+          <input class="acct-input" id="codeCount" type="number" min="1" max="100" value="10" aria-label="Count">
           <input class="acct-input" id="codeExpires" type="number" min="1" placeholder="Days valid (optional)"
                  data-i18n-placeholder="admin.daysValid" data-i18n-aria-label="admin.daysValid"
-                 aria-label="Days valid (optional)" style="width:180px">
+                 aria-label="Days valid (optional)">
           <input class="acct-input" id="codeNote" type="text" maxlength="200" autocomplete="off"
-                 placeholder="note" data-i18n-placeholder="admin.notePlaceholder" style="flex:1;min-width:140px">
+                 placeholder="note" data-i18n-placeholder="admin.notePlaceholder">
           <button class="s-btn" id="codeBtn" type="submit" data-i18n="admin.generate">Generate</button>
         </div>
         <p class="hint" data-i18n="admin.codeFormHint">Count 1–100 · days valid is optional · single-use codes, shown only once.</p>

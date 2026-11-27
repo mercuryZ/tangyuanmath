@@ -37,3 +37,9 @@
 .codes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .codes-head h3 { margin-bottom: 0; }
 .codes-head .s-btn { flex: 0 0 auto; }
+
+/* CSP 禁内联 style：表单控件尺寸集中在这里(原内联在 admin/index.html) */
+#grantEmail { flex: 1; min-width: 200px; }
+#codeCount { width: 80px; }
+#codeExpires { width: 180px; }
+#codeNote { flex: 1; min-width: 140px; }

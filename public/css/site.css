@@ -1001,7 +1001,7 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 }
 .lesson-done-undo:hover { color: var(--red-deep); }
 
-/* 学完了庆祝动画（happy.png 弹跳出场） */
+/* 学完了庆祝动画（happy.webp 弹跳出场） */
 .happy-overlay {
   position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center;
   background: rgba(255, 247, 242, .88); cursor: pointer;
@@ -1061,3 +1061,7 @@ a.learn-card.done { border-color: var(--pink); background: linear-gradient(180de
 }
 .tt-facts tr:last-child td { border-bottom: none; }
 .tt-facts td b { color: var(--red-deep); font-size: 18px; }
+
+/* ---------- 练习页（/en/practice/、/zh/practice/） ---------- */
+/* 课程预设提示条：CSP 禁内联 style，居中由这里控制 */
+#presetNote { text-align: center; }
