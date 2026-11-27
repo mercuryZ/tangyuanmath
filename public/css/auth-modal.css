@@ -213,3 +213,30 @@ body.tm-auth-lock { overflow: hidden; }
   .tm-auth-overlay, .tm-auth-panel { animation: none; }
   .tm-auth-submit, .tm-auth-google, .tm-auth-input { transition: none; }
 }
+
+/* ---------- 页头入口：登录后「家长中心 / Account」变成用户头像 ----------
+ * 子女会话用站内 emoji 头像；家长优先 Google 照片，没有则回退邮箱首字母徽章。 */
+.tm-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%; flex: none;
+  overflow: hidden;
+}
+.tm-avatar-letter {
+  font-size: 13px; font-weight: 800; line-height: 1; color: #fff;
+  background: linear-gradient(180deg, var(--red, #E05050), var(--red-deep, #D93B47));
+  text-transform: uppercase; user-select: none;
+}
+.tm-avatar-emoji {
+  font-size: 17px; line-height: 1;
+  background: var(--red-light, #FFE9E6);
+  user-select: none;
+}
+img.tm-avatar { object-fit: cover; display: block; }
+/* 头像外圈呼应导航胶囊的粉描边 */
+.site-nav .tm-avatar, #btnAccount .tm-avatar {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--pink, #F7B8BD);
+}
+/* 头像态的入口收成小圆钮（覆盖导航链接 / chip-btn 的横向 padding） */
+.site-nav a.nav-auth-avatar { padding: 4px; }
+.chip-btn.nav-auth-avatar { padding: 4px; box-shadow: none; }
+.chip-btn.nav-auth-avatar:hover { background: var(--red-light, #FFE9E6); }

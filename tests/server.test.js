@@ -469,6 +469,36 @@ test('Google：同邮箱已验证账号自动关联；未验证账号拒绝（�
   assert.strictEqual(rejected.error, 'email_unverified_exists');
 });
 
+test('Google 头像：建号存 picture、再次登录刷新、缺失/非 https 不动旧值；/api/me 下发', async () => {
+  const { createSession } = require('../server/src/middleware');
+  resetJar();
+
+  // 全新 Google 邮箱，带头像建号
+  const pic1 = 'https://lh3.googleusercontent.com/a/acg-111';
+  const created = resolveGoogleUser(dbRef, { sub: 'g-sub-pic', email: 'Pic@Example.com', picture: pic1 });
+  assert.strictEqual(created.user.picture, pic1, '建号时存头像');
+
+  // 会话 + /api/me 下发 picture
+  jar.set('tm_session', createSession(dbRef, created.user.id));
+  const me1 = await req('GET', '/api/me');
+  assert.strictEqual(me1.json.data.user.picture, pic1, '/api/me 下发头像');
+
+  // 再次登录（换了头像）→ 刷新
+  const pic2 = 'https://lh3.googleusercontent.com/a/acg-222';
+  const again = resolveGoogleUser(dbRef, { sub: 'g-sub-pic', email: 'pic@example.com', picture: pic2 });
+  assert.strictEqual(again.user.picture, pic2, '再次登录刷新头像');
+
+  // Google 未返回头像 → 保留旧值
+  const noPic = resolveGoogleUser(dbRef, { sub: 'g-sub-pic', email: 'pic@example.com' });
+  assert.strictEqual(noPic.user.picture, pic2, '缺失时保留旧值');
+
+  // 非 https 头像 → 拒绝落库（CSP 只放行 Google 图片域，防注入任意外链图）
+  const evil = resolveGoogleUser(dbRef, { sub: 'g-sub-pic', email: 'pic@example.com', picture: 'http://evil.example.com/a.png' });
+  assert.strictEqual(evil.user.picture, pic2, '非 https 不落库');
+
+  resetJar();
+});
+
 test('Google：未配置时访问入口重定向到带错误码的 account 页', async () => {
   const r = await fetch(base + '/api/auth/google', { redirect: 'manual' });
   assert.strictEqual(r.status, 302);

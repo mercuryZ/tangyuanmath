@@ -53,6 +53,7 @@ function publicUser(u) {
     createdAt: u.createdAt,
     familyId: u.familyId,
     familyRole: u.familyRole,
+    picture: u.picture || null,
     isAdmin: config.adminEmails.has(String(u.email || '').toLowerCase())
   };
 }
@@ -97,24 +98,31 @@ function googleEnabled() {
 function resolveGoogleUser(db, profile, now) {
   now = now || Date.now();
   const email = U.normalizeEmail(profile.email);
+  const picture = typeof profile.picture === 'string' && /^https:\/\//.test(profile.picture)
+    ? profile.picture : null;
   const byGoogle = db.prepare('SELECT * FROM users WHERE google_id = ?').get(profile.sub);
   if (byGoogle) {
     if (!byGoogle.family_id) family.ensureFamilyForUser(db, byGoogle.id, now);
+    // 头像会变（换照片 / 撤销托管）：每次登录都刷新；Google 不给时不清空旧值
+    if (picture && picture !== byGoogle.picture) {
+      db.prepare('UPDATE users SET picture = ? WHERE id = ?').run(picture, byGoogle.id);
+    }
     return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(byGoogle.id) };
   }
 
   const byEmail = db.prepare('SELECT * FROM users WHERE email_normalized = ?').get(email);
   if (byEmail) {
     if (!byEmail.email_verified_at) return { error: 'email_unverified_exists' };
-    db.prepare('UPDATE users SET google_id = ? WHERE id = ?').run(profile.sub, byEmail.id);
+    db.prepare('UPDATE users SET google_id = ?' + (picture ? ', picture = ?' : '') + ' WHERE id = ?')
+      .run(...(picture ? [profile.sub, picture] : [profile.sub]), byEmail.id);
     if (!byEmail.family_id) family.ensureFamilyForUser(db, byEmail.id, now);
     return { user: db.prepare('SELECT * FROM users WHERE id = ?').get(byEmail.id) };
   }
   const tx = db.transaction(() => {
     const info = db.prepare(
-      `INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at, google_id)
-       VALUES (?,?,?,?,?,?,?)`
-    ).run(email, '', now, profile.locale === 'zh' ? 'zh' : 'en', 'UTC', now, profile.sub);
+      `INSERT INTO users (email_normalized, password_hash, email_verified_at, locale, timezone, created_at, google_id, picture)
+       VALUES (?,?,?,?,?,?,?,?)`
+    ).run(email, '', now, profile.locale === 'zh' ? 'zh' : 'en', 'UTC', now, profile.sub, picture);
     family.initFamilyForNewUser(db, info.lastInsertRowid, now);
     return info.lastInsertRowid;
   });
@@ -370,7 +378,7 @@ function buildAuthRouter(db) {
         client_id: config.googleClientId,
         redirect_uri: oauthRedirectUri(req),
         response_type: 'code',
-        scope: 'openid email', // 最小化：只要验证过的邮箱与用户 ID
+        scope: 'openid email profile', // 最小化：验证过的邮箱、用户 ID 与头像（页头展示用）
         state: state,
         access_type: 'online',
         prompt: 'select_account'
@@ -425,7 +433,9 @@ function buildAuthRouter(db) {
 
       const localeCookie = req.cookies ? req.cookies.tm_lang : null;
       const resolved = resolveGoogleUser(db, {
-        sub: payload.sub, email: payload.email, locale: localeCookie === 'zh' ? 'zh' : 'en'
+        sub: payload.sub, email: payload.email,
+        picture: typeof payload.picture === 'string' ? payload.picture : '',
+        locale: localeCookie === 'zh' ? 'zh' : 'en'
       });
       if (resolved.error) return failRedirect(resolved.error);
 

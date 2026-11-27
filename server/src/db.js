@@ -441,6 +441,13 @@ const MIGRATIONS = [
     version: 9,
     name: 'redeem-code-encrypted',
     sql: `ALTER TABLE redeem_codes ADD COLUMN code_enc TEXT;`
+  },
+  {
+    /* 页头头像：Google 登录时经 profile 权限拿到头像 URL（lh3.googleusercontent.com）。
+     * 纯密码账号保持 NULL，前端回退为邮箱首字母徽章。 */
+    version: 10,
+    name: 'user-picture',
+    sql: `ALTER TABLE users ADD COLUMN picture TEXT;`
   }
 ];
 

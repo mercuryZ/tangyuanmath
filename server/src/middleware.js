@@ -38,7 +38,9 @@ function securityHeaders(req, res, next) {
     /* 全站只有 HTTPS 入口（www/http 都 301 到 apex），强制浏览器后续走 TLS */
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
     'Content-Security-Policy':
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
+      "default-src 'self'; script-src 'self'; style-src 'self'; " +
+      /* 页头头像引用 Google 的图片 CDN（登录时经 profile 权限取得） */
+      "img-src 'self' data: https://lh3.googleusercontent.com; " +
       `connect-src ${connectSrc}; font-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'`,
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
   });
@@ -121,6 +123,7 @@ function resolveSession(db, token) {
     `SELECT s.token_hash, s.expires_at,
             u.id AS user_id, u.email_normalized, u.email_verified_at,
             u.locale, u.timezone, u.created_at, u.family_id AS user_family_id, u.family_role,
+            u.picture,
             c.id AS child_id, c.family_id AS child_family_id, c.nickname, c.avatar_key, c.username
      FROM sessions s
      LEFT JOIN users u ON u.id = s.user_id
@@ -141,7 +144,8 @@ function resolveSession(db, token) {
         timezone: row.timezone,
         createdAt: row.created_at,
         familyId: row.user_family_id,
-        familyRole: row.family_role
+        familyRole: row.family_role,
+        picture: row.picture || null
       }
     };
   }

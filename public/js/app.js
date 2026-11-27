@@ -585,38 +585,17 @@
     if (global.TMAPI && global.TMAPI.refresh) {
       global.TMAPI.refresh().then(function () {
         refreshHome();
-        var btn = $('btnAccount');
-        var st = global.TMAPI.state;
-        if (st.child) {
-          // 子女会话：按钮显示本人昵称
-          btn.textContent = st.child.nickname;
-          btn.setAttribute('aria-pressed', 'true');
-        } else if (st.user) {
-          // 家长会话：显示“账号”，避免与孩子的身份混淆
-          btn.textContent = t('nav.account');
-          btn.setAttribute('aria-pressed', 'true');
-        }
-        /* 未登录时按钮文案由 auth-modal 负责（显示「登录」）；这里同步一次状态，
-         * 避免上面的昵称 / 账号文案与弹框里的登录态判断不一致 */
-        if (global.TMAuthModal && global.TMAuthModal.setSignedIn) {
-          global.TMAuthModal.setSignedIn(!!(st.user || st.child));
+        /* 按钮内容由 auth-modal 统一渲染：未登录显示「登录」，已登录显示用户头像 */
+        if (global.TMAuthModal && global.TMAuthModal.setIdentity) {
+          global.TMAuthModal.setIdentity(global.TMAPI.state);
         }
       });
     }
 
-    /* 弹框里登录成功后刷新游戏内状态（会员 / 档案 / 错题本） */
+    /* 弹框里登录成功后刷新游戏内状态（会员 / 档案 / 错题本）；
+     * 页头头像由 auth-modal 的 signedIn() 就地更新，这里只管游戏内数据 */
     document.addEventListener('tm:authchange', function () {
       refreshHome();
-      var btn = $('btnAccount');
-      var st = global.TMAPI && global.TMAPI.state;
-      if (!btn || !st) return;
-      if (st.child) {
-        btn.textContent = st.child.nickname;
-        btn.setAttribute('aria-pressed', 'true');
-      } else if (st.user) {
-        btn.textContent = t('nav.account');
-        btn.setAttribute('aria-pressed', 'true');
-      }
     });
 
     // 弹窗关闭（含 Esc 与遮罩点击）

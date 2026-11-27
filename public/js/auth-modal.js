@@ -130,6 +130,7 @@
     mode: 'login',
     next: '',
     signedIn: false,
+    identity: null, // { kind: 'parent'|'child', email, picture, nickname, avatarKey }
     meKnown: false,
     mePromise: null,
     google: false,
@@ -147,6 +148,7 @@
       .then(function (json) {
         var d = (json && json.ok && json.data) || {};
         state.signedIn = !!(d.user || d.child);
+        state.identity = identityFrom(d);
         state.google = !!(d.authMethods && d.authMethods.google);
       })
       .catch(function () { state.signedIn = false; })
@@ -156,6 +158,26 @@
         return state.signedIn;
       });
     return state.mePromise;
+  }
+
+  /* /api/me 响应 → 头像身份（家长用 Google 头像或邮箱首字母，子女用站内 emoji） */
+  function identityFrom(d) {
+    d = d || {};
+    if (d.user) {
+      return {
+        kind: 'parent',
+        email: typeof d.user.email === 'string' ? d.user.email : '',
+        picture: typeof d.user.picture === 'string' ? d.user.picture : ''
+      };
+    }
+    if (d.child) {
+      return {
+        kind: 'child',
+        nickname: typeof d.child.nickname === 'string' ? d.child.nickname : '',
+        avatarKey: typeof d.child.avatarKey === 'string' ? d.child.avatarKey : ''
+      };
+    }
+    return null;
   }
 
   /* ---------- 小工具 ---------- */
@@ -484,6 +506,8 @@
   function signedIn(user, child) {
     state.signedIn = true;
     state.meKnown = true;
+    if (user) state.identity = { kind: 'parent', email: user.email || '', picture: user.picture || '' };
+    else if (child) state.identity = { kind: 'child', nickname: child.nickname || '', avatarKey: child.avatarKey || '' };
     applyAuthLabels();
     document.dispatchEvent(new CustomEvent('tm:authchange', {
       detail: { user: user || null, child: child || null }
@@ -544,28 +568,83 @@
     return value;
   }
 
-  /* ---------- 页头：未登录时把「家长中心」显示成「登录」 ---------- */
+  /* ---------- 页头入口 ----------
+   * 未登录：「家长中心」显示成「登录」描边胶囊，点击弹登录框；
+   * 已登录：入口变成用户头像（子女用站内 emoji，家长用 Google 头像，
+   * 没有照片则回退为邮箱首字母徽章），点击照常进家长中心。 */
   var ORIG_ATTR = 'data-tm-auth-orig';
+  var AVATAR_EMOJI = {
+    tangyuan: '🍡', star: '⭐️', heart: '❤️',
+    flower: '🌸', moon: '🌙', sun: '☀️'
+  };
   function accountNavLinks() {
     return document.querySelectorAll('.site-nav a[href^="/account/"], #btnAccount');
+  }
+  function avatarEmoji(key) {
+    return AVATAR_EMOJI[key] || AVATAR_EMOJI.tangyuan;
+  }
+  function avatarNode() {
+    var id = state.identity;
+    var node = document.createElement('span');
+    node.className = 'tm-avatar';
+    node.setAttribute('aria-hidden', 'true');
+    if (id && id.kind === 'child') {
+      node.classList.add('tm-avatar-emoji');
+      node.textContent = avatarEmoji(id.avatarKey);
+      return node;
+    }
+    if (id && id.picture) {
+      var img = document.createElement('img');
+      img.className = 'tm-avatar tm-avatar-img';
+      img.src = id.picture;
+      img.alt = '';
+      img.loading = 'lazy';
+      return img;
+    }
+    node.classList.add('tm-avatar-letter');
+    node.textContent = ((id && id.email) || '?').trim().charAt(0).toUpperCase() || '?';
+    return node;
   }
   function applyAuthLabels() {
     Array.prototype.forEach.call(accountNavLinks(), function (a) {
       if (!a.hasAttribute(ORIG_ATTR)) a.setAttribute(ORIG_ATTR, a.textContent.trim());
-      if (state.signedIn) {
-        a.textContent = a.getAttribute(ORIG_ATTR);
-        a.classList.remove('nav-auth-link');
-        a.removeAttribute('aria-haspopup');
-      } else {
+      if (!state.signedIn) {
         a.textContent = t('signedInLabel');
         a.classList.add('nav-auth-link');
+        a.classList.remove('nav-auth-avatar');
         a.setAttribute('aria-haspopup', 'dialog');
+        a.removeAttribute('aria-pressed');
+        return;
       }
+      if (!state.identity) { // 登录了但身份未知：保守地恢复原始文案
+        a.textContent = a.getAttribute(ORIG_ATTR);
+        a.classList.remove('nav-auth-link', 'nav-auth-avatar');
+        a.removeAttribute('aria-haspopup');
+        return;
+      }
+      var who = state.identity.kind === 'child' ? state.identity.nickname : state.identity.email;
+      a.textContent = '';
+      a.appendChild(avatarNode());
+      a.classList.add('nav-auth-avatar');
+      a.classList.remove('nav-auth-link');
+      a.removeAttribute('aria-haspopup');
+      a.setAttribute('aria-label', a.getAttribute(ORIG_ATTR) + (who ? ' — ' + who : ''));
+      if (a.tagName === 'BUTTON') a.setAttribute('aria-pressed', 'true'); // play 页 chip-btn 的登录态样式
     });
   }
 
   function setSignedIn(value) {
     state.signedIn = !!value;
+    if (!value) state.identity = null;
+    state.meKnown = true;
+    applyAuthLabels();
+  }
+
+  /* play 应用用：把 TMAPI.refresh() 拿到的最新身份推进来，避免重复请求 /api/me */
+  function setIdentity(st) {
+    st = st || {};
+    state.signedIn = !!(st.user || st.child);
+    state.identity = identityFrom(st);
     state.meKnown = true;
     applyAuthLabels();
   }
@@ -623,6 +702,7 @@
     close: close,
     isSignedIn: function () { return state.signedIn; },
     setSignedIn: setSignedIn,
+    setIdentity: setIdentity,
     refresh: function () { state.meKnown = false; return ensureMe().then(applyAuthLabels); },
     /* play 应用用：未登录时打开弹框并返回 true，调用方据此跳过跳转 */
     openIfSignedOut: function () {
