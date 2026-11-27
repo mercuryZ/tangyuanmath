@@ -84,7 +84,11 @@ a:hover { color: var(--red-dark); }
   box-shadow: 0 3px 0 var(--red-dark);
 }
 .site-nav .play-cta:hover { background: linear-gradient(180deg, var(--red), var(--red-deep)); transform: translateY(-1px); }
-.site-nav .lang-switch { border: 2px solid var(--pink); background: #fff; }
+/* 语言按钮：地球图标（语言无关，之后加新语言时把这个链接升级成下拉即可）。
+ * 不加框：沿用导航链接的透明边框与悬停底色；桌面只显示图标，
+ * .lang-name（目标语言名）留给移动抽屉用，见下方 @media。 */
+.site-nav .lang-switch .ico { width: 22px; height: 22px; }
+.site-nav .lang-switch .lang-name { display: none; }
 
 /* Learn 下拉菜单：悬停/键盘聚焦展开，点击触发词仍直达课程页。
  * 面板紧贴触发词下缘（top:100%），无 hover 死区；子项沿用导航链接的胶囊样式 */
@@ -147,6 +151,8 @@ a:hover { color: var(--red-dark); }
   .nav-drawer[open] > .nav-links { display: flex; }
   .nav-drawer .nav-links a { padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.25; }
   .nav-drawer .nav-links .lang-switch { align-self: flex-start; margin-top: 4px; }
+  /* 抽屉里是纵向链接列表，纯图标不好认，恢复「地球 + 目标语言名」文字胶囊 */
+  .nav-drawer .nav-links .lang-switch .lang-name { display: inline; }
 
   /* 窄屏抽屉里下拉面板常显：改成缩进子列表，左侧细线当层级参考 */
   .nav-sub { display: flex; flex-direction: column; }
